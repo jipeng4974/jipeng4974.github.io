@@ -186,7 +186,7 @@ $\nabla\ell_{|x^{(d)}}$<sup id="fnref:4"><a href="#fn:4" class="footnote-ref" ro
 和
 $J_{f^{(d)}|x}$<sup id="fnref:5"><a href="#fn:5" class="footnote-ref" role="doc-noteref">5</a></sup>
 乘积。</p>
-<p>而我们在训练过程中实际关心的另一个梯度$\nabla\ell_{|w_d}$是$\nabla\ell_{{|x}^(d)}$和$J_{f^{(d)}|w}$<sup id="fnref:6"><a href="#fn:6" class="footnote-ref" role="doc-noteref">6</a></sup>乘积。</p>
+<p>而我们在训练过程中实际关心的另一个梯度$\nabla\ell_{|w_d}$是$\nabla\ell_{|x^{(d)}}$和$J_{f^{(d)}|w}$<sup id="fnref:6"><a href="#fn:6" class="footnote-ref" role="doc-noteref">6</a></sup>乘积。</p>
 <p>深度学习训练框架主要处理的就是隐藏反向传播梯度计算的复杂度，即提供自动求导/计算求导能力，该技术在深度学习之前也有广泛应用，详见AutoGrad [Baydin et al., 2015]<sup id="fnref:7"><a href="#fn:7" class="footnote-ref" role="doc-noteref">7</a></sup>。</p>
 <p>显然反向传播的矩阵计算量两倍于前馈推理（每层多了一次权重的反向传播）。反向传播的内存需求也远大于前馈推理，因为每一层的$x^{(d)}$都要保留在内存中，而非推理则不需要保留，只要留着最新的。解决内存占用过高的技术包括：reversible layers[Gomez et al., 2017]<sup id="fnref:8"><a href="#fn:8" class="footnote-ref" role="doc-noteref">8</a></sup>和checkpointing[Chen et al., 2016]<sup id="fnref:9"><a href="#fn:9" class="footnote-ref" role="doc-noteref">9</a></sup>。</p>
 <p>深度模型的一个问题是梯度消失（见[Glorot and Bengio, 2010]<sup id="fnref:10"><a href="#fn:10" class="footnote-ref" role="doc-noteref">10</a></sup>），即经过很多次反向传播后，数值变得太大或太小。常规应对做法是gradient norm clipping[Pascanu et al., 2013]<sup id="fnref:11"><a href="#fn:11" class="footnote-ref" role="doc-noteref">11</a></sup>。</p>
