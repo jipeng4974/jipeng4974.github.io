@@ -12,9 +12,10 @@
     {{ if .IsHome }}
       {{ $PageContext = .Site }}
     {{ end }}
-    {{ $paginator := .Paginate (where $PageContext.RegularPages "Type" $contentTypeName) }}
+    {{ $pages := where $PageContext.RegularPages "Type" $contentTypeName }}
+    {{ $paginator := .Paginate ($pages.ByDate.Reverse) }}
 
-    {{ range $paginator.Pages.ByTitle.Reverse }}
+    {{ range $paginator.Pages }}
       <div class="post on-list">
         <h1 class="post-title">
           <a href="{{ .Permalink }}">{{ .Title | markdownify }}</a>
