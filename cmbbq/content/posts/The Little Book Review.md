@@ -166,8 +166,8 @@ $$Y = att(K,Q,V) = \underbrace{softargmax(\frac{QK^T}{\frac{1}{\sqrt{D^{QK}}}})}
 
 [^1]: R. Sennrich, B. Haddow, and A. Birch. Neural Machine Translation of Rare Words with Subword Units. CoRR, abs/1508.07909, 2015. [[pdf]](https://arxiv.org/pdf/1508.07909).
 [^2]: D. Kingma and J. Ba. Adam: A Method for Stochastic Optimization. CoRR, abs/1412.6980, 2014. [[pdf]](https://arxiv.org/pdf/1412.6980).
-[^3]: $\nabla\ell_{{|x}^(d-1)}$即$f^{d-1}$的变量$x^{d-1}$对应的损失函数梯度。
-[^4]: $\nabla\ell_{{|x}^(d-1)}$即$f^{d}$的变量$x^{d}$对应的损失函数梯度。
+[^3]: $\nabla\ell_{|x^(d-1)}$即$f^{d-1}$的变量$x^{d-1}$对应的损失函数梯度。
+[^4]: $\nabla\ell_{|x^(d-1)}$即$f^{d}$的变量$x^{d}$对应的损失函数梯度。
 [^5]: $J_{f^{(d)}|x}$即第d个layer函数$f^{(d)}$相对变量x的Jacobian，雅可比矩阵，即函数的一阶偏导数以一定方式排列成的矩阵。
 [^6]: $J_{f^{(d)}|w}$即第d个layer函数$f^{(d)}$相对权重w的Jacobian。
 [^7]: A. Baydin, B. Pearlmutter, A. Radul, and J. Siskind. Automatic differentiation in machine learning: a survey. CoRR, abs/1502.05767, 2015. [[pdf]](https://arxiv.org/pdf/1502.05767).
