@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>se on Structure over Unstructured Realities</title>
+    <link>https://jipeng4974.github.io/tags/se/</link>
+    <description>Recent content in se on Structure over Unstructured Realities</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 03 Dec 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/tags/se/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Idiomatic Practices in C&#43;&#43; Systems Engineering</title>
+      <link>https://jipeng4974.github.io/posts/engineering-practices/</link>
+      <pubDate>Tue, 03 Dec 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://jipeng4974.github.io/posts/engineering-practices/</guid>
+      <description>基于真实需求，创造新颖的计算形态。 若一个系统不存在新颖性，则不必为审美或宗教原因重复造轮。 应认识到，绝大多数系统在商业上几乎没有价值，本就不应该存在。自然不应该向本就不该存在的系统投入稀缺的工程人力。 用最小技术集构建当前问题的直接解。 如果已有技术修修补补后只能勉强解决问题，存在不可克服的缺陷，则考虑研发新系统作为直接解。 不为未来的不确定需求破坏当前方案的简洁性。 管理复杂度，提升可理解性和可维护性。 核心代码fit in人脑短期记忆的解决方案是技术资产，反之则是技术债。 若核心代码复杂度高到无法fit in单人短期记忆，则将其合理切分成多个模块，交由多人维护。 避免引入过多的第三方库，规避C++ dependency hell。 避免解释型注释，让代码自解释。 如果某一行代码做了什么需要注释，那么说明它还可以进行更好的重构。 这种注释就像todo标志，表明有空就应该把它重构一下，提升代码质量的同时顺便去除注释。 剔除这类注释，可以避免日后迭代中，注释逐渐和代码对不上，对读者产生灾难性的误导。 尽量阐释为何这么做(WHY)，而不注解做了什么(WHAT)。 比较复杂的场景，可以用大段文字整体介绍设计思路。 这段文字可以放在代码最前面醒目位置，方便随着版本更新也进行相应更新。不必写额外的文档，或Readme，因为外置的文档和代码之间的映射也是脆弱、难以长期维护的。 兼顾人体工学与性能工程，在不同场合做不同的取舍： nonexpert-transparent：让大多数代码逻辑足够简单易懂、简洁直接，以至于任何背景的研发都能不借助文档、注释轻松读懂代码。 expert-friendly：与此同时，代码库中性能攸关部分，必须能允许专家施加任意强度的优化。任何人体工学驱动的抽象都不能影响到性能工程的自由度。 使每个编译单元内自带文档、单测和构建指令 编译单元(.cc和它包含的头文件)承载了某个功能的实现，但对这个功能的测试、文档描述、构建脚本却往往放在其他文件里，有时会在很奇怪的位置，甚至混杂在其他复杂文件中，对于新接手项目的人来说了解这个编译单元的全貌就变得很麻烦。 所以不妨直接把单测代码写在每个.cc文件最下面，把单测的构建信息以注解形式写在.cc文件最上方，把文档以大段注释的方式写在.cc/.h的醒目位置。 如无特殊需求，构建工具不妨就用emake。 非性能攸关场景，尽可能拆分出更多函数，让每个函数只做一件事。 如果一个复杂函数能够拆解成多个函数，则将其拆解。 如果多个函数共享一些变量，则重构成类。 尽可能避免使用exception，而是使用result monad。 避免异常引入不必要的性能开销。 唯有禁用异常，才能convey fallibility through APIs。 std::expected&amp;lt;T,E&amp;gt;或best::result&amp;lt;T,E&amp;gt;都是不错的选择。 问题是ctor没有返回值，这其实也是最初C++需要设计exception的原因。作为workaround，可以选择提供一个static make/create函数，返回expected&amp;lt;T,E&amp;gt;。 顺便避免copy ctor。大多数类不需要拷贝构造，少数需要的情况应显式实现一个copy/clone函数。 C++没有Rust的?语法糖，但可以自己实现一个try宏1。 非对外接口，非性能攸关，错误处理并不重要，且只需向上传播的少数场景，宜用exception——且最好用gcc14.2+2（对exception性能大有提升）。 这样的场景并非完全不存在，典型的例子是json parsing，你并不需要对每个位置、各种情形的json错误做出不同的应对，大多数时候只需要打印出来哪一行json格式不对就行了。 此外，各种一次性脚本、临时任务、或简单应用等速朽场景，甚至连exception都不一定要用，自然也不需要general-purpose library或data-center application级别的error handling和接口设计，能用就行。 设计之初就将系统中的错误分类，明确责任边界 错误可分为：用户错误（invalid_input）、可容忍系统错误（glitch）、不可容忍系统错误（fatal）、编程错误（bug）。 用户输入错误输入是常态，应将其视为正常路径处理，不应使用exception，不用做任何补救和恢复，尽快返回错误消息让用户知悉即可。 系统错误是某个下游组件或某个系统调用失败导致的错误，这种错误应被视为系统故障，其中不可容忍的严重故障应与普通故障区分开——以便给它们单独的日志等级，引入某种告警和人工介入机制。 编程错误是理想代码中本不应该出现的断言失败，有些是precondition检查失败，有些是postcondition检查失败，这些都可以归类为bugs，发现后需进行修复。 慎重对待需要就地处理的局部错误。 错误是分层的，处理错误的context也是分层的，有些错误只能在它的上一层级得到妥善处理，一旦向上层传播，就会丢失正确处理它的context，因此有必要从接口设计层面慎重对待这类错误。 如果整个项目的std::expected&amp;lt;T,E&amp;gt;中的E都是一个全局错误类型，编程时可以非常轻松地进行error propagation。但这也意味着有些不该抛给上层的错误也容易被调用者抛上去。 应赋予需要就地处理的局部错误一个独占的类型3，并用嵌套的expected表示返回值类型，如expectd&amp;lt;expected&amp;lt;T, SpecialError&amp;gt;, Error&amp;gt;，迫使调用者对SpecialError做单独处理。 用FTADLE实现多态。 我们当然不会用笨重的继承+动态绑定（subtype），也少用丑陋的模板+concept（ducktype）。 相比而言，FTADLE是更加简洁、灵活、美观、bug-free且易维护的定制化方案，巧妙利用了C++的一个冷门语言特性（ADL），实现了一种优雅的archetype多态。4 让自定义类型尽可能平凡（trivial） 能安全的放进各种容器，即copy assignable + copy constructible。 按bits复制（比如std::memcpy）可正确完成对象的复制，即trivially copyable。 少数确实不宜设计为copyable的类型，保证trivally move assignable/constructible。 可无异常默认构造，即nothrow default constructible。 用强类型表达约束 强类型作为参数，可以消除一些函数的隐式的前置条件（implicit preconditions）。 比如std::string的back()函数返回char&amp;amp;，隐含了该string非空的前置条件。5 很多参数应该属于它的类型，但并不是所有这个类型的值都是合法参数，比如path用std::string来存很合理，但不是所有string都是合法path。 用non_empty_string作为string类型，就可以消除非空这一前置条件。 类似地，可以用更特殊的类型将表达各种约束。 在头文件中定义好约束更强更安全的基础类型。 比如禁止和有符号数加减转换的8bits无符号数：using u8 = type_safe::integer&amp;lt;uint8_t&amp;gt;; 比如禁止从0/1转换的布尔类型：using boolean = type_safe::boolean; 比如禁止用operator==()的浮点数类型：using f32 = type_safe::floating_point&amp;lt;float&amp;gt;; 可以考虑基于StatementExprs实现try宏，模拟Rust的?</description>
+      <content>&lt;h2 id=&#34;基于真实需求创造新颖的计算形态&#34;&gt;基于真实需求，创造新颖的计算形态。&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;若一个系统不存在新颖性，则不必为审美或宗教原因重复造轮。&lt;/li&gt;
+&lt;li&gt;应认识到，绝大多数系统在商业上几乎没有价值，本就不应该存在。自然不应该向本就不该存在的系统投入稀缺的工程人力。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;用最小技术集构建当前问题的直接解&#34;&gt;用最小技术集构建当前问题的直接解。&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;如果已有技术修修补补后只能勉强解决问题，存在不可克服的缺陷，则考虑研发新系统作为直接解。&lt;/li&gt;
+&lt;li&gt;不为未来的不确定需求破坏当前方案的简洁性。&lt;/li&gt;
+&lt;li&gt;管理复杂度，提升可理解性和可维护性。
+&lt;ul&gt;
+&lt;li&gt;核心代码fit in人脑短期记忆的解决方案是技术资产，反之则是技术债。&lt;/li&gt;
+&lt;li&gt;若核心代码复杂度高到无法fit in单人短期记忆，则将其合理切分成多个模块，交由多人维护。&lt;/li&gt;
+&lt;li&gt;避免引入过多的第三方库，规避C++ dependency hell。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;避免解释型注释让代码自解释&#34;&gt;避免解释型注释，让代码自解释。&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;如果某一行代码做了什么需要注释，那么说明它还可以进行更好的重构。
+&lt;ul&gt;
+&lt;li&gt;这种注释就像todo标志，表明有空就应该把它重构一下，提升代码质量的同时顺便去除注释。&lt;/li&gt;
+&lt;li&gt;剔除这类注释，可以避免日后迭代中，注释逐渐和代码对不上，对读者产生灾难性的误导。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;尽量阐释为何这么做(WHY)，而不注解做了什么(WHAT)。
+&lt;ul&gt;
+&lt;li&gt;比较复杂的场景，可以用大段文字整体介绍设计思路。&lt;/li&gt;
+&lt;li&gt;这段文字可以放在代码最前面醒目位置，方便随着版本更新也进行相应更新。不必写额外的文档，或Readme，因为外置的文档和代码之间的映射也是脆弱、难以长期维护的。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;兼顾人体工学与性能工程，在不同场合做不同的取舍：
+&lt;ul&gt;
+&lt;li&gt;nonexpert-transparent：让大多数代码逻辑足够简单易懂、简洁直接，以至于任何背景的研发都能不借助文档、注释轻松读懂代码。&lt;/li&gt;
+&lt;li&gt;expert-friendly：与此同时，代码库中性能攸关部分，必须能允许专家施加任意强度的优化。任何人体工学驱动的抽象都不能影响到性能工程的自由度。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;使每个编译单元内自带文档单测和构建指令&#34;&gt;使每个编译单元内自带文档、单测和构建指令&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;编译单元(.cc和它包含的头文件)承载了某个功能的实现，但对这个功能的测试、文档描述、构建脚本却往往放在其他文件里，有时会在很奇怪的位置，甚至混杂在其他复杂文件中，对于新接手项目的人来说了解这个编译单元的全貌就变得很麻烦。&lt;/li&gt;
+&lt;li&gt;所以不妨直接把单测代码写在每个.cc文件最下面，把单测的构建信息以注解形式写在.cc文件最上方，把文档以大段注释的方式写在.cc/.h的醒目位置。&lt;/li&gt;
+&lt;li&gt;如无特殊需求，构建工具不妨就用&lt;a href=&#34;https://github.com/skywind3000/emake&#34;&gt;emake&lt;/a&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;非性能攸关场景尽可能拆分出更多函数让每个函数只做一件事&#34;&gt;非性能攸关场景，尽可能拆分出更多函数，让每个函数只做一件事。&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;如果一个复杂函数能够拆解成多个函数，则将其拆解。&lt;/li&gt;
+&lt;li&gt;如果多个函数共享一些变量，则重构成类。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;尽可能避免使用exception而是使用result-monad&#34;&gt;尽可能避免使用exception，而是使用result monad。&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;避免异常引入不必要的性能开销。&lt;/li&gt;
+&lt;li&gt;唯有禁用异常，才能convey fallibility through APIs。&lt;/li&gt;
+&lt;li&gt;std::expected&amp;lt;T,E&amp;gt;或best::result&amp;lt;T,E&amp;gt;都是不错的选择。
+&lt;ul&gt;
+&lt;li&gt;问题是ctor没有返回值，这其实也是最初C++需要设计exception的原因。作为workaround，可以选择提供一个static make/create函数，返回expected&amp;lt;T,E&amp;gt;。&lt;/li&gt;
+&lt;li&gt;顺便避免copy ctor。大多数类不需要拷贝构造，少数需要的情况应显式实现一个copy/clone函数。&lt;/li&gt;
+&lt;li&gt;C++没有Rust的?语法糖，但可以自己实现一个try宏&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;非对外接口，非性能攸关，错误处理并不重要，且只需向上传播的少数场景，宜用exception——且最好用gcc14.2+&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;（对exception性能大有提升）。
+&lt;ul&gt;
+&lt;li&gt;这样的场景并非完全不存在，典型的例子是json parsing，你并不需要对每个位置、各种情形的json错误做出不同的应对，大多数时候只需要打印出来哪一行json格式不对就行了。&lt;/li&gt;
+&lt;li&gt;此外，各种一次性脚本、临时任务、或简单应用等速朽场景，甚至连exception都不一定要用，自然也不需要general-purpose library或data-center application级别的error handling和接口设计，能用就行。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;设计之初就将系统中的错误分类明确责任边界&#34;&gt;设计之初就将系统中的错误分类，明确责任边界&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;错误可分为：用户错误（invalid_input）、可容忍系统错误（glitch）、不可容忍系统错误（fatal）、编程错误（bug）。&lt;/li&gt;
+&lt;li&gt;用户输入错误输入是常态，应将其视为正常路径处理，不应使用exception，不用做任何补救和恢复，尽快返回错误消息让用户知悉即可。&lt;/li&gt;
+&lt;li&gt;系统错误是某个下游组件或某个系统调用失败导致的错误，这种错误应被视为系统故障，其中不可容忍的严重故障应与普通故障区分开——以便给它们单独的日志等级，引入某种告警和人工介入机制。&lt;/li&gt;
+&lt;li&gt;编程错误是理想代码中本不应该出现的断言失败，有些是precondition检查失败，有些是postcondition检查失败，这些都可以归类为bugs，发现后需进行修复。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;慎重对待需要就地处理的局部错误&#34;&gt;慎重对待需要就地处理的局部错误。&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;错误是分层的，处理错误的context也是分层的，有些错误只能在它的上一层级得到妥善处理，一旦向上层传播，就会丢失正确处理它的context，因此有必要从接口设计层面慎重对待这类错误。&lt;/li&gt;
+&lt;li&gt;如果整个项目的std::expected&amp;lt;T,E&amp;gt;中的E都是一个全局错误类型，编程时可以非常轻松地进行error propagation。但这也意味着有些不该抛给上层的错误也容易被调用者抛上去。&lt;/li&gt;
+&lt;li&gt;应赋予需要就地处理的局部错误一个独占的类型&lt;sup id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;，并用嵌套的expected表示返回值类型，如&lt;code&gt;expectd&amp;lt;expected&amp;lt;T, SpecialError&amp;gt;, Error&amp;gt;&lt;/code&gt;，迫使调用者对SpecialError做单独处理。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;用ftadle实现多态&#34;&gt;用FTADLE实现多态。&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;我们当然不会用笨重的继承+动态绑定（subtype），也少用丑陋的模板+concept（ducktype）。&lt;/li&gt;
+&lt;li&gt;相比而言，FTADLE是更加简洁、灵活、美观、bug-free且易维护的定制化方案，巧妙利用了C++的一个冷门语言特性（&lt;a href=&#34;https://en.cppreference.com/w/cpp/language/adl&#34;&gt;ADL&lt;/a&gt;），实现了一种优雅的archetype多态。&lt;sup id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;4&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;让自定义类型尽可能平凡trivial&#34;&gt;让自定义类型尽可能平凡（trivial）&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;能安全的放进各种容器，即copy assignable + copy constructible。&lt;/li&gt;
+&lt;li&gt;按bits复制（比如std::memcpy）可正确完成对象的复制，即trivially copyable。&lt;/li&gt;
+&lt;li&gt;少数确实不宜设计为copyable的类型，保证trivally move assignable/constructible。&lt;/li&gt;
+&lt;li&gt;可无异常默认构造，即nothrow default constructible。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;用强类型表达约束&#34;&gt;用强类型表达约束&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;强类型作为参数，可以消除一些函数的隐式的前置条件（implicit preconditions）。
+&lt;ul&gt;
+&lt;li&gt;比如std::string的back()函数返回char&amp;amp;，隐含了该string非空的前置条件。&lt;sup id=&#34;fnref:5&#34;&gt;&lt;a href=&#34;#fn:5&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;5&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;li&gt;很多参数应该属于它的类型，但并不是所有这个类型的值都是合法参数，比如path用std::string来存很合理，但不是所有string都是合法path。&lt;/li&gt;
+&lt;li&gt;用non_empty_string作为string类型，就可以消除非空这一前置条件。&lt;/li&gt;
+&lt;li&gt;类似地，可以用更特殊的类型将表达各种约束。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;在头文件中定义好约束更强更安全的基础类型。
+&lt;ul&gt;
+&lt;li&gt;比如禁止和有符号数加减转换的8bits无符号数：&lt;code&gt;using u8 = type_safe::integer&amp;lt;uint8_t&amp;gt;;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;比如禁止从0/1转换的布尔类型：&lt;code&gt;using boolean = type_safe::boolean;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;比如禁止用operator==()的浮点数类型：&lt;code&gt;using f32 = type_safe::floating_point&amp;lt;float&amp;gt;;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;
+&lt;p&gt;可以考虑基于&lt;a href=&#34;https://gcc.gnu.org/onlinedocs/gcc/Statement-Exprs.html&#34;&gt;StatementExprs&lt;/a&gt;实现try宏，模拟Rust的?操作符，clang也有类似机制。&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://databasearchitects.blogspot.com/2024/12/c-exception-performance-three-years.html&#34;&gt;C++ exception performance three years later&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:2&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://jipeng4974.github.io/posts/error-handling&#34;&gt;Error Handling&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:3&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:4&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://jipeng4974.github.io/posts/paradigms-of-generic-programming/&#34;&gt;Paradigms of Generic Programming: Archetype, Ducktype, Subtype&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:4&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:5&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.foonathan.net/2016/09/error-handling-types/&#34;&gt;Prevent precondition errors with the C++ type system&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:5&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>Error Handling</title>
+      <link>https://jipeng4974.github.io/posts/error-handling/</link>
+      <pubDate>Tue, 09 Apr 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://jipeng4974.github.io/posts/error-handling/</guid>
+      <description>本文讨论现代C++的错误处理问题，结论如下：
+宜用Result Monad取代C范式和C++异常，在接口层面清晰定义表明可出错性，和错误清单。 每个模块应有独立的Error类型，不宜用全局统一的Error类型或其subtype/variant，规避过于丝滑的错误传播导致的舒适陷阱。 上述模块级的Error类型一般就是一个enum class，足够紧凑、安全。必需在Error中留存状态的场景再用std::variant+std::visit。 明确需特殊处理的错误宜独占一个类型，不宜和常规错误一起并列在模块级Error的enum class中。 Exception Sucks in Every Possible Way C++的异常具有多个令人绝望的特质：
+违反C++的基本设计准则——zero cost abstraction。 鼓励隐藏control flow。 不鼓励在接口中给出错误定义。 对异常类型没有任何约束。 不提供有界的空间时间开销承诺。backtrace耗时多久完全不可预计。 导致编译后的代码膨胀。 不兼容C ABI。 throw需要动态内存分配，catch甚至需要RTTI。嵌入式环境下不会这么奢侈。 总之C++异常机制是一种自然演化而成的历史遗迹，而非合乎理性的程序语言设计。以今天的标准，连写成提案的机会都不会有就会在mailing list被C++语言律师冷嘲热讽而消失。
+哪怕现在有很多轻量化甚至零成本抽象的新型exception提案（比如P1095R01和P0709R42），一时半会儿也不会有改观，固有的exception已经根植于历史系统中，包含标准库在内的庞大基础库都难以承受范式迁移的代价。合理对待异常的态度就是弃之不用。
+Convey Fallibility in API C风格error code虽然简单，但需要使用者有强大的自控能力，对于现代编程来说还是太过危险、简陋，语言层面本身无法区分参数中哪个是输入，哪个是输出，仰赖约定俗成的命名习惯或注释，缺乏可读性，编程时的心智负担太重。错误传播则缺乏类型安全，往往直接传引用和指针，引发难以追踪的内存安全、线程安全问题。不做任何错误传播，就地解决错误的话，又会导致代码繁琐冗余，总有一天会懒得做错误处理。
+如何兼具安全的错误传播、零成本抽象、接口中传达清晰的错误清单？Golang也没做到（几乎和C一样简陋，给了官方的error类型，然而并非泛型或Monad，只是一个返回Error()字符串的接口）。Java有点作弊（封闭且完整的JVM+标准库+Javadoc注释生态圈）。Rust则轻装简行，为我们展示了Result&amp;lt;T,E&amp;gt;的巨大成功——后续我们将其称为Result范式，用函数式编程语境下的Result Monad指代这类结构。
+抛开性能、C-兼容性等问题不谈，纯粹从软件系统设计的角度讲，Result Monad也能更好地在API层面清晰无误地将可能出现的错误良好定义。而exception则散落在代码实现中，单看接口根本不知道throw了什么，隐藏了哪些坑，如何处理这些坑——这在软件互操作性上是灾难性的。
+如今Rust-like Result范式的std::expected已经进入标准库，自gcc12/clang16起已经可以使用了，受限于旧版编译器的场景则可以用第三方实现。
+Keep Local Errors in Their Own Types 基于Result&amp;lt;T,E&amp;gt;或expected&amp;lt;T,E&amp;gt;进行错误处理时，有一个简单方便的做法是将E设置成一个巨大的全局enum，包含所有可能的error code。这样就可以在整个程序中自由地用?操作符或and_then/or_else传播error，达到类似throw+catch异常的效果。
+这么做的确可以降低编程时的心智负担，但同时也注入了滥用错误传播的风险——当编码者可以轻易甩锅时，往往就会甩锅。通常一个独立且内聚的模块会对自身内部细节有更多了解，有些问题还是就地处理更妥当，把失败的细节暴露给相对外行的调用者，是在鼓励制造不恰当的耦合。
+因此每个系统模块对外应暴露最小化的错误集，将内部可处理的错误在内部消化，并将所有fatal error就地解决——往往是打日志、做些修复（有状态系统）、退出程序。为了避免滥用错误传播，对外暴露的这个错误集还应该有自己的enum类型（C++语境下一般就是enum class，如有必要，可尝试用std::variant+std::visit模拟Rust的Enums + pattern matching，见3），而不宜采用全局统一的某种enum的subtype或variant——迫使直接调用者优先对错误进行处理而不是甩锅给间接调用者，在甩锅非常合理的场景下，必要的显式类型转换或transform_error/map_error，也让甩锅成为一个有意识的system2编程决策，而非system1本能行为。
+此外，有一些特殊错误的处理逻辑与众不同，不宜和其他错误共享一个enum class，而应赋予这单个error一个独占的类型。这种情况下，可以用嵌套的expected表示返回值类型，如expectd&amp;lt;expected&amp;lt;T, SpecialError&amp;gt;, Error&amp;gt;，迫使调用者对SpecialError做单独处理。一个典型的例子是sled4中compare_and_swap，返回类型特地包裹了两层，外层是sled::Error，内层是特殊的CompareAndSwapError（CAS失败并非异常，而是常态，对它的处理应视为控制流，而非异常处理），在做这种设计后，sled用户误用这个函数的几率就大大降低了，第一次用?操作符仅将外层的通用Error传播了出去，不至于把必需特殊处理的CAS error也一并甩出去。
+fn compare_and_swap( &amp;amp;mut self, key: Key, old_value: Value, new_value: Value ) -&amp;gt; Result&amp;lt;Result&amp;lt;(), CompareAndSwapError&amp;gt;, sled::Error&amp;gt; // we can actually use try `?</description>
+      <content>&lt;p&gt;本文讨论现代C++的错误处理问题，结论如下：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;宜用&lt;code&gt;Result Monad&lt;/code&gt;取代C范式和C++异常，在接口层面清晰定义表明可出错性，和错误清单。&lt;/li&gt;
+&lt;li&gt;每个模块应有独立的Error类型，不宜用全局统一的Error类型或其subtype/variant，规避过于丝滑的错误传播导致的舒适陷阱。&lt;/li&gt;
+&lt;li&gt;上述模块级的Error类型一般就是一个&lt;code&gt;enum class&lt;/code&gt;，足够紧凑、安全。必需在Error中留存状态的场景再用&lt;code&gt;std::variant&lt;/code&gt;+&lt;code&gt;std::visit&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;明确需特殊处理的错误宜独占一个类型，不宜和常规错误一起并列在模块级Error的enum class中。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1 id=&#34;exception-sucks-in-every-possible-way&#34;&gt;Exception Sucks in Every Possible Way&lt;/h1&gt;
+&lt;p&gt;C++的异常具有多个令人绝望的特质：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;违反C++的基本设计准则——&lt;code&gt;zero cost abstraction&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;鼓励隐藏&lt;code&gt;control flow&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;不鼓励在接口中给出错误定义。&lt;/li&gt;
+&lt;li&gt;对异常类型没有任何约束。&lt;/li&gt;
+&lt;li&gt;不提供有界的空间时间开销承诺。&lt;code&gt;backtrace&lt;/code&gt;耗时多久完全不可预计。&lt;/li&gt;
+&lt;li&gt;导致编译后的代码膨胀。&lt;/li&gt;
+&lt;li&gt;不兼容&lt;code&gt;C ABI&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;throw&lt;/code&gt;需要动态内存分配，&lt;code&gt;catch&lt;/code&gt;甚至需要&lt;code&gt;RTTI&lt;/code&gt;。嵌入式环境下不会这么奢侈。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;总之C++异常机制是一种自然演化而成的历史遗迹，而非合乎理性的程序语言设计。以今天的标准，连写成提案的机会都不会有就会在mailing list被C++语言律师冷嘲热讽而消失。&lt;/p&gt;
+&lt;p&gt;哪怕现在有很多轻量化甚至零成本抽象的新型exception提案（比如P1095R0&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;和P0709R4&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;），一时半会儿也不会有改观，固有的exception已经根植于历史系统中，包含标准库在内的庞大基础库都难以承受范式迁移的代价。合理对待异常的态度就是弃之不用。&lt;/p&gt;
+&lt;h1 id=&#34;convey-fallibility-in-api&#34;&gt;Convey Fallibility in API&lt;/h1&gt;
+&lt;p&gt;C风格error code虽然简单，但需要使用者有强大的自控能力，对于现代编程来说还是太过危险、简陋，语言层面本身无法区分参数中哪个是输入，哪个是输出，仰赖约定俗成的命名习惯或注释，缺乏可读性，编程时的心智负担太重。错误传播则缺乏类型安全，往往直接传引用和指针，引发难以追踪的内存安全、线程安全问题。不做任何错误传播，就地解决错误的话，又会导致代码繁琐冗余，总有一天会懒得做错误处理。&lt;/p&gt;
+&lt;p&gt;如何兼具安全的错误传播、零成本抽象、接口中传达清晰的错误清单？Golang也没做到（几乎和C一样简陋，给了官方的error类型，然而并非泛型或Monad，只是一个返回Error()字符串的接口）。Java有点作弊（封闭且完整的JVM+标准库+Javadoc注释生态圈）。Rust则轻装简行，为我们展示了&lt;code&gt;Result&amp;lt;T,E&amp;gt;&lt;/code&gt;的巨大成功——后续我们将其称为Result范式，用函数式编程语境下的&lt;code&gt;Result Monad&lt;/code&gt;指代这类结构。&lt;/p&gt;
+&lt;p&gt;抛开性能、C-兼容性等问题不谈，纯粹从软件系统设计的角度讲，&lt;code&gt;Result Monad&lt;/code&gt;也能更好地在API层面清晰无误地将可能出现的错误良好定义。而exception则散落在代码实现中，单看接口根本不知道throw了什么，隐藏了哪些坑，如何处理这些坑——这在软件互操作性上是灾难性的。&lt;/p&gt;
+&lt;p&gt;如今Rust-like Result范式的&lt;a href=&#34;https://en.cppreference.com/w/cpp/utility/expected&#34;&gt;std::expected&lt;/a&gt;已经进入标准库，自gcc12/clang16起已经可以使用了，受限于旧版编译器的场景则可以用第三方实现。&lt;/p&gt;
+&lt;h1 id=&#34;keep-local-errors-in-their-own-types&#34;&gt;Keep Local Errors in Their Own Types&lt;/h1&gt;
+&lt;p&gt;基于&lt;code&gt;Result&amp;lt;T,E&amp;gt;&lt;/code&gt;或&lt;code&gt;expected&amp;lt;T,E&amp;gt;&lt;/code&gt;进行错误处理时，有一个简单方便的做法是将E设置成一个巨大的全局enum，包含所有可能的error code。这样就可以在整个程序中自由地用&lt;code&gt;?&lt;/code&gt;操作符或&lt;code&gt;and_then/or_else&lt;/code&gt;传播error，达到类似&lt;code&gt;throw&lt;/code&gt;+&lt;code&gt;catch&lt;/code&gt;异常的效果。&lt;/p&gt;
+&lt;p&gt;这么做的确可以降低编程时的心智负担，但同时也注入了滥用错误传播的风险——当编码者可以轻易甩锅时，往往就会甩锅。通常一个独立且内聚的模块会对自身内部细节有更多了解，有些问题还是就地处理更妥当，把失败的细节暴露给相对外行的调用者，是在鼓励制造不恰当的耦合。&lt;/p&gt;
+&lt;p&gt;因此每个系统模块对外应暴露最小化的错误集，将内部可处理的错误在内部消化，并将所有&lt;code&gt;fatal error&lt;/code&gt;就地解决——往往是打日志、做些修复（有状态系统）、退出程序。为了避免滥用错误传播，对外暴露的这个错误集还应该有自己的enum类型（C++语境下一般就是&lt;code&gt;enum class&lt;/code&gt;，如有必要，可尝试用&lt;code&gt;std::variant&lt;/code&gt;+&lt;code&gt;std::visit&lt;/code&gt;模拟Rust的&lt;code&gt;Enums&lt;/code&gt; + &lt;code&gt;pattern matching&lt;/code&gt;，见&lt;sup id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;），而不宜采用全局统一的某种enum的subtype或variant——迫使直接调用者优先对错误进行处理而不是甩锅给间接调用者，在甩锅非常合理的场景下，必要的显式类型转换或&lt;code&gt;transform_error&lt;/code&gt;/&lt;code&gt;map_error&lt;/code&gt;，也让甩锅成为一个有意识的system2编程决策，而非system1本能行为。&lt;/p&gt;
+&lt;p&gt;此外，有一些特殊错误的处理逻辑与众不同，不宜和其他错误共享一个&lt;code&gt;enum class&lt;/code&gt;，而应赋予这单个error一个独占的类型。这种情况下，可以用嵌套的expected表示返回值类型，如&lt;code&gt;expectd&amp;lt;expected&amp;lt;T, SpecialError&amp;gt;, Error&amp;gt;&lt;/code&gt;，迫使调用者对SpecialError做单独处理。一个典型的例子是&lt;code&gt;sled&lt;/code&gt;&lt;sup id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;4&lt;/a&gt;&lt;/sup&gt;中&lt;code&gt;compare_and_swap&lt;/code&gt;，返回类型特地包裹了两层，外层是&lt;code&gt;sled::Error&lt;/code&gt;，内层是特殊的&lt;code&gt;CompareAndSwapError&lt;/code&gt;（CAS失败并非异常，而是常态，对它的处理应视为控制流，而非异常处理），在做这种设计后，&lt;code&gt;sled&lt;/code&gt;用户误用这个函数的几率就大大降低了，第一次用&lt;code&gt;?&lt;/code&gt;操作符仅将外层的通用Error传播了出去，不至于把必需特殊处理的CAS error也一并甩出去。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-Rust&#34; data-lang=&#34;Rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;compare_and_swap&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; self,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  key: &lt;span style=&#34;color:#a6e22e&#34;&gt;Key&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  old_value: &lt;span style=&#34;color:#a6e22e&#34;&gt;Value&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  new_value: &lt;span style=&#34;color:#a6e22e&#34;&gt;Value&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;) -&amp;gt; Result&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Result&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;(), CompareAndSwapError&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;, sled::Error&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// we can actually use try `?` now
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; cas_result &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; sled.compare_and_swap(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;dogs&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;pickles&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;catfood&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;?&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; Err(cas_error) &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; cas_result {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;// handle expected issue
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;另一个例子是需要rollback的atomic batch set操作，一旦失败就会rollback已执行的部分set操作，避免不一致。但这个batch set操作一旦rollback失败，则陷入无法自动恢复，必需人工干预的状态。如果把rollback error当做KvErrorCode中的一种，只返回&lt;code&gt;std::expected&amp;lt;void, KvErrorCode&amp;gt;&lt;/code&gt;，是无法迫使上游用户区分对待rollback失败的——调用者要么把error统一向上传播，要么就简单打个日志，而我们希望调用者意识到数据不一致的灾难已经发生，至少得打个fatal日志。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;std&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;expected&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;std&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;expected&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;, KvErrorCode&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;, RollbackFatalError&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; BatchSet(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;std&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;pair&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;str, str&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;kvpairs);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;总之，在定义类似&lt;code&gt;expected&amp;lt;expected&amp;lt;T,E1&amp;gt;,E2&amp;gt;&lt;/code&gt;的&lt;code&gt;result monads&lt;/code&gt;时，外层error类型&lt;code&gt;E2&lt;/code&gt;永远要比内层error类型&lt;code&gt;E1&lt;/code&gt;更加fatal，更加erroneous。在避免了灾难性的E2后，才有资格判断是否出现E1。&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1095r0.pdf&#34;&gt;P1095R0: Zero overhead deterministic failure: A unified mechanism for C and C++&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0709r4.pdf&#34;&gt;P0709R4: Zero-overhead deterministic exceptions: Throwing values&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:2&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://thatonegamedev.com/cpp/rust-enums-in-modern-cpp-match-pattern/&#34;&gt;Rust enums in Modern C++ – Match Pattern&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:3&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:4&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://sled.rs/errors&#34;&gt;Error Handling in a Correctness-Critical Rust Project&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:4&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>On Transparency</title>
+      <link>https://jipeng4974.github.io/posts/on-transparency/</link>
+      <pubDate>Mon, 15 May 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://jipeng4974.github.io/posts/on-transparency/</guid>
+      <description>透明度是软件工程中长期被忽略的理想属性，是目前互联网行业技术管理体系中的薄弱环节。本文的透明度主要是指组件内部实现对研发团队的可见度、可解释性和可掌控程度，或者说白盒指数。
+一个项目自上而下依赖的第三方黑盒越少，各个抽象层次上诸多组件对研发团队就越是透明的。高透明度意味着高度可维护，高度hackable，随时可拆卸，定位到任何抽象层次上存在性能瓶颈都能毫无桎梏地zoom in，然后修改、重构。习惯性地使用第三方依赖，哪怕这个依赖是得到广泛应用，甚至接近行业标准的高声望项目，依然会注入实现需求不完全匹配的风险。
+高性能计算的一个重要启发式设计原则(heuristic)即特化(specialization)，特化显然包括软件特化——基于新的真实需求创造最直接贴合需求的新解决方案(direct solutions to the needs)，即造轮。
+国内互联网同行们对造轮持过分谨慎态度，将其视为anti-pattern，遇到问题时立刻开始技术选型，对使用第三方依赖形成了不假思索的路径依赖。缺乏洞察问题的新颖性和独特性的敏锐度和饥渴，自然故步自封于技术选型，而无法做到真正的技术创新——计算系统的创新是根植于真实需求，对非结构化的现实需求施加结构，创造新的计算和存储形态。就以全文检索为例，美团外卖搜索用ES，微信聊天搜索用SQLite，都是没有选择自研高性能检索引擎，导致业务场景和经典解决方案出现错配，后期遇到了性能瓶颈后的所谓优化方案也只不过是对第三方库进行魔改，让它更贴合原本的需求罢了。比如lucene压根就不是in-memory索引，以至于外卖店家商品搜索这么小规模的场景都不能保证实时性。再说SQLite，默认当然不支持拆表+并行搜索，针对大库做简单的拆表和scatter-gather并行搜索提升性能其实是理所当然的解决方案。
+如此视造轮为畏途实让人唏嘘，在性能上碰壁后，再钻进别人的故纸堆中修修补补，浪费的精力，产生额外的痛苦，远远超过当初用C++/Rust实现一个小而美的in-memory search index(例如pisa)。自研检索引擎用极少的代码量就可以击败lucene、sqlite、postgres，也可以很轻松地支持多线程实时索引更新，而不必牺牲索引性能，还可以针对现代物理机进行深度cache优化、减少核间通信和远端内存访问，将现代硬件的性能在检索这种访存密集应用上发挥到极致。</description>
+      <content>&lt;p&gt;透明度是软件工程中长期被忽略的理想属性，是目前互联网行业技术管理体系中的薄弱环节。本文的透明度主要是指组件内部实现对研发团队的可见度、可解释性和可掌控程度，或者说&lt;a href=&#34;https://en.wikipedia.org/wiki/White_box_(software_engineering)&#34;&gt;白盒&lt;/a&gt;指数。&lt;/p&gt;
+&lt;p&gt;一个项目自上而下依赖的第三方黑盒越少，各个抽象层次上诸多组件对研发团队就越是透明的。高透明度意味着高度可维护，高度hackable，随时可拆卸，定位到任何抽象层次上存在性能瓶颈都能毫无桎梏地zoom in，然后修改、重构。习惯性地使用第三方依赖，哪怕这个依赖是得到广泛应用，甚至接近行业标准的高声望项目，依然会注入实现需求不完全匹配的风险。&lt;/p&gt;
+&lt;p&gt;高性能计算的一个重要启发式设计原则(heuristic)即特化(specialization)，特化显然包括软件特化——基于新的真实需求创造最直接贴合需求的新解决方案(direct solutions to the needs)，即造轮。&lt;/p&gt;
+&lt;p&gt;国内互联网同行们对造轮持过分谨慎态度，将其视为anti-pattern，遇到问题时立刻开始技术选型，对使用第三方依赖形成了不假思索的路径依赖。缺乏洞察问题的新颖性和独特性的敏锐度和饥渴，自然故步自封于技术选型，而无法做到真正的技术创新——计算系统的创新是根植于真实需求，对非结构化的现实需求施加结构，创造新的计算和存储形态。就以全文检索为例，&lt;a href=&#34;https://tech.meituan.com/2022/11/17/elasicsearch-optimization-practice-based-on-run-length-encoding.html&#34;&gt;美团外卖搜索用ES&lt;/a&gt;，&lt;a href=&#34;https://zhuanlan.zhihu.com/p/608082104&#34;&gt;微信聊天搜索用SQLite&lt;/a&gt;，都是没有选择自研高性能检索引擎，导致业务场景和经典解决方案出现错配，后期遇到了性能瓶颈后的所谓优化方案也只不过是对第三方库进行魔改，让它更贴合原本的需求罢了。比如lucene压根就不是in-memory索引，以至于外卖店家商品搜索这么小规模的场景都不能保证实时性。再说SQLite，默认当然不支持拆表+并行搜索，针对大库做简单的拆表和scatter-gather并行搜索提升性能其实是理所当然的解决方案。&lt;/p&gt;
+&lt;p&gt;如此视造轮为畏途实让人唏嘘，在性能上碰壁后，再钻进别人的故纸堆中修修补补，浪费的精力，产生额外的痛苦，远远超过当初用C++/Rust实现一个小而美的in-memory search index(例如&lt;a href=&#34;https://github.com/pisa-engine/pisa&#34;&gt;pisa&lt;/a&gt;)。自研检索引擎用极少的代码量就可以击败lucene、sqlite、postgres，也可以很轻松地支持多线程实时索引更新，而不必牺牲索引性能，还可以针对现代物理机进行深度cache优化、减少核间通信和远端内存访问，将现代硬件的性能在检索这种访存密集应用上发挥到极致。&lt;/p&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>Paradigms of Generic Programming: Archetype, Ducktype, Subtype</title>
+      <link>https://jipeng4974.github.io/posts/paradigms-of-generic-programming/</link>
+      <pubDate>Thu, 10 Nov 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://jipeng4974.github.io/posts/paradigms-of-generic-programming/</guid>
+      <description>泛型不等价于模板 什么是泛型编程？提起generic programming，很多人都会立刻想到template，但模板编程只是泛型编程的一种范式。最初发明&amp;quot;generic programming&amp;quot;这种说法的Alexander Stepanov反复强调过： generic programming is not about how to use template。第一个版本的STL尽管名字里带template，实际上是基于scheme实现的。
+要泛型，就必须有规约 规约的制定和对规约的遵循是泛型编程的基础。 任何泛型编程都需要一定规约，有规约才能让一种抽象适配多个具体实体。没有规约，那写具体实现的人都不知道遵循什么规范，实现什么接口，满足什么条件，泛型编程自然就无从谈起。
+规约：在JavaScript里是prototype；在Swift里是protocol；在Rust里是trait；在C++模板编程里是concept或者SFINAE。
+遵循规约：在JavaScript里是运行时将具体对象关联到某个原型对象；在Swift里是用类似继承的冒号让具体类型conforms to某些protocol；在Rust里是用impl SomeTrait for SomeStruct语法显式地为某个类型提供某个trait的实现；在C++里模板实参无需特殊语法声明遵循模板形参，但要心照不宣地遵循模板代码的要求。
+三种规约，三种范式 根据规约不同，可命名泛型编程的三种范式：Archetype, Ducktype, Subtype。
+Archetype：以类型的类型(type-of-type)或者说协议(protocol)、接口(interface)为规约。
+Rust trait: &amp;ldquo;defines shared behavior&amp;rdquo; Carbon interface: &amp;ldquo;defines an API that a given type can implement&amp;rdquo; Swift protocol: &amp;ldquo;defines a blueprint of methods, properties, and other requirements&amp;rdquo; C++ type erasure idiom: &amp;ldquo;captures the concept shared among all the concrete types&amp;rdquo; Ducktype：基于模板进行文本替换的结构化规约。
+模板本质上就是编译期ducktyping，不能提前独立进行类型和语法检查，只有实例化之后才能做类型和语法检查，能鸭子叫，编译通过，叫不出鸭子叫，编译报错。 C++20中模板结构化规约是concept, 此前则是SFINAE技巧，或者干脆不成文：要么因循旧例(iterable的T一定要有begin和end)，要么心照不宣（自己写的代码，只有自己懂，无需对外公开规约）。 由于规约本身并非类型，无法用普通容器存储遵循规约的一系列具体类型，只能用类型推导的tuple-like容器。 Subtype: 以基类为规约。</description>
+      <content>&lt;h2 id=&#34;泛型不等价于模板&#34;&gt;泛型不等价于模板&lt;/h2&gt;
+&lt;p&gt;什么是泛型编程？提起generic programming，很多人都会立刻想到template，但模板编程只是泛型编程的一种范式。最初发明&amp;quot;generic programming&amp;quot;这种说法的Alexander Stepanov反复强调过：
+generic programming is not about how to use template。第一个版本的STL尽管名字里带template，实际上是基于scheme实现的。&lt;/p&gt;
+&lt;h2 id=&#34;要泛型就必须有规约&#34;&gt;要泛型，就必须有规约&lt;/h2&gt;
+&lt;p&gt;规约的制定和对规约的遵循是泛型编程的基础。
+任何泛型编程都需要一定规约，有规约才能让一种抽象适配多个具体实体。没有规约，那写具体实现的人都不知道遵循什么规范，实现什么接口，满足什么条件，泛型编程自然就无从谈起。&lt;/p&gt;
+&lt;p&gt;规约：在JavaScript里是prototype；在Swift里是protocol；在Rust里是trait；在C++模板编程里是concept或者SFINAE。&lt;/p&gt;
+&lt;p&gt;遵循规约：在JavaScript里是运行时将具体对象关联到某个原型对象；在Swift里是用类似继承的冒号让具体类型conforms to某些protocol；在Rust里是用impl SomeTrait for SomeStruct语法显式地为某个类型提供某个trait的实现；在C++里模板实参无需特殊语法声明遵循模板形参，但要心照不宣地遵循模板代码的要求。&lt;/p&gt;
+&lt;h2 id=&#34;三种规约三种范式&#34;&gt;三种规约，三种范式&lt;/h2&gt;
+&lt;p&gt;根据规约不同，可命名泛型编程的三种范式：Archetype, Ducktype, Subtype。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Archetype&lt;/strong&gt;：以类型的类型(type-of-type)或者说协议(protocol)、接口(interface)为规约。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://doc.rust-lang.org/book/ch10-02-traits.html&#34;&gt;Rust trait&lt;/a&gt;: &amp;ldquo;defines shared behavior&amp;rdquo;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/carbon-language/carbon-lang/blob/trunk/docs/design/generics/terminology.md#interface&#34;&gt;Carbon interface&lt;/a&gt;: &amp;ldquo;defines an API that a given type can implement&amp;rdquo;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://docs.swift.org/swift-book/documentation/the-swift-programming-language/protocols/&#34;&gt;Swift protocol&lt;/a&gt;: &amp;ldquo;defines a blueprint of methods, properties, and other requirements&amp;rdquo;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://davekilian.com/cpp-type-erasure.html&#34;&gt;C++ type erasure idiom&lt;/a&gt;: &amp;ldquo;captures the concept shared among all the concrete types&amp;rdquo;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Ducktype&lt;/strong&gt;：基于模板进行文本替换的结构化规约。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;模板本质上就是编译期ducktyping，不能提前独立进行类型和语法检查，只有实例化之后才能做类型和语法检查，能鸭子叫，编译通过，叫不出鸭子叫，编译报错。&lt;/li&gt;
+&lt;li&gt;C++20中模板结构化规约是concept, 此前则是SFINAE技巧，或者干脆不成文：要么因循旧例(iterable的T一定要有begin和end)，要么心照不宣（自己写的代码，只有自己懂，无需对外公开规约）。&lt;/li&gt;
+&lt;li&gt;由于规约本身并非类型，无法用普通容器存储遵循规约的一系列具体类型，只能用类型推导的tuple-like容器。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Subtype&lt;/strong&gt;: 以基类为规约。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;子类系统是面向对象语言最普及的泛型编程范式，往往基于class hierarchy +『虚表存放函数指针』+『对象内置虚指针』或『callsite胖指针』实现。&lt;/li&gt;
+&lt;li&gt;子类系统固然是简单自然的多态，但毕竟subtyping有一丢丢的性能开销，不是零成本抽象，而且难以非侵入式地让一个新接口适配已有代码。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;本节命名的三种范式名称恰好都以type结尾，一方面是因为这样比较帅，另一方面是因为（对C++/Rust这种抽象层次的语言来说）编程本身就是在打造一个个类型，泛型编程就是在打造一个个类型规约+遵循规约的类型。Archetype和Subtype范式中，类型规约恰好就是一种抽象类型，所以这两种范式写起来更简单自然。Ducktype范式（C++模板）中，类型规约是结构化规约，可以是语言实体(concept)，也可以心照不宣，无论如何都不是类型。&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;Paradigms&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;Archetype&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;Ducktype&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;Subtype&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;具体语言实例&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;Swift protocol, Carbon interface, Rust trait&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;C++ template(constrained or not), Rust generic&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;C++/Java/Python class hierarchy&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;在哪里写泛型代码？&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;泛型函数&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;函数模板&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;子类方法&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;承载泛型代码的语言实体&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;普通函数，只不过是以规约类型为参数&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;模板文本&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;普通函数，不过函数指针被语言特性暗中与callsite指针绑定了&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;规约&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;定义一些类的方法或属性共性的协议类型&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;模板参数应符合的一组需求闭集，可以是成文约束Concept或SFINAE，也可以是不成文约束&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;面向对象语言继承图中的某个基类的虚函数&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;承载规约的语言实体&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;类，类型擦除之后的共性类，类型的类型，本质上仍然是类型&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;对文本替换的placeholder的结构化约束。即使约束了，我们也无法对placeholder做类型/语法检查&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;被基类列入必要功能列表的函数&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;遵循规约的语言实体&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;具体的类&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;用于模板实例化的模板参数&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;子类&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;何时做name lookup决议？&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;早绑定，允许独立编译&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;晚绑定，实例化时，不用的话就一直不绑定&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;早绑定，允许独立编译&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;何时做类型检查？&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;独立编译时&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;实例化后&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;独立编译时&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;是否允许支持动态绑定？&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;是&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;否&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;是&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;如何将已有泛型接口在新的类型上进行扩展？&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;允许基于已有类型创造一个数据表示兼容的新类型，只不过规约变了，允许它实现某个新的规约，或提供与原类型的已实现的某个规约提供不同的实现。&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;为新偏特化场景写新的函数模板即可扩展，可用Concept或SFINAE修订重载决议规则。也可以在函数模板里用某个约定好的函数名、成员变量名、关联类型作为客制点，新的类型只需实现这些客制点。&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;继承，子类数据表示可能会变&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;archetype范式&#34;&gt;Archetype范式&lt;/h2&gt;
+&lt;p&gt;Archetype在Rust中是语言的核心机制——trait，要写好Rust的泛型代码，就要习惯于基于archetype编程。相比与DuckType、SubType，Archetype范式天然有一些优势。&lt;/p&gt;
+&lt;h3 id=&#34;generic-code-is-just-normal-code&#34;&gt;Generic code is just normal code&lt;/h3&gt;
+&lt;p&gt;和模板相比，&amp;ldquo;Generic code is just normal code&amp;quot;是Archetype范式最大优势，也是Rust语言相比C++的巨大优势。让非专家也能写出高度抽象，同时还零成本，具有高度可复用性的泛型代码。&lt;/p&gt;
+&lt;p&gt;C++基于模板文本替换的泛型代码和普通类型的具体实现代码，在写法上有一定区别，编译链接也有区别。
+这是因为C++中基于concept模板，其实是没办法提前编译、提前语法检查，只能在实例化之后再做语法检查。所以是一种难度相当高的编程范式，能用模板写C++库的一般是业界专家，普通人很难掌握，也没有足够动机去掌握。&lt;/p&gt;
+&lt;p&gt;Rust基于trait的泛型代码则和普通类型的具体实现代码，在写法上基本没区别，编译链接方式也一样。
+这是因为Rust中的trait是一种archetype，type-of-type，是规定一组类型应该具备什么接口的元类型，无论它多么抽象多么特殊，究其本质仍是一种类型。只要是类型，就可以单独提前编译，就可以被提前语法检查。&lt;/p&gt;
+&lt;h3 id=&#34;adapting-erases-interoperability&#34;&gt;Adapting Erases Interoperability&lt;/h3&gt;
+&lt;p&gt;和继承相比，&amp;ldquo;Adapting rather than extending a type&amp;quot;是Archetype范式的优势之一。
+Subtype范式在实践中不能保证所有类型继承自同一个基类，比如说对第三方的代码没有控制权，或者说这个类型不是个class，而是int, float这种内置类型。
+Archetype范式中不仅可以为自己的类型提供多种Archetype adaption，或使自己的代码遵循第三方Archetype，还可以为第三方类型提供自己的Archetype实现——前两点还好，这最后一点是Subtype范式做不到的，只能加个丑陋的wrapper，不仅工作量特别大，而且容易出错。&lt;/p&gt;
+&lt;p&gt;有人会问，允许修改已有的类型是不是比较危险？这是一种误解。继承是修改，因此是危险的。Adapt（或者说override，newtype）其实不是修改，而是新增。
+继承改变了类型的数据表示，Adapt机制则不改变类型的数据表示，只为其新增接口——换一种说法，override Archetype for T机制实际上是为已有类型T新建了一个遵循规约Archetype的入口。&lt;/p&gt;
+&lt;h3 id=&#34;archetypes-in-c&#34;&gt;Archetypes in C++&lt;/h3&gt;
+&lt;p&gt;有些人会argue，C++无所不能，的确C++也可以实现archetype范式，比如std::function，以及其他类型擦除。但是基于现有语法写出来的泛型代码和普通代码之间还是没那么像。One has to drastically change the programming style in order to &amp;ldquo;go generic&amp;rdquo;. 实现archetype范式在C++中相对困难。但即使如此，archetype范式的固有优势还是让某些标准或准标准选择了它，比如std::function, std::any, boost::any_range。&lt;/p&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>en on Structure over Unstructured Realities</title>
+    <link>https://jipeng4974.github.io/tags/en/</link>
+    <description>Recent content in en on Structure over Unstructured Realities</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 14 Jun 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/tags/en/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CAT02: Resources</title>
+      <link>https://jipeng4974.github.io/posts/category-theory-2-resources/</link>
+      <pubDate>Fri, 14 Jun 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://jipeng4974.github.io/posts/category-theory-2-resources/</guid>
+      <description>Symmetric Monoidal Preorders Def 2.1: A symmetric monoidal structure on a preorder $(X,≤)$ consists of two constituents: (i) an element $I \in X$, called the monoidal unit, (ii) and a function $\otimes: X \times X \rightarrow X$, called the monoidal product. These constituents must satisfy the following properties:
+monotonicity: $\forall x_1, x_2, y_1, y_2 \in X$, if $x_1 \le y_1$ and $x_2 \le y_2$, then $x_1 \otimes x_2 \le y_1 \otimes y_2$.</description>
+      <content>&lt;h2 id=&#34;symmetric-monoidal-preorders&#34;&gt;Symmetric Monoidal Preorders&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Def 2.1:&lt;/strong&gt; A &lt;code&gt;symmetric monoidal structure&lt;/code&gt; on a preorder $(X,≤)$ consists of two constituents: (i) an element $I \in X$, called the &lt;code&gt;monoidal unit&lt;/code&gt;, (ii) and a function $\otimes: X \times X \rightarrow X$, called the &lt;code&gt;monoidal product&lt;/code&gt;. These constituents must satisfy the following properties:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;monotonicity: $\forall x_1, x_2, y_1, y_2 \in X$, if $x_1 \le y_1$ and $x_2 \le y_2$, then $x_1 \otimes x_2 \le y_1 \otimes y_2$.&lt;/li&gt;
+&lt;li&gt;unitality: $\forall x \in X$, $I \otimes x = x$ and $x \otimes I = x$ holds.&lt;/li&gt;
+&lt;li&gt;associativity: $\forall x,y,z \in X$, $(x\otimes y)\otimes z = x \otimes (y\otimes z)$.&lt;/li&gt;
+&lt;li&gt;symmetry: $\forall x,y \in X, x\otimes y = y\otimes x$.&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Def 2.2:&lt;/strong&gt; A preorder equipped with a symmetric monoidal structure, $(X,\le,I,\otimes)$, is called a &lt;code&gt;symmetric monoidal preorder&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Example 2.1(The Booleans):&lt;/strong&gt; $\mathbb{B} = {true, false}$ with $false &amp;lt; true$ is the simplest nontrivial preorder. We can define the monoidal unit be true and the monoidal product be $\wedge$(AND). Then we have a monoidal preorder which we denote $Bool := (\mathbb{B}, \le ,true, \wedge )$.&lt;/p&gt;
+&lt;h2 id=&#34;wiring-diagrams&#34;&gt;Wiring Diagrams&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;Wiring diagrams&lt;/code&gt; are visual representations for building new releationships from old. In a preorder without a monoidal structure, the relations are chained in series.
+&lt;img src=&#34;https://jipeng4974.github.io/img/wiring_diagrams_1.png&#34; alt=&#34;wiring_diagrams_1&#34;&gt;&lt;/p&gt;
+&lt;p&gt;With a symmetric monoidal structure, relations could be arranged in parallel as well.
+&lt;img src=&#34;https://jipeng4974.github.io/img/wiring_diagrams_2.png&#34; alt=&#34;wiring_diagrams_2&#34;&gt;
+The whole wiring diagram above says &amp;ldquo;if $t\le v, w+u\le x+z, v+x\le y$, then $t+u\le y+z$&amp;rdquo;.&lt;/p&gt;
+&lt;p&gt;We could draw two wires in parallel to represent the monoidal product of two labels.
+&lt;img src=&#34;https://jipeng4974.github.io/img/wiring_diagrams_3.png&#34; alt=&#34;wiring_diagrams_3&#34;&gt;
+The validity of the box above corresponds to $x_1\otimes x_2 \le y_1 \otimes y_2 \otimes y_3$.&lt;/p&gt;
+&lt;p&gt;TBD&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;
+&lt;p&gt;To be a bit more rigorous, it&amp;rsquo;s often useful to replace $=$ with $\cong$ throughout &lt;strong&gt;Def 2.1&lt;/strong&gt;.&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>CAT01: Orders</title>
+      <link>https://jipeng4974.github.io/posts/category-theory-1-orders/</link>
+      <pubDate>Mon, 26 Feb 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://jipeng4974.github.io/posts/category-theory-1-orders/</guid>
+      <description>Preorders Starting from sets and subsets, we can define the relation between s$A$ and $B$ as a subset $R \in A\times B$.
+Every function is a relation, satisfying 2 properties:
+$\forall a \in A$, there exists $b \in B$, such that $(a,b)\in \mathbb{R}$ $\forall a, b_1, b_2$, if $(a,b_1) \in R$ and $(a, b_2) \in \mathbb{R}$, then $b_1 = b_2$. Order, equivalence, tolerance are all relations.
+A function $f: A\rightarrowtail B$ is called injection if $\forall a_1, a_2, b$, if $(a_1, b), (a_2, b) \in R$, then $a_1 = a_2$.</description>
+      <content>&lt;h2 id=&#34;preorders&#34;&gt;Preorders&lt;/h2&gt;
+&lt;p&gt;Starting from &lt;code&gt;sets&lt;/code&gt; and &lt;code&gt;subsets&lt;/code&gt;, we can define the &lt;code&gt;relation&lt;/code&gt; between s$A$ and $B$ as a &lt;code&gt;subset&lt;/code&gt; $R \in A\times B$.&lt;/p&gt;
+&lt;p&gt;Every &lt;code&gt;function&lt;/code&gt; is a relation, satisfying 2 properties:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;$\forall a \in A$, there exists $b \in B$, such that $(a,b)\in \mathbb{R}$&lt;/li&gt;
+&lt;li&gt;$\forall a, b_1, b_2$, if $(a,b_1) \in R$ and $(a, b_2) \in \mathbb{R}$, then $b_1 = b_2$.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Order, equivalence, tolerance are all relations.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;A &lt;code&gt;function&lt;/code&gt; $f: A\rightarrowtail B$ is called &lt;code&gt;injection&lt;/code&gt; if $\forall a_1, a_2, b$, if $(a_1, b), (a_2, b) \in R$, then $a_1 = a_2$.&lt;/p&gt;
+&lt;p&gt;A &lt;code&gt;function&lt;/code&gt; $f: A\twoheadrightarrow B$ is called &lt;code&gt;surjection&lt;/code&gt; if $\forall b \in B$, there exists an $a \in A$, such that $f(a) = b$.&lt;/p&gt;
+&lt;p&gt;A &lt;code&gt;function&lt;/code&gt; $f: A \overset{\cong} \rightarrowtail B$ is called &lt;code&gt;bijection&lt;/code&gt; if it is both surjective and injective.&lt;/p&gt;
+&lt;p&gt;An &lt;code&gt;identity function&lt;/code&gt; on a set $X$, denoted $id_X$. It is the bijective function $id_X(x) = x$.&lt;/p&gt;
+&lt;p&gt;A &lt;code&gt;partition&lt;/code&gt; on $A$ is just a surjection on some other set $P$: $A \twoheadrightarrow P$.&lt;/p&gt;
+&lt;p&gt;We can order &lt;code&gt;partitions&lt;/code&gt;: $A \twoheadrightarrow P_1$, $A \twoheadrightarrow P_2$. We say $P_1 \leqslant P_2$, if there is a &lt;code&gt;function&lt;/code&gt; $P_1 \rightarrow P_2$ making the diagram commute: $A \twoheadrightarrow P_1 \rightarrow P_2$.&lt;/p&gt;
+&lt;p&gt;So $A \twoheadrightarrow A$ is the minimum &lt;code&gt;partition&lt;/code&gt;, and the $A \twoheadrightarrow \underline{1}$ is the maximum &lt;code&gt;partition&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;An &lt;code&gt;preorder&lt;/code&gt; is&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;a set $S$, and&lt;/li&gt;
+&lt;li&gt;a relation $≤ : \subseteq S \times S$&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;satisfying 2 properties:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;$S ≤ S$. &lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;li&gt;$\forall S_1$, $S_2$, $S_3$, if $S_1 ≤ S_2$ and $S_2 ≤ S_3$, then $S_1 ≤ S_3$. &lt;sup id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;A &lt;code&gt;preorder&lt;/code&gt; is a &lt;code&gt;category&lt;/code&gt; with at most one &lt;code&gt;morphism&lt;/code&gt; between any two objects. Something slightly more complicated is that a &lt;code&gt;preorder&lt;/code&gt; is a &lt;code&gt;Bool-enriched category&lt;/code&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;meets-and-joins&#34;&gt;Meets and Joins&lt;/h2&gt;
+&lt;p&gt;Order creates &lt;code&gt;meets&lt;/code&gt; and &lt;code&gt;joins&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Joining $A$ and $B$, denoted by $A\vee B$, results in the least &lt;code&gt;partition&lt;/code&gt; bigger than both $A$ and $B$. That is $A ≤ (A\vee B)$ and $A ≤ (A\vee B)$. And for any C, if $A ≤ C$ and $B ≤ C$ then $(A\vee B) ≤ C$.&lt;/p&gt;
+&lt;p&gt;Put it formally. Let $(P, ≤)$ be a &lt;code&gt;preorder&lt;/code&gt;, and let $A \subseteq P$ be a &lt;code&gt;subset&lt;/code&gt;. We say that an element $p \in P$ is a &lt;code&gt;meet&lt;/code&gt; of $A$ if&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;$\forall a\in A$, we have $p≤ a$&lt;sup id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;4&lt;/a&gt;&lt;/sup&gt;, and&lt;/li&gt;
+&lt;li&gt;for all $q$ such that $q≤ a$ for all $a\in A$, we have that $q≤ p$&lt;sup id=&#34;fnref:5&#34;&gt;&lt;a href=&#34;#fn:5&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;5&lt;/a&gt;&lt;/sup&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;We write $P = \wedge A =  \underset{a\in A}{\wedge} a = a_1 \wedge a_2 \wedge &amp;hellip; \wedge a_n$&lt;/p&gt;
+&lt;p&gt;Similarly, we say that $p$ is a &lt;code&gt;join&lt;/code&gt; of $A$ if&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;$\forall a\in A$, we have $a≤ p$&lt;sup id=&#34;fnref:6&#34;&gt;&lt;a href=&#34;#fn:6&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;6&lt;/a&gt;&lt;/sup&gt;, and&lt;/li&gt;
+&lt;li&gt;for all $q$ such that $a≤ q$ for all $a\in A$, we have that $p≤ q$&lt;sup id=&#34;fnref:7&#34;&gt;&lt;a href=&#34;#fn:7&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;7&lt;/a&gt;&lt;/sup&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;In this case, $P = \vee A =  \underset{a\in A}{\vee} a = a_1 \vee a_2 \vee &amp;hellip; \vee a_n$&lt;/p&gt;
+&lt;p&gt;We next discuss examples.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Example 1: Truth Tables of the Booleans $\mathbb{B}$={T,F}$.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;For example, the pairwise &lt;code&gt;meets&lt;/code&gt; table of ${T,F}(F \leq T)$ happens to be the truth table for &lt;code&gt;AND&lt;/code&gt; in elementary logic. A similar binary join computation will generate the truth table for &lt;code&gt;OR&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Example 2: Power Sets, $(P(x), ≤)$.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s pick a particular set, let $X = {\square, \times, \heartsuit}$, then we consider its power sets:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/power_sets.png&#34; alt=&#34;power_sets&#34;&gt;&lt;/p&gt;
+&lt;p&gt;In this case, it&amp;rsquo;s clear that $\wedge$ = intersection, $\vee$ = union.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Example 3: $(\mathbb{N}, |), a ≤ b$, iff $a|b$&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/divisible.png&#34; alt=&#34;divisible&#34;&gt;&lt;/p&gt;
+&lt;p&gt;1 divides everything, so we start from 1. Here we have $\wedge$ = gcd, $\vee$ = lcm.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Example 4: There may be more than one &lt;code&gt;meet&lt;/code&gt;/&lt;code&gt;join&lt;/code&gt;.&lt;/strong&gt;
+&lt;img src=&#34;https://jipeng4974.github.io/img/hasse_diagram.png&#34; alt=&#34;hasse_diagram&#34;&gt;&lt;/p&gt;
+&lt;p&gt;This hasse diagram specifies a &lt;code&gt;preorder&lt;/code&gt; where both $c$ and $d$ are &lt;code&gt;meets&lt;/code&gt; of $A$. We have $c≤ d$ and $d≤ c$, so $c \cong d$, that is $c$ and $d$ are &lt;code&gt;isomorphic&lt;/code&gt;, which will be covered later; we generally do not run into trouble if we pretend they are equal though.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Example 5: &lt;code&gt;Meets&lt;/code&gt; or &lt;code&gt;joins&lt;/code&gt; may not exist.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Clearly things don&amp;rsquo;t always have a lower bound or a upper bound at all. There might be multiple lower bounds/upper bounds but these lower/upper bounds are non-comparable.&lt;/p&gt;
+&lt;p&gt;Throughout these examples, many familiar things can be characterized by this quite simple universal property, be it gcd/lcm, max/min, limits/colimits, or itersection/union.&lt;/p&gt;
+&lt;p&gt;The idea that things can be characterized by universal properties, implies we are closer to category theory now.&lt;/p&gt;
+&lt;h2 id=&#34;monotone-maps&#34;&gt;Monotone Maps&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;Preorders&lt;/code&gt; themselves can be related to one another. A &lt;code&gt;monotone map&lt;/code&gt; is a structure-preserving map for &lt;code&gt;preorders&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;A &lt;code&gt;monotone map&lt;/code&gt; between &lt;code&gt;preorders&lt;/code&gt; $(A, ≤_A)$ and $(B, ≤_B)$ is a &lt;code&gt;function&lt;/code&gt; $f : A \rightarrow B$ such that, for all elements $x, y ∈ A$, if $x ≤_A y$ then $f (x) ≤_B f(y)$.
+&lt;img src=&#34;https://jipeng4974.github.io/img/monotone_map.png&#34; alt=&#34;monotone_map&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Let $\mathbb{B}$ be the preorders of booleans and $\mathbb{N}$ be the preorder of natural numbers. The map $\mathbb{B} \rightarrow \mathbb{N}$ sending false to 17 and true to 24 is a &lt;code&gt;monotone map&lt;/code&gt;, because it preserves order.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/b2n.png&#34; alt=&#34;b2n&#34;&gt;&lt;/p&gt;
+&lt;p&gt;A &lt;code&gt;monotone map&lt;/code&gt; $f: P \rightarrow Q$ preserves &lt;code&gt;joins&lt;/code&gt; if $\forall p,p&amp;rsquo; \in P, f(p\vee p&amp;rsquo;) = f(p) \vee f(p&amp;rsquo;)$&lt;/p&gt;
+&lt;p&gt;For any &lt;code&gt;preorder&lt;/code&gt; $(P, ≤_P)$, the identity function is monotone.
+If $(Q, ≤_Q)$ and $(R, ≤_R)$ are preorders and $f : P → Q$ and $g : Q → R$ are monotone, then $(f ; g): P → R$ is also monotone.&lt;/p&gt;
+&lt;p&gt;Let $(P, ≤_P)$ and $(Q, ≤_Q)$ be preorders. A &lt;code&gt;monotone function&lt;/code&gt; $f : P → Q$ is called an &lt;code&gt;isomorphism&lt;/code&gt; if there exists a &lt;code&gt;monotone function&lt;/code&gt; $g : Q → P$ such that $f;g = id_P$ and $g;f = id_Q$. This means that for any $p ∈ P$ and $q ∈ Q$, we have $p=g(f(p))$ and $q
+=f(g(q))$.&lt;/p&gt;
+&lt;p&gt;We refer to $g$ as the inverse of $f$ , and vice versa: $f$ is the inverse of $g$.&lt;/p&gt;
+&lt;p&gt;If there is an &lt;code&gt;isomorphism&lt;/code&gt; $P → Q$, we say that $P$ and $Q$ are isomorphic.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;An isomorphism between preorders is basically just a relabeling of the elements.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;galois-connections&#34;&gt;Galois Connections&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;Galois connections&lt;/code&gt; between &lt;code&gt;preorders&lt;/code&gt; $P$ and $Q$ is a pair of &lt;code&gt;monotone maps&lt;/code&gt; $f : P → Q$ and $g : Q → P$ such that $f(p) ≤ q iff p ≤ g(q).$&lt;/p&gt;
+&lt;p&gt;We say that $f$ is the left &lt;code&gt;adjoint&lt;/code&gt; and g is the right &lt;code&gt;adjoint&lt;/code&gt; of the &lt;code&gt;Galois connection&lt;/code&gt;.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The theory of &lt;code&gt;Galois connections&lt;/code&gt; is a special case of a more general theory, the theory of &lt;code&gt;adjunctions&lt;/code&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Example 1: $P = Q = \underline{3}$&lt;/strong&gt;
+&lt;img src=&#34;https://jipeng4974.github.io/img/Galois_connections.png&#34; alt=&#34;togc&#34;&gt;&lt;/p&gt;
+&lt;p&gt;In this case $P$ and $Q$ are total orders, $f$ is left adjoint to $g$ as long as arrows do not cross.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Example 2: $\mathbb{Z} \xrightarrow[f]{3\times\square} \mathbb{R}$, $\mathbb{R} \xrightarrow[g]{\lfloor\square/3\rfloor} \mathbb{Z}$&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;It means we have $5 \xrightarrow[f]{3\times\square}15$, $13.3 \xrightarrow[g]{\lfloor\square/3\rfloor}4$.&lt;/p&gt;
+&lt;p&gt;Since $3n ≤ x$ iff $n ≤ \lfloor x/3\rfloor$, $f$ is left adjoint to $g$.&lt;/p&gt;
+&lt;p&gt;In the end of the day, we can claim that a &lt;code&gt;monotone map&lt;/code&gt; $f$ is a left/right &lt;code&gt;adjoint&lt;/code&gt; iff it preserves &lt;code&gt;joins&lt;/code&gt;/&lt;code&gt;meets&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;
+&lt;p&gt;Here we use the symbol $≤$ instead of $R$ as it implies a preorder, and the infix notation $S_1 ≤ S_2$ looks more natural than $(S_1,S_2) \in R$.&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;
+&lt;p&gt;reflexivity&amp;#160;&lt;a href=&#34;#fnref:2&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;
+&lt;p&gt;transitivity&amp;#160;&lt;a href=&#34;#fnref:3&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:4&#34;&gt;
+&lt;p&gt;$p$ is the lower bound of $A$&amp;#160;&lt;a href=&#34;#fnref:4&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:5&#34;&gt;
+&lt;p&gt;$p$ is the greatest lower bound&amp;#160;&lt;a href=&#34;#fnref:5&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:6&#34;&gt;
+&lt;p&gt;$p$ is the upper bound of $A$&amp;#160;&lt;a href=&#34;#fnref:6&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:7&#34;&gt;
+&lt;p&gt;$p$ is the least lower bound&amp;#160;&lt;a href=&#34;#fnref:7&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>Work Reduction vs Hardware Enablement</title>
+      <link>https://jipeng4974.github.io/posts/work-reduction-vs-hardware-enablement/</link>
+      <pubDate>Thu, 08 Feb 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://jipeng4974.github.io/posts/work-reduction-vs-hardware-enablement/</guid>
+      <description>Optimization can be divided into work reduction and hardware enablement.
+Work, in terms of computer programming, is basically a gross measure of how much stuff the program needs to do.
+The idea of work optimization is to reduce the amount of stuff the program needs to do. Commonly employed techniques include: approximation, tail-recursion elimination, coarsening/refining recursion, inlining, loop fusion, loop unrolling, hoisting, short-circuiting, common-subexpression elimination, compile-time initialization, compile-time evaluation, exploiting sparsity, caching, pre-computation, and bit hacks.</description>
+      <content>&lt;blockquote&gt;
+&lt;p&gt;Optimization can be divided into work reduction and hardware enablement.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Work, in terms of computer programming, is basically a gross measure of how much stuff the program needs to do.&lt;/p&gt;
+&lt;p&gt;The idea of work optimization is to reduce the amount of stuff the program needs to do. Commonly employed techniques include: &lt;code&gt;approximation&lt;/code&gt;, &lt;code&gt;tail-recursion elimination&lt;/code&gt;, &lt;code&gt;coarsening/refining recursion&lt;/code&gt;, &lt;code&gt;inlining&lt;/code&gt;, &lt;code&gt;loop fusion&lt;/code&gt;, &lt;code&gt;loop unrolling&lt;/code&gt;, &lt;code&gt;hoisting&lt;/code&gt;, &lt;code&gt;short-circuiting&lt;/code&gt;, &lt;code&gt;common-subexpression elimination&lt;/code&gt;, &lt;code&gt;compile-time initialization&lt;/code&gt;, &lt;code&gt;compile-time evaluation&lt;/code&gt;, &lt;code&gt;exploiting sparsity&lt;/code&gt;, &lt;code&gt;caching&lt;/code&gt;, &lt;code&gt;pre-computation&lt;/code&gt;, and &lt;code&gt;bit hacks&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;While reducing work undoubtedly serves as an essential heuristic for reducing overall running time, it&amp;rsquo;s not the sole determinant of the running time; it doesn&amp;rsquo;t capture the whole picture of computer programming, leaving the intricate nature of computer hardware unaddressed.&lt;/p&gt;
+&lt;p&gt;To thoroughly investigate architectural improvements that unlock hardware potential, we must delve into numerous aspects in hardware and micro-architecture: &lt;code&gt;the ISA&lt;/code&gt;, &lt;code&gt;pipeline stages&lt;/code&gt;, &lt;code&gt;superscalar processing&lt;/code&gt;, &lt;code&gt;out-of-order execution&lt;/code&gt;, &lt;code&gt;paging&lt;/code&gt;, &lt;code&gt;caching&lt;/code&gt;, &lt;code&gt;vectorization&lt;/code&gt;, &lt;code&gt;speculation&lt;/code&gt;, &lt;code&gt;hardware prefetching&lt;/code&gt;, &lt;code&gt;branch prediction&lt;/code&gt;, etc.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Historically computer architecture leverages either locality or parallelism to enhance performance.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;To exploit locality, the memory hierarchy(&lt;code&gt;registers&lt;/code&gt;-&amp;gt;&lt;code&gt;L1/L2/L3 caches&lt;/code&gt;-&amp;gt;&lt;code&gt;local DRAM&lt;/code&gt;-&amp;gt;&lt;code&gt;remote DRAM&lt;/code&gt;-&amp;gt;&lt;code&gt;PMem&lt;/code&gt;-&amp;gt;&lt;code&gt;SSD&lt;/code&gt;) was made deeper for hiding performance issue; hardware prefetchers and branch predictors were used to predict immediate accesses and move data or instructions closer to processors. As programmers, we are working on one layer obove the computer architecture layer, what we can do is to write NUMA-aware, cache-aligned, and perhaps vectorized code with regular data access patterns and proper software pre-fetching.&lt;/p&gt;
+&lt;p&gt;To exploit parallelism, superscalar out-of-order pipelines with micro-ops, vector hardware, multi-core were introduced. Correspondingly, we need to keep all these things busy by using techniques like &lt;code&gt;bit tricks&lt;/code&gt;, &lt;code&gt;ILP&lt;/code&gt;(Instruction-level parallelism), &lt;code&gt;AVX&lt;/code&gt;/&lt;code&gt;SSE&lt;/code&gt;, &lt;code&gt;AMX&lt;/code&gt;, multithread/multi-process programming and offloading to accelerators like &lt;code&gt;DPU&lt;/code&gt;s or &lt;code&gt;GPU&lt;/code&gt;s.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s explore &lt;code&gt;ILP&lt;/code&gt; further, as it is more connected with the μ-arch designs inside a processor, such as out-of-order execution, data bypassing, register renaming, and so on. To exploit CPU μ-arch programmatically, we can (1)use separate functional units, (2)write likely/unlikely hints for branch prediction, and (3)break dependency in the data-flow graph beforehand to reduce data hazards.&lt;/p&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>Dash: Scalable Hashing</title>
+      <link>https://jipeng4974.github.io/posts/dash/</link>
+      <pubDate>Fri, 26 Jan 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://jipeng4974.github.io/posts/dash/</guid>
+      <description>The main focus of the Dash paper was on the once fashionable persistent memory, but in reality, any memory bandwidth-limited scenario can benefit from it. With Intel killing off its pmem business, the significance of the Dash approach has shifted to regular DRAM applications.
+Dynamic Hashing Dashtable, the proposed scalable hashtable, evolves from extendible hashing.
+Extendible hashing is a hash system that uses the first $N$ bits of hashed values to look up buckets in a trie-structured directory.</description>
+      <content>&lt;p&gt;The main focus of the Dash paper was on the once fashionable &lt;code&gt;persistent memory&lt;/code&gt;, but in reality, any &lt;code&gt;memory bandwidth&lt;/code&gt;-limited scenario can benefit from it. With Intel killing off its &lt;code&gt;pmem&lt;/code&gt; business, the significance of the &lt;code&gt;Dash&lt;/code&gt; approach has shifted to regular &lt;code&gt;DRAM&lt;/code&gt; applications.&lt;/p&gt;
+&lt;h1 id=&#34;dynamic-hashing&#34;&gt;Dynamic Hashing&lt;/h1&gt;
+&lt;p&gt;&lt;code&gt;Dashtable&lt;/code&gt;, the proposed scalable hashtable, evolves from &lt;code&gt;extendible hashing&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Extendible hashing&lt;/code&gt; is a hash system that uses the first $N$ bits of hashed values to look up buckets in a trie-structured &lt;code&gt;directory&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;A &lt;code&gt;directory&lt;/code&gt; with &lt;code&gt;global depth&lt;/code&gt; $N$ can hold $2^N$ buckets. It means $N$ is the key size that maps the &lt;code&gt;directory&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Each bucket also has a &lt;code&gt;local depth&lt;/code&gt; $M(M \le N)$, which is the key size that previously mapped the &lt;code&gt;directory&lt;/code&gt;. Any bucket having a &lt;code&gt;local depth&lt;/code&gt; $M = N$ is pointed-to by exactly one &lt;code&gt;directory&lt;/code&gt; entry. Any bucket having a &lt;code&gt;local depth&lt;/code&gt; $M \lt N$ is pointed-to by more than one &lt;code&gt;directory&lt;/code&gt; entries.&lt;/p&gt;
+&lt;p&gt;The minimal $N$ needed to ensure every item has a unique bucket index is 1 for 2 items. The minimal $N = 2$  for 4 items. Everytime a new  item added into a bucket, if the number of items in the bucket exceeds a certain threshold, a rehashing operation happens by splitting the bucket into 2 parts. Hence rehashing in this scheme doesn&amp;rsquo;t have to stop the world and do a full-table scan &amp;amp; copy, but instead is done incremental.&lt;/p&gt;
+&lt;p&gt;Similar to &lt;code&gt;extendible hashing&lt;/code&gt;, &lt;code&gt;linear hashing&lt;/code&gt; also uses a &lt;code&gt;directory&lt;/code&gt; to orgranize and address buckets. The distinction lies in split control. In &lt;code&gt;linear hashing&lt;/code&gt;, a split typically occurs only if the load factor exceeds a threshold and the bucket to be split is chosen in a &amp;ldquo;linear&amp;rdquo; manner.&lt;/p&gt;
+&lt;h1 id=&#34;dash-for-extendible-hashing&#34;&gt;Dash for Extendible Hashing&lt;/h1&gt;
+&lt;h2 id=&#34;overview&#34;&gt;Overview&lt;/h2&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/dash_eh.png&#34; alt=&#34;dash_eh&#34;&gt;&lt;/p&gt;
+&lt;p&gt;In &lt;code&gt;Dash-EH&lt;/code&gt;, each &lt;code&gt;directory&lt;/code&gt; entry points to a &lt;code&gt;segment&lt;/code&gt; which consists of a fixed number of normal buckets and stash buckets. A &lt;code&gt;segment&lt;/code&gt; can be viewed as a sub-hashtable of constant size. The so-called stash buckets shares the same layout as the normal buckets, responsible for storing overflow records.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/dash_eh_bucket.png&#34; alt=&#34;dash_eh&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The core idea of &lt;code&gt;Dash-EH&lt;/code&gt; is to pay a little bit extra space in metadata to buy faster probing with fingerprints and lightweight concurrency control with version locks.&lt;/p&gt;
+&lt;p&gt;Inside a &lt;code&gt;Dash-EH&lt;/code&gt; bucket, as shown in the figure above, the first 32 bytes are metadata, including version lock, counter, alloc bitmap, membership bitmap for load balancing, and 18 one-byte fingerprints for bucket probing(14 for slots in the bucket, 4 for overflow records originally hashed to this bucket). It is followed by $16(Bytes) \times 14 (records) = 224 Bytes$ payload, which stores 14 16-byte records.&lt;/p&gt;
+&lt;h2 id=&#34;fingerprinting&#34;&gt;Fingerprinting&lt;/h2&gt;
+&lt;p&gt;Bucket probing, which refers to searching for a slot in a bucket, is a basic operation of hashtables, needed by &lt;code&gt;search&lt;/code&gt;, &lt;code&gt;insert&lt;/code&gt; and &lt;code&gt;delete&lt;/code&gt; operations to locate a particular key. Traditionally probing requires a linear scan, which is naturally slow on &lt;code&gt;PMem&lt;/code&gt; and could be completely unnecessary when a searched key doesn&amp;rsquo;t exist. &lt;code&gt;Dash-EH&lt;/code&gt; employs fingerprinting to reduce unnecessary scans. Fingerprints are the least significant byte of hashes of keys. To probe for a key, the probing thread first checks if any fingerprint in the bucket&amp;rsquo;s metadata matches the key&amp;rsquo;s, so it can skip buckets without any fingerprint match.&lt;/p&gt;
+&lt;p&gt;Fingerprinting primarily benefits negative(key-not-found) &lt;code&gt;search&lt;/code&gt;es. The &lt;code&gt;Dash&lt;/code&gt; paper also claims fingerprinting enables using larger buckets spanning more than 2 cachelines. But I have to take it with a grain of salt. The paper itself uses a 256B setup. So does the DragonFly implementation&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;. In theory, larger buckets can indeed tolerate more collisions and improve the load factor; however, this may come at the cost of compromising locality to a certain degree - you don&amp;rsquo;t want to load multiple times for a single bucket access in a hashtable.&lt;/p&gt;
+&lt;h2 id=&#34;bucket-load-balancing&#34;&gt;Bucket Load Balancing&lt;/h2&gt;
+&lt;p&gt;Segmentation reduces cache misses on &lt;code&gt;directory&lt;/code&gt; by reducing its size. In the &lt;code&gt;extendible hashing&lt;/code&gt; scheme, if any bucket in a segment is full, the entire segment needs to be split, even though other buckets might have much free space.&lt;/p&gt;
+&lt;p&gt;To prevent frequent segment splits, the &lt;code&gt;Dash-EH&lt;/code&gt; algorithm design incorporates bucket load balancing. For an &lt;code&gt;insert&lt;/code&gt; operation, &lt;code&gt;Dash-EH&lt;/code&gt; probes both bucket $B_b$ and $B_{b+1}$, and then inserts into the bucket that is less full. If both $B_b$ and $B_{b+1}$ are full, &lt;code&gt;Dash-EH&lt;/code&gt; tries to displace a &amp;ldquo;native record&amp;rdquo; from $B_{b+1}$ to $B_{b+2}$, or move a &amp;ldquo;rebalanced record&amp;rdquo; from $B_b$ back to $B_{b-1}$ where it originally belongs.&lt;/p&gt;
+&lt;p&gt;The per-bucket membership bitmap is used to decide whether a record is rebalanced or native. If a bit is set in the membership bitmap, then the corresponding key was not directly hashing into this bucket(native) but placed here due to re-balancing(rebalanced).&lt;/p&gt;
+&lt;p&gt;If both &lt;code&gt;insert&lt;/code&gt; and &lt;code&gt;displacement&lt;/code&gt; failed, &lt;code&gt;Dash-EH&lt;/code&gt; turns to the last resort - stashing. Each segment has a fixed number of stash buckets to hold these overflow records. Probing stash buckets introduces significant overhead to negative &lt;code&gt;search&lt;/code&gt;es and &lt;code&gt;insert&lt;/code&gt;s(needs uniqueness check). To address this issue, each normal bucket reserves certain metadata fields. 4 overflow fingerprints are reserved for overflow records stored in stsh buckets. A overflow bit indicates if there exists an overflow at all. So if there isn&amp;rsquo;t an overflow in a bucket, the &lt;code&gt;search&lt;/code&gt;/&lt;code&gt;insert&lt;/code&gt; operation doesn&amp;rsquo;t have to probe stash buckets. Anyway, it is still advisable to maintain a small number of stash buckets. The paper claims &amp;ldquo;using 2–4 stash buckets per segment can improve load factor to over 90% without imposing significant overhead&amp;rdquo;. In Dragonfly&amp;rsquo;s Dashtable, each segment has 56 regular buckets, and 4 stash buckets.&lt;/p&gt;
+&lt;h2 id=&#34;lightweight-concurrency-control&#34;&gt;Lightweight Concurrency Control&lt;/h2&gt;
+&lt;p&gt;The lightweight concurrency control in &lt;code&gt;Dash-EH&lt;/code&gt; naturally scales well on today&amp;rsquo;s &lt;code&gt;many-core&lt;/code&gt; architectures, out-performing traiditional bucket-level shared locks.&lt;/p&gt;
+&lt;p&gt;Write operations follow traditional bucket-level locking to lock the affected buckets, using CAS over a lock bit. If a write is done, the writer thread resets the lock bit and increments the per-bucket version number by one.&lt;/p&gt;
+&lt;p&gt;On the other hand, read operations are designed to be lock-free. Before a read, the reader thread first fetches a snapshot of the lock word, waits until the lock is released, then proceeds to read without holding any lock. After reading, it will check the lock word again to verify the version number stays unchanged. If the version is changed, it retries the entire operation.&lt;/p&gt;
+&lt;h1 id=&#34;dash-for-linear-hashing&#34;&gt;Dash for Linear Hashing&lt;/h1&gt;
+&lt;p&gt;The Dash paper also presents &lt;code&gt;Dash-LH&lt;/code&gt;, a Dash-enabled linear hashing approach built upon building blocks used in &lt;code&gt;Dash-EH&lt;/code&gt;, such as balanced &lt;code&gt;insert&lt;/code&gt;/&lt;code&gt;displacement&lt;/code&gt;, fingerprinting and optimistic concurrency; they are pretty much orthogonal after all. The main difference is that &lt;code&gt;Dash-LH&lt;/code&gt; split the segment pointed to by a pointer in a linear manner.&lt;/p&gt;
+&lt;p&gt;Traditional &lt;code&gt;linear hashing&lt;/code&gt; links overflow records with a linklist. In &lt;code&gt;Dash-LH&lt;/code&gt;, it&amp;rsquo;s done more cache-friendly with stash buckets. It still needs to chain these stash buckets though. Still it&amp;rsquo;s much better than chaining individual records.&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/dragonflydb/dragonfly/blob/main/docs/dashtable.md&#34;&gt;Dashtable in Dragonfly&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>

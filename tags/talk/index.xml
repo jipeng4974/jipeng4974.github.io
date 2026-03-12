@@ -1,0 +1,742 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>talk on Structure over Unstructured Realities</title>
+    <link>https://jipeng4974.github.io/tags/talk/</link>
+    <description>Recent content in talk on Structure over Unstructured Realities</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 22 Feb 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/tags/talk/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Tech Talk: Wall is Coming</title>
+      <link>https://jipeng4974.github.io/posts/tech-talk-wall-is-coming/</link>
+      <pubDate>Thu, 22 Feb 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://jipeng4974.github.io/posts/tech-talk-wall-is-coming/</guid>
+      <description>内存墙和登纳德定律失效 “内存墙（the Memory Wall）”和“登纳德定律失效（the break down of Dennard Scaling）”是计算生态演化中的两个核心矛盾。
+为了对抗Dennard Scaling的失效，计算硬件的架构从单核向多核、众核突围。 为了掩盖内存墙问题，内存层级（memory hierarchy）变得越来越深，off-chip互连带宽不得不迅速提高。 起初单核到多核是巨变，逼迫软件架构进行痛苦重构，并发编程问题木秀于林，因此被近20年的工业界实践+学术界研究集火秒了——如今我们有多线程编程范式、异步回调范式、goroutine式的有栈协程、C++/Rust的async/await无栈协程、lockfree/waitfree数据结构等诸多工具。 相较而言，这几十年来内存墙问题由于其隐蔽性、不紧急性、棘手性，不仅没得到妥善解决，反而根深蒂固，愈发遮掩不住，暴露在软件工程师面前，因此这次分享的重点是内存墙。
+不过在进入正题之前，还需先介绍一下数据中心硬件和微处理器架构演化的些许背景。
+21世纪数据中心硬件的演化简史 00s，Commodity Computing时代 远古时期我们并不会说“数据中心硬件”，因为还不存在现代意义上的互联网产业，也就没有现代意义上的数据中心。自然也就没有“for 大数据/云/Edge/AI”的营销话术，更多的是强调用廉价、不可靠、大规模的commodity hardware搭建分布式有状态系统，Google在这方面做了开创性的尝试。
+相对IBM mainframe、super computer而言，当年x86的廉价是一目了然的。Google草创之初用的是奔腾2。 银行业、DAPRA成就了IBM power系列，如今Power9/10机器虽然被Xeon/EPYC完爆，仍然可以靠银行软件的祖宗之法不可变和政府订单苟延残喘，保有一份niche市场。
+10s之前是x86微处理器完全不具备多核可扩展性的年代。
+FSB(front-side bus)是罪魁祸首。下图架构中，内存总线和PCIe总线需共享一个FSB才能与CPU相连，导致FSB成为瓶颈，CPU数量不具备横向扩展性。 当年的PCIe还是1.0（03年初代PCIe），带宽和lane数都相当有限，即使强上多核，网络IO、磁盘IO也跟不上。 零零年代恰逢摩尔定律逐渐在单核语境失效，专注提升芯片性能在2004年后不再可行，硬件厂商不得不在架构上向多核方向突围。 一零年代初，多核时代 2012年的Intel Xeon E5-2600 V1 32nm Sandy Bridge是里程碑式的服务器产品，移除FSB（这个实际上在09年的Nehalem机器上就已经做了）、引入QPI/DMI取代FSB、PCIe2.0，使微架构获取多核可扩展性。
+E5 family算是耳熟能详，虽然普遍要到寿命极限，但至今应该仍有很多公司在用。 当年买电脑时，所谓二代i3/i5/i7就是SandyBridge，和一代i5/i7的Nehalem有代差。
+Sandy Bridge之后是Haswell，变化不大。Haswell之后是Broadwell，环状拓扑Broadwell Ring即得名于此。 再后面就是Skylake，开始冠上Scalable之名了，从多核走向众核，从近代走到现代。
+一零年代末~二零年代初，众核时代 17年Intel推出了1st gen Xeon Scalable，Skylake，采用了Mesh Architecture。见Things are getting meshy 同时期AMD也推出了ENYC 7001，算是打破了Xeon的垄断局面。在US-TTP机房我们就有不少AMD机器。
+Skylake的升级版Ice Lake并未顺利孵化，因为18年出了Meltdown/Spectre的大新闻（speculative execution的安全漏洞），于是在Skylake上修了漏洞，19年推出Cascade Lake作为2nd-Gen Xeon。原本的顺位继承者Ice Lake在21年姗姗来迟，变成了第三代。
+Cooper Lake和Ice Lake同代，都被称为第三代，但实际上架构和Ice Lake不同，是基于Skylake改的，专为多socket(4~8s)设计，相比general-purpose的Ice Lake， Cooper Lake稍稍超出commodity hardware范畴，估计是想卖给特定的专用计算领域，用来替代老旧的UNIX系统，比如Oracle Solaris，IBM AIX。互联网场景下我们还是倾向于横向扩容而不是纵向扩容。</description>
+      <content>&lt;h1 id=&#34;内存墙和登纳德定律失效&#34;&gt;内存墙和登纳德定律失效&lt;/h1&gt;
+&lt;p&gt;“内存墙（the Memory Wall）”和“登纳德定律失效（the break down of Dennard Scaling）”是计算生态演化中的两个核心矛盾。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;为了对抗Dennard Scaling的失效，计算硬件的架构从单核向多核、众核突围。&lt;/li&gt;
+&lt;li&gt;为了掩盖内存墙问题，内存层级（memory hierarchy）变得越来越深，off-chip互连带宽不得不迅速提高。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;起初单核到多核是巨变，逼迫软件架构进行痛苦重构，并发编程问题木秀于林，因此被近20年的工业界实践+学术界研究集火秒了——如今我们有多线程编程范式、异步回调范式、goroutine式的有栈协程、C++/Rust的async/await无栈协程、lockfree/waitfree数据结构等诸多工具。
+相较而言，这几十年来内存墙问题由于其隐蔽性、不紧急性、棘手性，不仅没得到妥善解决，反而根深蒂固，愈发遮掩不住，暴露在软件工程师面前，因此这次分享的重点是内存墙。&lt;/p&gt;
+&lt;p&gt;不过在进入正题之前，还需先介绍一下数据中心硬件和微处理器架构演化的些许背景。&lt;/p&gt;
+&lt;h1 id=&#34;21世纪数据中心硬件的演化简史&#34;&gt;21世纪数据中心硬件的演化简史&lt;/h1&gt;
+&lt;h2 id=&#34;00scommodity-computing时代&#34;&gt;00s，Commodity Computing时代&lt;/h2&gt;
+&lt;p&gt;远古时期我们并不会说“数据中心硬件”，因为还不存在现代意义上的互联网产业，也就没有现代意义上的数据中心。自然也就没有“for 大数据/云/Edge/AI”的营销话术，更多的是强调用廉价、不可靠、大规模的commodity hardware搭建分布式有状态系统，Google在这方面做了开创性的尝试。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;相对IBM mainframe、super computer而言，当年x86的廉价是一目了然的。Google草创之初用的是奔腾2。
+银行业、DAPRA成就了IBM power系列，如今Power9/10机器虽然被Xeon/EPYC完爆，仍然可以靠银行软件的祖宗之法不可变和政府订单苟延残喘，保有一份niche市场。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/commodity_computing.png&#34; alt=&#34;commodity_computing&#34;&gt;&lt;/p&gt;
+&lt;p&gt;10s之前是x86微处理器完全不具备多核可扩展性的年代。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;FSB&lt;/code&gt;(front-side bus)是罪魁祸首。下图架构中，内存总线和PCIe总线需共享一个&lt;code&gt;FSB&lt;/code&gt;才能与CPU相连，导致&lt;code&gt;FSB&lt;/code&gt;成为瓶颈，CPU数量不具备横向扩展性。&lt;/li&gt;
+&lt;li&gt;当年的&lt;code&gt;PCIe&lt;/code&gt;还是1.0（03年初代&lt;code&gt;PCIe&lt;/code&gt;），带宽和lane数都相当有限，即使强上多核，网络IO、磁盘IO也跟不上。
+&lt;img src=&#34;https://jipeng4974.github.io/img/fsb.png&#34; alt=&#34;fsb&#34;&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;零零年代恰逢摩尔定律逐渐在单核语境失效，专注提升芯片性能在2004年后不再可行，硬件厂商不得不在架构上向多核方向突围。
+&lt;img src=&#34;https://jipeng4974.github.io/img/clock.png&#34; alt=&#34;clock&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;一零年代初多核时代&#34;&gt;一零年代初，多核时代&lt;/h2&gt;
+&lt;p&gt;2012年的Intel Xeon E5-2600 V1 32nm Sandy Bridge是里程碑式的服务器产品，移除&lt;code&gt;FSB&lt;/code&gt;（这个实际上在09年的Nehalem机器上就已经做了）、引入&lt;code&gt;QPI&lt;/code&gt;/&lt;code&gt;DMI&lt;/code&gt;取代&lt;code&gt;FSB&lt;/code&gt;、PCIe2.0，使微架构获取多核可扩展性。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;E5 family算是耳熟能详，虽然普遍要到寿命极限，但至今应该仍有很多公司在用。
+当年买电脑时，所谓二代i3/i5/i7就是&lt;code&gt;SandyBridge&lt;/code&gt;，和一代i5/i7的&lt;code&gt;Nehalem&lt;/code&gt;有代差。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;code&gt;Sandy Bridge&lt;/code&gt;之后是&lt;code&gt;Haswell&lt;/code&gt;，变化不大。&lt;code&gt;Haswell&lt;/code&gt;之后是&lt;code&gt;Broadwell&lt;/code&gt;，环状拓扑&lt;code&gt;Broadwell Ring&lt;/code&gt;即得名于此。
+&lt;img src=&#34;https://jipeng4974.github.io/img/broadwell_ring.png&#34; alt=&#34;clock&#34;&gt;
+再后面就是Skylake，开始冠上Scalable之名了，从多核走向众核，从近代走到现代。&lt;/p&gt;
+&lt;h2 id=&#34;一零年代末二零年代初众核时代&#34;&gt;一零年代末~二零年代初，众核时代&lt;/h2&gt;
+&lt;p&gt;17年Intel推出了1st gen Xeon Scalable，&lt;code&gt;Skylake&lt;/code&gt;，采用了Mesh Architecture。见Things are getting meshy
+同时期AMD也推出了ENYC 7001，算是打破了Xeon的垄断局面。在US-TTP机房我们就有不少AMD机器。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Skylake&lt;/code&gt;的升级版&lt;code&gt;Ice Lake&lt;/code&gt;并未顺利孵化，因为18年出了Meltdown/Spectre的大新闻（speculative execution的安全漏洞），于是在&lt;code&gt;Skylake&lt;/code&gt;上修了漏洞，19年推出&lt;code&gt;Cascade Lake&lt;/code&gt;作为2nd-Gen Xeon。原本的顺位继承者&lt;code&gt;Ice Lake&lt;/code&gt;在21年姗姗来迟，变成了第三代。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Cooper Lake&lt;/code&gt;和&lt;code&gt;Ice Lake&lt;/code&gt;同代，都被称为第三代，但实际上架构和&lt;code&gt;Ice Lake&lt;/code&gt;不同，是基于&lt;code&gt;Skylake&lt;/code&gt;改的，专为多socket(4~8s)设计，相比general-purpose的&lt;code&gt;Ice Lake&lt;/code&gt;， &lt;code&gt;Cooper Lake&lt;/code&gt;稍稍超出commodity hardware范畴，估计是想卖给特定的专用计算领域，用来替代老旧的UNIX系统，比如&lt;code&gt;Oracle Solaris&lt;/code&gt;，&lt;code&gt;IBM AIX&lt;/code&gt;。互联网场景下我们还是倾向于横向扩容而不是纵向扩容。&lt;/p&gt;
+&lt;p&gt;目前数据中心应用的主力机型是&lt;code&gt;Ice Lake&lt;/code&gt;、&lt;code&gt;Cascade Lake&lt;/code&gt;机器，23~24年起计算/访存密集的场景则会逐步用到第四代Xeon：&lt;code&gt;Sapphire Rapids&lt;/code&gt;机器。
+19年20年我们还零零散散有一些1st gen Xeon Scalable Gold机器，后来很快就汰换掉了。
+&lt;img src=&#34;https://jipeng4974.github.io/img/broadwell_ring.png&#34; alt=&#34;clock&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Ice Lake&lt;/code&gt;和&lt;code&gt;Cascade Lake&lt;/code&gt;都是monolithic mesh设计。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;这里monolithic是相对于chiplet/tile-based而言的单个huge die承载many-core的范式；&lt;/li&gt;
+&lt;li&gt;这里mesh是相对于此前E5时代Broadwell Ring环状拓扑而言的网状拓扑。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;二者差异主要在制程（10nm vs 14nm）、最大核心数、PCIe路数、内存通道数（单socket支持的DIMM&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;数 16 vs 12）。&lt;/p&gt;
+&lt;p&gt;24年起开始交付的4th-Gen &lt;code&gt;Sapphire Rapids&lt;/code&gt;的芯片架构从mono-die转型为更类似AMD的multi-die(Intel自称是tile-based），微架构从sunny cove更新到golden cove（tpause指令可用于优化spinlock），配置相当华丽，支持先进互连协议（&lt;code&gt;PCIe5&lt;/code&gt;/&lt;code&gt;CXL&lt;/code&gt;），支持DDR5，新指令集&lt;code&gt;AMX&lt;/code&gt;，顶配还有3D堆叠的on-package HBM&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;。&lt;/p&gt;
+&lt;h2 id=&#34;一些总结&#34;&gt;一些总结&lt;/h2&gt;
+&lt;h3 id=&#34;硬件生态里生命和环境也是相互塑造的&#34;&gt;硬件生态里，生命和环境也是相互塑造的&lt;/h3&gt;
+&lt;p&gt;PC用户成就了繁荣、易获得、标准化的x86 商用硬件市场。商用硬件集群刚好又适应互联网workloads（没有大量浮点数计算，integer server为主，但数据量极为庞大），才有了分布式系统支撑的现代数据中心，再然后才有硬件厂商为数据中心定制优化的服务器硬件，比如Scalable Xeon。&lt;/p&gt;
+&lt;p&gt;PC玩家成就了Nvidia GPU，GPU恰好适应AI workloads，于是有了各种MLSys和GPGPU应用。然后才有Nvidia在加速计算方向上的投入。有了A100之后，ChatGPT训练就是在A100+IB network基础上量体裁衣做的大规模模型并行。随后又因为ChatGPT的轰动效应，反哺了高端GPU产业。&lt;/p&gt;
+&lt;p&gt;生态位很难被人为设计、凭空创造，比如Intel Optane PMem，占据了非常合理的生态位，很多系统方向的研究都是靠PMem发的论文，因为它太合理了，弥补了磁盘和内存之间的空缺。但还是因为需求侧跟不上，在22年被砍掉了。究其根本，PMem在AI训推场景下没啥用，在主流的搜广推应用上不能带来显著成本优势，在交易场景和分析型场景要么比不上磁盘+内存，要么不值得投入人力去大改架构。&lt;/p&gt;
+&lt;h3 id=&#34;现代硬件特征&#34;&gt;现代硬件特征&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;核心数众多&lt;/li&gt;
+&lt;li&gt;设法缓解Memory Wall问题——近20年来DRAM cycle time每年缩减的速率与摩尔定律对比呈相对停滞，cache miss的后果愈发严重。
+&lt;ul&gt;
+&lt;li&gt;Memory hierarchy变深：cache变多，最新的顶配SPR机器还增加了on-package HBM，本地内存之外还有远端NUMA node，内存下面还可以有PMem、SSD，本地节点之外还有局域网/云端节点。总之，是通过增加层级隐藏Memory Wall问题。&lt;/li&gt;
+&lt;li&gt;Off-package/chip-to-chip互连带宽提升：跟上核心数增多带来的IO需求，缓解批量读写场景下的Memory Wall问题。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;黑盒化和白盒化同时发生&#34;&gt;黑盒化和白盒化同时发生&lt;/h3&gt;
+&lt;p&gt;现代硬件对工程能力提出了更苛刻的要求——通过off-CPU analysis、data-oriented cache-friendly设计、手动内存管理、甚至手动prefetching才能真正释放其性能潜力。&lt;/p&gt;
+&lt;p&gt;但这和现代软件工程愈发简化的发展方向背道而驰——通过runtime、虚拟机、动态语言、微服务范式的职责划分、基于hypervisor的虚拟化和容器化等手段解放程序员心智。&lt;/p&gt;
+&lt;p&gt;这种背道而驰使现代软件实践走向两条岔路，一个是以白盒化为手段的基础设施建设：更好的hypervisor、更好的mlsys、高性能检索、高性能存储、高性能网络，另一个是以黑盒化为目标的上层应用：利用虚拟化、容器化、微服务化、动态语言、runtime语言的便捷性提升productivity。&lt;/p&gt;
+&lt;h1 id=&#34;现代硬件上的性能工程实践&#34;&gt;现代硬件上的性能工程实践&lt;/h1&gt;
+&lt;h2 id=&#34;对优化空间的理解&#34;&gt;对优化空间的理解&lt;/h2&gt;
+&lt;p&gt;性能工程即有系统方法论指导的软件优化实践。
+可以从两个视角分解“优化任务”：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;优化 = 减少算法总工作量 + 硬件使能&lt;/li&gt;
+&lt;li&gt;优化 = 减少运行时间 = 减少CPU时间 + 减少阻塞时间
+“算法改良”和“硬件使能”接近正交，“on-CPU time”和“off-CPU time”又大体互补，因此可以为优化空间$W$构造正交基{硬件使能$x$，算法优化$y$，算术密度$z$}，则$W = {[x,y,z] \in R^3 | 0 \le z \le 1 }$。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div id=&#34;damn&#34;&gt;&lt;svg width=&#34;480&#34; height=&#34;420&#34;&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;h2 id=&#34;推导出的一些heuristics&#34;&gt;推导出的一些Heuristics&lt;/h2&gt;
+&lt;p&gt;基于对优化空间完整图景的理解，能推导出一些性能工程的Heuristics：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;应首先确定程序的算术密度
+&lt;ul&gt;
+&lt;li&gt;为何区分on-CPU vs off-CPU至关重要？因为你的100%忙碌的CPU可能并不忙碌。CPU profiling仅描述完整图景的一部分，甚至一小部分。常用的CPU利用率这一指标具有欺骗性和迷惑性，实则既包括on-CPU计算也包括off-CPU阻塞。如果存在严重访存瓶颈，100%的CPU的superscalar pipeline里全是stall的空泡，CPU的各类算术逻辑单元、SIMD/AMX等专用计算硬件都在空等。&lt;/li&gt;
+&lt;li&gt;当然off-CPU过高也可能是磁盘/网络IO密集导致的，但这类IO-bound应用往往不是成本大头，还不足以兴师动众地做优化，除非是专门做存储或专门搞网络的infra部门才需要关心。此外还有可能是代码写得有问题，锁粒度太大，过度持有锁，同样造成off-CPU 比例过高。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;如今的内存应被视为外设
+&lt;ul&gt;
+&lt;li&gt;曾经为慢速外设准备的数据结构，如今适合内存场景：
+&lt;ul&gt;
+&lt;li&gt;C++的有序map是用红黑树实现的，Rust选择了B+树，以便利用其更好的locality，因为如今的内存已经和几十年前的磁盘一样慢得不可容忍了。&lt;/li&gt;
+&lt;li&gt;DashTable这种原本用在PMem（非易适性内存，内存带宽远低于DRAM）上的数据结构，如今被DragonFly拿来用在内存数据库上，性能远超Redis/Memcached。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;因此需将内存层级白盒化，充分发挥硬件潜力。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;避免和编译器优化撞车
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;不需要用移位操作或其他汇编指令优化乘除法。乘以8必然会被自动优化成左移动3。除法也会被优化成乘加。下面的例子是非常古老的编译器对 volatile int y = x / 71的处理。编译器优化乘法还会用LEA指令，LEA原本旨在加速小结构体数组的成员地址计算，但实际上也能用来加速乘法，比如乘以5可以写成lea eax, [eax*4 + eax]，利用现成的电路就比较快，算是硬件使能领域里编译器帮你做好的工作。&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-assembly&#34; data-lang=&#34;assembly&#34;&gt;// volatile int y = x / 71;8b 0c 24        mov ecx, DWORD PTR _x$[esp+8] ; load x into ecx
+mov eax, -423447479 ; magic happens starting here...
+imul ecx            ; edx:eax = x * 0xe6c2b44903 d1           add edx, ecx        ; edx = x + edx
+sar edx, 6          ; edx &amp;gt;&amp;gt;= 6 (with sign fill)
+
+mov eax, edx        ; eax = edx
+shr eax, 31         ; eax &amp;gt;&amp;gt;= 31 (no sign fill)
+add eax, edx        ; eax += edx
+
+mov DWORD PTR _y$[esp+8], eax
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;可以放心去做手动SIMD。手动SIMD和LLVM自动向量化优化位于不同抽象层次，基本上也不必对LLVM的自动向量化抱有期望。短期内见不到程序语言和库层面对SIMD进行良好抽象的希望。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;手动SIMD需要程序员根据目标机器微架构型号选择合适的指令（不同微架构的各种simd指令的latency各不相同）；&lt;/li&gt;
+&lt;li&gt;选择恰当的simd size(并非越大越好，而且不同size对应不同的shuffle)；&lt;/li&gt;
+&lt;li&gt;还要处理最后不满一个batch的数据导致的各种各样的corner cases；&lt;/li&gt;
+&lt;li&gt;对数据地址进行对齐或对不对齐数据进行容忍。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;用最新的编译器，用O3，很多细节就不必手动优化，如Copy Ellison，Tail-recursion Elimination，甚至Mutually recursion Elimination，Inlining，多数Loop优化——Loop unrolling(+步长)/fission(逆fusion)/tiling(cache blocking)/unswitching(内层去分支化)/自动向量化/interchange。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;涉及到逻辑和具体应用场景，没有标准优化策略的优化仍需自己做，比如Loop fusion，调整递归粒度，调整编码策略（紧凑程度和编解码开销的tradeoff）。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;访存优化的一些tricks&#34;&gt;访存优化的一些Tricks&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;如何度量算术密度或访存密度?
+&lt;ul&gt;
+&lt;li&gt;perf 或 perf_event_open: cache_miss/instructions, 或ipc&lt;/li&gt;
+&lt;li&gt;Intel PCM&lt;/li&gt;
+&lt;li&gt;eBPF tools，比如https://github.com/iovisor/bcc&lt;/li&gt;
+&lt;li&gt;静态分析：load/store指令占比可粗略翻译算术/访存密度，但受缓存命中率影响较大。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;如何根据内存配置设置合适的object padding？
+&lt;ul&gt;
+&lt;li&gt;内存配置中有两个影响应用层的重要概念：内存通道（memory channels）、内存列（memory ranks）。x86架构下内存通道和内存列在内存地址上interleaving，即均匀分布且递增。因此RAM可视为$n_chan \times n_rank$个block组成。其DIMM架构如下图。
+[图片]&lt;/li&gt;
+&lt;li&gt;具体的object padding方式可以参考下面这段伪码，其中64B是cache line size，也恰好是一个block的size。大体思路是先保证内存池里的地址都是64B的整数倍，再保证下一个对象的block id和n_chan*n_rank互质。&lt;/li&gt;
+&lt;li&gt;这个padding不让对象的起始地址反复命中同一个channel或同一个rank，令下一个对象起始地址落入不同的channel/rank，充分利用不同内存通道、不同内存列，避免通道、列之间的负载不均，提升访存带宽。
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;object_align&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; obj_size)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;unsigned&lt;/span&gt; nchan &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;get_nchannel&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;unsigned&lt;/span&gt; nrank &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;get_nrank&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;unsigned&lt;/span&gt; new_obj_size &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (obj_size &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;63&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;64&lt;/span&gt;; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;get_gcd&lt;/span&gt;(new_obj_size, nrank &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; nchan) &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                new_obj_size&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; new_obj_size &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;64&lt;/span&gt;; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Cache优化：Cache line对齐避免false sharing；利用cache blocking。&lt;/li&gt;
+&lt;li&gt;规避锁瓶颈
+&lt;ul&gt;
+&lt;li&gt;基于静态锁分析或ebpf off-CPU分析，找到过分粗粒度的锁和过度超期持有的锁。&lt;/li&gt;
+&lt;li&gt;寻找更好的并发数据结构：无锁实现良莠不齐；Many-core scalability最好的永远是array。&lt;/li&gt;
+&lt;li&gt;Kernel bypassing：规避某些带锁的内核实现，如用户态网络协议栈替代内核栈。&lt;/li&gt;
+&lt;li&gt;Share-nothing：最极端的做法可以效仿seastar，每个核心只在自己的专用内存上执行单线程代码，尽量避免CPU-to-CPU traffic，将锁彻底从代码里消除。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;In-register storage：尽量保证简单函数用到的参数、存放中间产物的容器足够小，可完全用寄存器存下，编译器自动就会把所有load/store优化掉。&lt;/li&gt;
+&lt;li&gt;考虑使用预分配内存和栈上静态结构：不得不访存时，生命周期较长的对象可考虑使用预分配内存，临时容器可以考虑根据线上数据分布设计成按某种规则切分的静态结构，并放在栈上（栈内存分配只是栈指针移动，而malloc复杂的多，如果说默认版本的malloc还有全局锁，不够scalable）。&lt;/li&gt;
+&lt;li&gt;考虑使用编译期evaluation和全局静态内存区。&lt;/li&gt;
+&lt;li&gt;利用1GB huge pages存数据，相比4KB默认页，hugepage所需的page table entry总数大大减少，可显著减小page table size和tlb size、降低tlb miss和page table walk开销，提升内存分配的连续性和内存访问的局部性，这些都有助于提升内存带宽。&lt;/li&gt;
+&lt;li&gt;利用4MB large pages存代码，.text segment也可以用更大的页（不过最大只支持4MB），ITLB和DTLB一样，miss也会造成stall。ITLB问题的诊断可借助https://github.com/intel/iodlr，解决方法把.text移动到已有的large pages里&lt;sup id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;或静态链接并使用libhugetlbfs库。目前尚未看到该优化在真实项目中落地，但看起来相当promising，可参考&lt;a href=&#34;https://www.intel.com/content/dam/develop/external/us/en/documents/runtimeperformanceoptimizationblueprint-largecodepages-q1update.pdf&#34;&gt;Runtime Performance Optimization Blueprint: Large Code Pages&lt;/a&gt;。&lt;/li&gt;
+&lt;li&gt;尊重NUMA拓扑，避免远端内存访问，即UPI traffic。
+&lt;img src=&#34;https://jipeng4974.github.io/img/NUMA.png&#34; alt=&#34;numa&#34;&gt;&lt;/li&gt;
+&lt;li&gt;利用新架构特性和新的指令集扩展，如基于AMX实现GEMM的精度和性能优化广泛用在各种训推框架，AVX512_IFMA指令扩展做大数乘法已被用在新版本的OpenSSL中，以及基于QAT（QuickAssist）对AES、RSA、ECC等密码学应用做硬件加速。&lt;/li&gt;
+&lt;li&gt;利用prefetching让cache变得更聪明。
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;所谓hardware prefetching就是从内存预取数据到cache（通常是LLC）。Hardware prefetcher有简单的stride pattern识别逻辑，比如a,a+2,a+4,a+6这种loop是可以被识别的。没必要刻意触发hardware prefetching，正常的代码都可以触发。但需避免误触发hardware prefetching——比如一个横跨多个cache line的大结构体其实只需要访问它的前几个field，但hardware prefetcher误以为还要接着读，就会造成cache pollution。稍微调整下这几个fields的访问顺序，破坏掉constant stride pattern即可。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;找到合适的timing使用software prefetching，预取数据会带来巨大吞吐性能提升，也能用来隐藏latency，但究竟何时预取，预取哪些数据只能靠反复尝试。而一旦timing选错了反而造成cache污染，导致性能下降。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;尽量让prefetch指令分散（最好和load也分散），夹杂在计算指令中间。如果连续prefetch，那和一堆load一样，也会造成空泡。&lt;/li&gt;
+&lt;li&gt;选择合适的PSD(prefetch scheduling distance)，即提前几个iteration预取。对计算量大的loop，可以提前1个iteration，对于计算量小的，可能要提前多个iteration。下面这个例子PSD=3。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-assembly&#34; data-lang=&#34;assembly&#34;&gt;top_loop:
+prefetchnta [edx + esi + 128*3]
+prefetchnta [edx*4 + esi + 128*3]
+movaps xmm1, [edx + esi] 
+movaps xmm2, [edx*4 + esi]
+movaps xmm3, [edx + esi + 16] 
+movaps xmm4, [edx*4 + esi + 16]
+add esi, 128 
+cmp esi, ecx 
+jl top_loop
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;双层循环时，需注意弥补内外循环切换时的空泡，为外层循环也做prefetch。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;100&lt;/span&gt;; i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;) {  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; j &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;; j&lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;) { 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    prefetch a[i][j&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;]  &lt;span style=&#34;color:#75715e&#34;&gt;// 最后一次iteration，不需要prefetch
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    computation a[i][j] &lt;span style=&#34;color:#75715e&#34;&gt;// 第一次a[i+1][j]未预取，会miss
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;} 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 优化后
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;100&lt;/span&gt;; i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;) {  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (j &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; j &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;24&lt;/span&gt;; j&lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    prefetch a[i][j&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;]  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    computation a[i][j]  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;prefetch a[i&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;][&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;]  &lt;span style=&#34;color:#75715e&#34;&gt;// 提前准备好 a[i][0]，否则会在a[i][j+8]阻塞
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;computation a[i][j] &lt;span style=&#34;color:#75715e&#34;&gt;// 最后一个iteration单独处理，因为它不需要prefetch。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;利用先进互连技术，如&lt;code&gt;CXL&lt;/code&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/spr-cxl.png&#34; alt=&#34;cxl&#34;&gt;&lt;/p&gt;
+&lt;style type=&#34;text/css&#34;&gt;
+svg {
+    box-shadow: 0 0 10px #999;
+    border-radius: 5px;
+}
+&lt;/style&gt;
+&lt;script type=&#34;module&#34;&gt;
+import {
+  drag,
+  color,
+  select,
+  range,
+  randomUniform,
+  randomNormal,
+  scaleOrdinal,
+  selectAll,
+  schemePastel1,
+} from &#34;https://cdn.skypack.dev/d3@7.8.5&#34;;
+import {
+    gridPlanes3D,
+    points3D,
+    lineStrips3D,
+} from &#34;https://cdn.skypack.dev/d3-3d@1.0.0&#34;;
+document.addEventListener(&#34;DOMContentLoaded&#34;, () =&gt; {
+    console.log(&#34;dom loaded, starts to draw svg ...&#34;);
+    const width = 480;
+    const height = 420;
+    const origin = { x: width/2, y: height/2 };
+    const offset = origin.x - origin.y;
+    const j = 10;
+    const scale = 20;
+    const key = (d) =&gt; d.id;
+    const startAngle = Math.PI/2;
+    // const startAngle = 0;
+    const colorScale = scaleOrdinal(schemePastel1);
+    let scatter = [];
+    let yLine = [];
+    let xLine = [];
+    let zLine = [];
+    let xGrid = [];
+    let beta = 0;
+    let alpha = 0;
+    let mx, my, mouseX = 0, mouseY = 0;
+    const svg = select(&#34;svg&#34;)
+        .call(
+          drag()
+            .on(&#34;drag&#34;, dragged)
+            .on(&#34;start&#34;, dragStart)
+            .on(&#34;end&#34;, dragEnd)
+        )
+        .append(&#34;g&#34;);
+    const grid3d = gridPlanes3D()
+        .rows(20)
+        .origin(origin)
+        .rotateY(startAngle)
+        .rotateX(-startAngle)
+        .scale(scale);
+  const points3d = points3D()
+    .origin(origin)
+    .rotateY(startAngle)
+    .rotateX(-startAngle)
+    .scale(scale);
+  const yScale3d = lineStrips3D()
+      .origin(origin)
+      .rotateY(startAngle)
+      .rotateX(-startAngle)
+      .scale(scale);
+  const xScale3d = lineStrips3D()
+      .origin(origin)
+      .rotateY(startAngle)
+      .rotateX(-startAngle)
+      .scale(scale);
+  const zScale3d = lineStrips3D()
+      .origin(origin)
+      .rotateY(startAngle)
+      .rotateX(-startAngle)
+      .scale(scale);
+  function processData(data, tt, recolor) {
+    /* ----------- GRID ----------- */
+    const xGrid = svg.selectAll(&#34;path.grid&#34;).data(data[0], key);
+    xGrid
+      .enter()
+      .append(&#34;path&#34;)
+      .attr(&#34;class&#34;, &#34;d3-3d grid&#34;)
+      .merge(xGrid)
+      .attr(&#34;stroke&#34;, &#34;black&#34;)
+      .attr(&#34;stroke-width&#34;, 0.3)
+      .attr(&#34;fill&#34;, (d) =&gt; (d.ccw ? &#34;#eee&#34; : &#34;#aaa&#34;))
+      .attr(&#34;fill-opacity&#34;, 0.7)
+      .attr(&#34;d&#34;, grid3d.draw);
+    xGrid.exit().remove();
+    /* ----------- POINTS ----------- */
+    const points = svg.selectAll(&#34;circle&#34;).data(data[1], key);
+    function GetColor(x, y){
+      // console.log(&#34;x: %d, y: %d&#34;, x, y);
+      // return (x &gt; 0) ? 5 : -5 + (y &gt; 0) ? 3 : -3;
+      if (x &gt;= 0 &amp;&amp; y &gt;= 0) return schemePastel1[0];
+      if (x &lt; 0 &amp;&amp; y &gt;= 0) return schemePastel1[1];
+      if (x &lt; 0 &amp;&amp; y &lt; 0) return schemePastel1[2];
+      if (x &gt;= 0 &amp;&amp; y &lt; 0) return schemePastel1[3];
+    }
+    if(recolor){
+      points
+      .enter()
+      .append(&#34;circle&#34;)
+      .attr(&#34;class&#34;, &#34;d3-3d&#34;)
+      .attr(&#34;opacity&#34;, 0)
+      .attr(&#34;cx&#34;, posPointX)
+      .attr(&#34;cy&#34;, posPointY)
+      .merge(points)
+      .transition()
+      .duration(tt)
+      .attr(&#34;r&#34;, 3)
+      .attr(&#34;stroke&#34;, (d) =&gt; color(colorScale(d.id)).darker(3))
+      .attr(&#34;fill&#34;, (d) =&gt; GetColor(d.projected.x - origin.x, d.projected.y - origin.y))
+      .attr(&#34;opacity&#34;, 1)
+      .attr(&#34;cx&#34;, posPointX)
+      .attr(&#34;cy&#34;, posPointY);
+    }else{
+      points
+      .enter()
+      .append(&#34;circle&#34;)
+      .attr(&#34;class&#34;, &#34;d3-3d&#34;)
+      .attr(&#34;opacity&#34;, 0)
+      .attr(&#34;cx&#34;, posPointX)
+      .attr(&#34;cy&#34;, posPointY)
+      .merge(points)
+      .transition()
+      .duration(tt)
+      .attr(&#34;r&#34;, 3)
+      .attr(&#34;stroke&#34;, (d) =&gt; color(colorScale(d.id)).darker(3))
+      .attr(&#34;opacity&#34;, 1)
+      .attr(&#34;cx&#34;, posPointX)
+      .attr(&#34;cy&#34;, posPointY);
+    }
+    points.exit().remove();
+    /* ----------- x-Scale ----------- */
+    const xScale = svg.selectAll(&#34;path.xScale&#34;).data(data[3]);
+    xScale
+      .enter()
+      .append(&#34;path&#34;)
+      .attr(&#34;class&#34;, &#34;d3-3d xScale&#34;)
+      .merge(xScale)
+      .attr(&#34;stroke&#34;, &#34;black&#34;)
+      .attr(&#34;stroke-width&#34;, 1.5)
+      .attr(&#34;d&#34;, xScale3d.draw);
+    xScale.exit().remove();
+    /* ----------- y-Scale ----------- */
+    const yScale = svg.selectAll(&#34;path.yScale&#34;).data(data[2]);
+    yScale
+      .enter()
+      .append(&#34;path&#34;)
+      .attr(&#34;class&#34;, &#34;d3-3d yScale&#34;)
+      .merge(yScale)
+      .attr(&#34;stroke&#34;, &#34;black&#34;)
+      .attr(&#34;stroke-width&#34;, 1.5)
+      .attr(&#34;d&#34;, yScale3d.draw);
+    yScale.exit().remove();
+    /* ----------- z-Scale ----------- */
+    const zScale = svg.selectAll(&#34;path.zScale&#34;).data(data[4]);
+    zScale
+      .enter()
+      .append(&#34;path&#34;)
+      .attr(&#34;class&#34;, &#34;d3-3d zScale&#34;)
+      .merge(zScale)
+      .attr(&#34;stroke&#34;, &#34;black&#34;)
+      .attr(&#34;stroke-width&#34;, 1.5)
+      .attr(&#34;d&#34;, zScale3d.draw);
+    zScale.exit().remove();
+    /* ----------- y-Scale Text ----------- */
+    const yText = svg.selectAll(&#34;text.yText&#34;).data(data[2][0]);
+    function GetYText(y){
+      if (y==-11){
+        return &#34;[Arithmetic Intensity]&#34;;
+      }else{
+        return  (-y*10 + 100)/2+&#34;%&#34;;
+      }
+    }
+    function GetYWeight(y){
+      if (y==-11){
+        return 700;
+      }else{
+        return  350;
+      }
+    }
+    yText
+      .enter()
+      .append(&#34;text&#34;)
+      .attr(&#34;class&#34;, &#34;d3-3d yText&#34;)
+      .attr(&#34;font-family&#34;, &#34;system-ui, sans-serif&#34;)
+      .merge(yText)
+      .each(function (d) {
+        d.centroid = { x: d.rotated.x, y: d.rotated.y, z: d.rotated.z };
+      })
+      .attr(&#34;x&#34;, (d) =&gt; d.projected.x)
+      .attr(&#34;y&#34;, (d) =&gt; d.projected.y)
+      .style(&#34;font-weight&#34;, (d) =&gt; GetYWeight(d.y))
+      .text((d) =&gt; GetYText(d.y))
+      .attr(&#34;fill&#34;, &#34;#78E2A0&#34;);
+    yText.exit().remove();
+    /* ----------- x-Scale Text ----------- */
+    const xText = svg.selectAll(&#34;text.xText&#34;).data(data[3][0]);
+    xText
+      .enter()
+      .append(&#34;text&#34;)
+      .attr(&#34;class&#34;, &#34;d3-3d xText&#34;)
+      .attr(&#34;font-family&#34;, &#34;system-ui, sans-serif&#34;)
+      .merge(xText)
+      .each(function (d) {
+        d.centroid = { x: d.rotated.x, y: d.rotated.y, z: d.rotated.z };
+      })
+      .attr(&#34;x&#34;, (d) =&gt; d.projected.x)
+      .attr(&#34;y&#34;, (d) =&gt; d.projected.y)
+      .attr(&#34;z&#34;, (d) =&gt; d.projected.z)
+      .text((d) =&gt;  d.x == 10 ? &#34;[Hardware Enablement]&#34; : &#34;&#34;)
+      .style(&#34;font-weight&#34;, 700)
+      .attr(&#34;fill&#34;, &#34;#78E2A0&#34;);
+    xText.exit().remove();
+    /* ----------- x-Scale Text ----------- */
+    const zText = svg.selectAll(&#34;text.zText&#34;).data(data[4][0]);
+    zText
+      .enter()
+      .append(&#34;text&#34;)
+      .attr(&#34;class&#34;, &#34;d3-3d zText&#34;)
+      .attr(&#34;font-family&#34;, &#34;system-ui, sans-serif&#34;)
+      .merge(zText)
+      .each(function (d) {
+        d.centroid = { x: d.rotated.x, y: d.rotated.y, z: d.rotated.z };
+      })
+      .attr(&#34;x&#34;, (d) =&gt; d.projected.x)
+      .attr(&#34;y&#34;, (d) =&gt; d.projected.y)
+      .attr(&#34;z&#34;, (d) =&gt; d.projected.z)
+      .text((d) =&gt;  d.z == 10 ? &#34;[Work Reduction]&#34; : &#34;&#34;)
+      .style(&#34;font-weight&#34;, 700)
+      .attr(&#34;fill&#34;, &#34;#78E2A0&#34;);
+    zText.exit().remove(); 
+    selectAll(&#34;.d3-3d&#34;).sort(points3d.sort);
+  }
+  function posPointX(d) {
+    return d.projected.x;
+  }
+  function posPointY(d) {
+    return d.projected.y;
+  }
+  function init() {
+    xGrid = [];
+    scatter = [];
+    yLine = [];
+    xLine = [];
+    zLine = [];
+    let cnt = 0; 
+    for (let z = -j; z &lt; j; z++) {
+      for (let x = -j; x &lt; j; x++) {
+        xGrid.push({ x: x, y: 0, z: z}); // grid position
+        scatter.push({
+          x: x,
+          y: randomNormal(0, 0.8)()*3,
+          // y: randomUniform(9, -9)(),
+          z: z,
+          id: &#34;point-&#34; + cnt++,
+        });
+      }
+    }
+    range(-10, 12, 1).forEach((d) =&gt; {
+      yLine.push({ x: 0, y: -d, z: 0 });
+      xLine.push({ x: -d, y: 0, z: 0 });
+      zLine.push({ x: 0, y: 0, z: -d });
+    });
+    const data = [
+      grid3d(xGrid),
+      points3d(scatter),
+      yScale3d([yLine]),
+      xScale3d([xLine]),
+      zScale3d([zLine]),
+    ];
+    processData(data, 1000, true);
+  }
+  function dragStart(event) {
+    mx = event.x;
+    my = event.y;
+  }
+  function dragged(event) {
+    beta = (event.x - mx + mouseX) * (Math.PI / offset);
+    alpha = (event.y - my + mouseY) * (Math.PI / offset) * -1;
+    const data = [
+      grid3d.rotateY(beta + startAngle).rotateX(alpha - startAngle)(xGrid),
+      points3d.rotateY(beta + startAngle).rotateX(alpha - startAngle)(scatter),
+      yScale3d.rotateY(beta + startAngle).rotateX(alpha - startAngle)([yLine]),
+      xScale3d.rotateY(beta + startAngle).rotateX(alpha - startAngle)([xLine]),
+      zScale3d.rotateY(beta + startAngle).rotateX(alpha - startAngle)([zLine]),
+    ];
+    processData(data, 0, false);
+  }
+  function dragEnd(event) {
+    mouseX = event.x - mx + mouseX;
+    mouseY = event.y - my + mouseY;
+  }
+  selectAll(&#34;button&#34;).on(&#34;click&#34;, init);
+  init();
+});
+&lt;/script&gt;
+&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;
+&lt;p&gt;DIMM(dual in-line memory module)，即ram stick，内存条，DDR(Double Data Rate)技术的物理具现。&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.intel.com/content/www/us/en/products/sku/232592/intel-xeon-cpu-max-9480-processor-112-5m-cache-1-90-ghz/specifications.html&#34;&gt;https://www.intel.com/content/www/us/en/products/sku/232592/intel-xeon-cpu-max-9480-processor-112-5m-cache-1-90-ghz/specifications.html&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:2&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/intel/iodlr/blob/master/large_page-c/large_page.c&#34;&gt;https://github.com/intel/iodlr/blob/master/large_page-c/large_page.c&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:3&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>Tech Talk: Evolution of Data Center Applications</title>
+      <link>https://jipeng4974.github.io/posts/tech-talk-evolution-of-data-center-applications/</link>
+      <pubDate>Sat, 05 Aug 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://jipeng4974.github.io/posts/tech-talk-evolution-of-data-center-applications/</guid>
+      <description>数据中心应用（数据库、消息队列、检索服务、参数服务器、直播服务、广告服务等）作为互联网服务的主体，位于终端应用和硬件基础设施之间，桥接了需求端和硬件端，同时还受到成本、营收、算法、法律等因素的制约。 近期硬件侧、算法侧均有变化或变革，因而有必要反思数据中心应用的演进方向，讨论数据中心应用的近未来发展趋势、潜在的创新点和可收割的低垂果实。
+变革中的不变量：数据中心应用能耗 全球数据中心能耗十年来几乎没有增长，而同期的服务需求、计算、存储、数据传输总量则经历了数量级增长。作为从业者，我们对互联网的爆发式增长应该不陌生，因此全球数据中心能耗从10到18年仅涨了6%的事实略微反直觉——从能耗的角度看，这几乎是一个停滞的产业。
+CMOS工艺和软硬件技术的整体进步可以解释服务器能量效率上的提升，但能耗停滞的根本原因还在于互联网企业盈利的本质是对有支付能力的10亿国外人口和10亿国内人口征服务税，个别成功的初创企业可以迅速扩张，但互联网行业作为整体，在数据中心能耗上的投入增长受制于全球平民收入增长。
+当初创企业的规模扩张到互联网规模后，机器资源的增长速率应该会从爆炸式上升陡然转入停滞，进入自然汰换阶段。 从这个角度可以得出结论，数据中心应用在规模扩张结束后，也应从能耗粗放型转为精细集约型，通过软硬件协同充分释放硬件潜力，通过算法创新减少总计算量。
+算法迭代：从演绎推理到归纳推断 算法侧的趋势是“transformers getting even more attention”。
+计算机理论源于符号逻辑，1930年代图灵、哥德尔、邱奇各自独立提出图灵机、广义递归函数、lambda演算，以及三者相应的可计算性。图灵机的停机问题和哥德尔不完备定律驳斥了1920年代希尔伯特计划的可行性，证明了形式化系统是不完备的，通过有限个公理和规则永远无法推导出全部的真理。
+正如人的无知可以分为问题（可计算）和神秘（不可计算），人的理性也可以分为演绎推理和归纳推断，前者求解问题，后者分析神秘。
+计算机程序基于图灵机模型，天然就是适合进行演绎推理的形式化系统。至今我们依然基于规则系统(人工编程进行条件控制）、信号处理（比如音频特征提取）、状态机等形式化方法实现大多数数据中心应用：比如各类数据库、检索系统、参数服务器、游戏AI。
+AI时代来临之后，通过更多的权重（作为公理）和由大量算子（作为规则）组成深度神经网络（从实现角度来说，仍然是形式化系统）去模拟或者说近似“归纳推断”。（纯粹贝叶斯主义的形式化表达是所罗门诺夫归纳推断法，这个方法本身是永不停机，越算越停不下来的，所以只能近似，不能用实现）这种近似无论多么粗糙、低效，归根到底还是提升了计算机语言和集成电路的表达能力，完成了推理到推断的跳跃。
+数据中心应用多了归纳推断能力之后，就产生了对复杂现实（现实信号，如图片、语料库、音频，整体上具有高维度的同时，局部往往还存在具有高数据精致度的结构，这里精致度可以用香农信息熵或柯氏复杂性形式化定义）理解能力(pin down reality)，因此涌现出了一些基于知识的AI系统(knowledge-based AI)，比如推荐系统、广告投送、翻唱识别、聊天机器人。共同点是将现实映射到表征低维子空间上，这个子空间里的向量或者说embedding可以从某个角度有效刻画现实。Transformer做得更进一步，等价于将现实映射到多个相干性低的低维子空间上（见https://arxiv.org/abs/2306.01129），从而从多角度多层次理解现实，通过表征空间编码率与各子空间编码率之和的差值度量特征的紧凑性和判别力。
+在游戏和博弈领域，强化学习也取得了规则系统无法企及的成就，在星际2、Dota2（固定阵容5v5，solo）、围棋等领域击败职业选手。
+此外，归纳推断相比演绎推理还有一个重要特质，那就是更符合人类大脑（或推广到任意地球生物大脑，蜜蜂的3d寻路避障能力，蚊子的血管定位能力都是基于天然的贝叶斯归纳推断。也只有受过良好训练的人类才能进行缓慢的演绎推理）的思维习惯，因此人类社会的传统，人类语言的不确定性、人类的偏好都难以用形式化方法描述，却可以被概率语言描述，被归纳推断方法预测。
+算法进步的下一个课题则是研究同时具备演绎推理和归纳推断能力的模型。现有的Transformer的确展现出简单多步算术的拟合能力，但拟合出来的是一个步数相关的超复杂非线性系统，而不是简单的算术规则，所以往往正确率到八十左右就再也上不去了。对于形式化系统来说，推理步数不影响公理和规则总数，只稍稍影响计算量。但对于LLM这种归纳推断模型来说，一旦推理步数变多，计算变得更复杂，LLM的符号逻辑能力就会迅速下降，在训练数据中从未出现过相同执行路径的动态规划问题里面可以直接降到0。理论上来说，无限精度的Transformer是图灵完备的（见https://arxiv.org/abs/1901.03429），而只要不是无限精度，就不是图灵完备，实际应用中模型权重和计算的精度即使以常规计算机应用标准看也是非常低的，而模型架构又没有针对多步逻辑推理进行设计，再加上深度学习本身就是在拟合一个近似函数，三重因素叠加导致现有LLM的演绎推理能力不尽如人意。
+从算法迭代角度讲，数据中心应用的发展趋势是在保证“可计算性”(字面意思，非形式化定义)的前提下，追求“人性化”(align to humanity)、“完备化”（pin down reality）这两个演绎推理手段无法达成的理想属性。智能创作、个性化推荐、聪明的Agent（助手、游戏NPC、机器人、自动驾驶），复杂系统预测（天气预报、交易系统），大模型训练（模型并行、高性能网络、C2C互连、光学I/O、异构计算）都是有前景的方向。
+而那些已经能用规则系统高效解决的问题则不必强行应用归纳推断模型，那样只会增加成本和错误率，比如音乐指纹识别、关系型数据库、图片旋转变形、无损压缩。甚至某些看似“神秘”的领域，如OOD text classification，基于表征学习白盒化研究成果和信息论，也能给出直接的数学解，比如近期一个研究（“Low-Resource” Text Classification: A Parameter-Free Classification Method with Compressors）就用14行代码超过了百亿参数的bert，（后来被发现实验代码有误，实际上效果没那么好）这个论文里提出用gzip等无损压缩工具去近似文本数据的柯氏复杂性，用信息距离（原理类似马毅提出的rate reduction）做KNN，效果非常好，在音频领域也可以做类似的尝试。
+数据中心硬件基础设施 先简单介绍一下常见的数据中心硬件基础设施：
+比较老的是Cascade Lake 14nm的24核per die的机器，一个芯片24核，两个就是48个物理核，也就是我们平时说的96核机器。也有其他套餐，最多是每个die上28核，总共112个逻辑核。 比较新的Ice Lake是10nm工艺一般是32核的，对应128个逻辑核，最贵的套餐可以到40核。仍然是基于Monolithic die，巨大的晶粒上用mesh总线把40个核放到一起。 最新的7nm工艺Sapphire Rapids，以及对标它的AMD Genoa今年已经量产。 关于网卡，现在用的比较多的是Mellanox 25G CX4/CX5卡，也有相当多的100G dual-port CX6卡，都是支持RDMA的，不用RDMA也能提供相当好的高速以太网性能。如果是做虚拟化的，比如AWS，阿里云，还可以把这些网卡的smartNiC能力利用起来，offload虚拟化开销。 相对之前的Lakes，Sapphire Rapids变化非常大，此前的monolithic die路线确实走到了极限，Sapphire Rapids也进入了multi-die时代：芯片内部分为4个die，这也可以视作向chiplet方向演化。
+Sapphire Rapids最多支持8个socket，每个芯片可以支持60核。IO技术上支持CXL 1.1、PCIe 5.0、UPI 2.0，HBM2e(optional)。
+AMD的第四代EPYC的主力型号Genoa今年Q1也开始量产，基本上和Sapphire Rapids对标，采用5nm工艺。虽然说AVX512被很多人诟病，实用表现非常一般，但Zen4也支持了，毕竟XeongenEPYC目标客户就是音视频处理和AI workload越来越多的数据中心应用。Genoa是每个die/chiplet 8核的，12个CPU cluster die中间围绕一个IO die的设计，相当于一个芯片96核，是典型的chiplet范式设计。</description>
+      <content>&lt;p&gt;数据中心应用（数据库、消息队列、检索服务、参数服务器、直播服务、广告服务等）作为互联网服务的主体，位于终端应用和硬件基础设施之间，桥接了需求端和硬件端，同时还受到成本、营收、算法、法律等因素的制约。
+近期硬件侧、算法侧均有变化或变革，因而有必要反思数据中心应用的演进方向，讨论数据中心应用的近未来发展趋势、潜在的创新点和可收割的低垂果实。&lt;/p&gt;
+&lt;h2 id=&#34;变革中的不变量数据中心应用能耗&#34;&gt;变革中的不变量：数据中心应用能耗&lt;/h2&gt;
+&lt;p&gt;全球数据中心能耗十年来几乎没有增长，而同期的服务需求、计算、存储、数据传输总量则经历了数量级增长。作为从业者，我们对互联网的爆发式增长应该不陌生，因此全球数据中心能耗从10到18年仅涨了6%的事实略微反直觉——从能耗的角度看，这几乎是一个停滞的产业。&lt;/p&gt;
+&lt;p&gt;CMOS工艺和软硬件技术的整体进步可以解释服务器能量效率上的提升，但能耗停滞的根本原因还在于互联网企业盈利的本质是对有支付能力的10亿国外人口和10亿国内人口征服务税，个别成功的初创企业可以迅速扩张，但互联网行业作为整体，在数据中心能耗上的投入增长受制于全球平民收入增长。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/DatacenterPower.jpeg&#34; alt=&#34;DatacenterPower&#34;&gt;&lt;/p&gt;
+&lt;p&gt;当初创企业的规模扩张到互联网规模后，机器资源的增长速率应该会从爆炸式上升陡然转入停滞，进入自然汰换阶段。
+从这个角度可以得出结论，数据中心应用在规模扩张结束后，也应从能耗粗放型转为精细集约型，通过软硬件协同充分释放硬件潜力，通过算法创新减少总计算量。&lt;/p&gt;
+&lt;h2 id=&#34;算法迭代从演绎推理到归纳推断&#34;&gt;算法迭代：从演绎推理到归纳推断&lt;/h2&gt;
+&lt;p&gt;算法侧的趋势是“transformers getting even more attention”。&lt;/p&gt;
+&lt;p&gt;计算机理论源于符号逻辑，1930年代图灵、哥德尔、邱奇各自独立提出图灵机、广义递归函数、lambda演算，以及三者相应的可计算性。图灵机的停机问题和哥德尔不完备定律驳斥了1920年代希尔伯特计划的可行性，证明了形式化系统是不完备的，通过有限个公理和规则永远无法推导出全部的真理。&lt;/p&gt;
+&lt;p&gt;正如人的无知可以分为问题（可计算）和神秘（不可计算），人的理性也可以分为演绎推理和归纳推断，前者求解问题，后者分析神秘。&lt;/p&gt;
+&lt;p&gt;计算机程序基于图灵机模型，天然就是适合进行演绎推理的形式化系统。至今我们依然基于规则系统(人工编程进行条件控制）、信号处理（比如音频特征提取）、状态机等形式化方法实现大多数数据中心应用：比如各类数据库、检索系统、参数服务器、游戏AI。&lt;/p&gt;
+&lt;p&gt;AI时代来临之后，通过更多的权重（作为公理）和由大量算子（作为规则）组成深度神经网络（从实现角度来说，仍然是形式化系统）去模拟或者说近似“归纳推断”。（纯粹贝叶斯主义的形式化表达是所罗门诺夫归纳推断法，这个方法本身是永不停机，越算越停不下来的，所以只能近似，不能用实现）这种近似无论多么粗糙、低效，归根到底还是提升了计算机语言和集成电路的表达能力，完成了推理到推断的跳跃。&lt;/p&gt;
+&lt;p&gt;数据中心应用多了归纳推断能力之后，就产生了对复杂现实（现实信号，如图片、语料库、音频，整体上具有高维度的同时，局部往往还存在具有高数据精致度的结构，这里精致度可以用香农信息熵或柯氏复杂性形式化定义）理解能力(pin down reality)，因此涌现出了一些基于知识的AI系统(knowledge-based AI)，比如推荐系统、广告投送、翻唱识别、聊天机器人。共同点是将现实映射到表征低维子空间上，这个子空间里的向量或者说embedding可以从某个角度有效刻画现实。Transformer做得更进一步，等价于将现实映射到多个相干性低的低维子空间上（见https://arxiv.org/abs/2306.01129），从而从多角度多层次理解现实，通过表征空间编码率与各子空间编码率之和的差值度量特征的紧凑性和判别力。&lt;/p&gt;
+&lt;p&gt;在游戏和博弈领域，强化学习也取得了规则系统无法企及的成就，在星际2、Dota2（固定阵容5v5，solo）、围棋等领域击败职业选手。&lt;/p&gt;
+&lt;p&gt;此外，归纳推断相比演绎推理还有一个重要特质，那就是更符合人类大脑（或推广到任意地球生物大脑，蜜蜂的3d寻路避障能力，蚊子的血管定位能力都是基于天然的贝叶斯归纳推断。也只有受过良好训练的人类才能进行缓慢的演绎推理）的思维习惯，因此人类社会的传统，人类语言的不确定性、人类的偏好都难以用形式化方法描述，却可以被概率语言描述，被归纳推断方法预测。&lt;/p&gt;
+&lt;p&gt;算法进步的下一个课题则是研究同时具备演绎推理和归纳推断能力的模型。现有的Transformer的确展现出简单多步算术的拟合能力，但拟合出来的是一个步数相关的超复杂非线性系统，而不是简单的算术规则，所以往往正确率到八十左右就再也上不去了。对于形式化系统来说，推理步数不影响公理和规则总数，只稍稍影响计算量。但对于LLM这种归纳推断模型来说，一旦推理步数变多，计算变得更复杂，LLM的符号逻辑能力就会迅速下降，在训练数据中从未出现过相同执行路径的动态规划问题里面可以直接降到0。理论上来说，无限精度的Transformer是图灵完备的（见https://arxiv.org/abs/1901.03429），而只要不是无限精度，就不是图灵完备，实际应用中模型权重和计算的精度即使以常规计算机应用标准看也是非常低的，而模型架构又没有针对多步逻辑推理进行设计，再加上深度学习本身就是在拟合一个近似函数，三重因素叠加导致现有LLM的演绎推理能力不尽如人意。&lt;/p&gt;
+&lt;p&gt;从算法迭代角度讲，数据中心应用的发展趋势是在保证“可计算性”(字面意思，非形式化定义)的前提下，追求“人性化”(align to humanity)、“完备化”（pin down reality）这两个演绎推理手段无法达成的理想属性。智能创作、个性化推荐、聪明的Agent（助手、游戏NPC、机器人、自动驾驶），复杂系统预测（天气预报、交易系统），大模型训练（模型并行、高性能网络、C2C互连、光学I/O、异构计算）都是有前景的方向。&lt;/p&gt;
+&lt;p&gt;而那些已经能用规则系统高效解决的问题则不必强行应用归纳推断模型，那样只会增加成本和错误率，比如音乐指纹识别、关系型数据库、图片旋转变形、无损压缩。甚至某些看似“神秘”的领域，如OOD text classification，基于表征学习白盒化研究成果和信息论，也能给出直接的数学解，比如近期一个研究（“Low-Resource” Text Classification: A Parameter-Free Classification Method with Compressors）就用14行代码超过了百亿参数的bert，（后来被发现实验代码有误，实际上效果没那么好）这个论文里提出用gzip等无损压缩工具去近似文本数据的柯氏复杂性，用信息距离（原理类似马毅提出的rate reduction）做KNN，效果非常好，在音频领域也可以做类似的尝试。&lt;/p&gt;
+&lt;h2 id=&#34;数据中心硬件基础设施&#34;&gt;数据中心硬件基础设施&lt;/h2&gt;
+&lt;p&gt;先简单介绍一下常见的数据中心硬件基础设施：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;比较老的是Cascade Lake 14nm的24核per die的机器，一个芯片24核，两个就是48个物理核，也就是我们平时说的96核机器。也有其他套餐，最多是每个die上28核，总共112个逻辑核。&lt;/li&gt;
+&lt;li&gt;比较新的Ice Lake是10nm工艺一般是32核的，对应128个逻辑核，最贵的套餐可以到40核。仍然是基于Monolithic die，巨大的晶粒上用mesh总线把40个核放到一起。&lt;/li&gt;
+&lt;li&gt;最新的7nm工艺Sapphire Rapids，以及对标它的AMD Genoa今年已经量产。&lt;/li&gt;
+&lt;li&gt;关于网卡，现在用的比较多的是Mellanox 25G  CX4/CX5卡，也有相当多的100G dual-port CX6卡，都是支持RDMA的，不用RDMA也能提供相当好的高速以太网性能。如果是做虚拟化的，比如AWS，阿里云，还可以把这些网卡的smartNiC能力利用起来，offload虚拟化开销。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;相对之前的Lakes，Sapphire Rapids变化非常大，此前的monolithic die路线确实走到了极限，Sapphire Rapids也进入了multi-die时代：芯片内部分为4个die，这也可以视作向chiplet方向演化。&lt;/p&gt;
+&lt;p&gt;Sapphire Rapids最多支持8个socket，每个芯片可以支持60核。IO技术上支持CXL 1.1、PCIe 5.0、UPI 2.0，HBM2e(optional)。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/4th_xeon.jpeg&#34; alt=&#34;Xeon&#34;&gt;&lt;/p&gt;
+&lt;p&gt;AMD的第四代EPYC的主力型号Genoa今年Q1也开始量产，基本上和Sapphire Rapids对标，采用5nm工艺。虽然说AVX512被很多人诟病，实用表现非常一般，但Zen4也支持了，毕竟XeongenEPYC目标客户就是音视频处理和AI workload越来越多的数据中心应用。Genoa是每个die/chiplet 8核的，12个CPU cluster die中间围绕一个IO die的设计，相当于一个芯片96核，是典型的chiplet范式设计。&lt;/p&gt;
+&lt;h2 id=&#34;芯片设计的迭代chipletization&#34;&gt;芯片设计的迭代：Chipletization&lt;/h2&gt;
+&lt;p&gt;近期芯片设计领域一个显著变革是Chiplets+SiP(System in Package)范式取代die size较大的SoC+PCB合封。
+Chiplets同时受到业界和学术界的关注，被IBM research称为&amp;quot;what’s next in computing&amp;quot;，后续章节中对计算、IO、内存等技术的讨论也都涉及chiplets和co-packaging，因此我们首先讨论芯片层次的迭代。&lt;/p&gt;
+&lt;p&gt;所谓chiplet partitioning就是将电路切分成模块化的子系统，每个子系统都是一个独立晶粒（die），即chiplet，多个chiplet用2.5D/3D技术封装成一个芯片(package)。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/chiplet.png&#34; alt=&#34;Chiplet&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Chiplet-reuse范式相比传统的IP-reuse（IP在芯片语境下指的是具有独立功能和成熟设计的电路模块）的优势如下：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;先进CMOS制程（7nm以下）由于技术原因不太可能在大晶粒上获得高yield，die size越小成本越低。&lt;/li&gt;
+&lt;li&gt;先进CMOS制程下，不太可能同时缩小电源管理、快速IO SerDes等模拟IP，先进CMOS一般只用于处理器和加速器。&lt;/li&gt;
+&lt;li&gt;允许模块化设计，让设计者可以专注于单个模块的极致优化，并选择最合适的技术：比如CPU和GPU用先进制程，模拟模块用成熟制程，高带宽内存HBM用DRAM，AI加速器可以用非易失性内存。&lt;/li&gt;
+&lt;li&gt;允许芯片/package层次的异构集成：让通用CPU、优化后的GPU、嵌入式的FPGA、专用的机器学习电路、光学IO模组、高带宽内存等模块以合适的方式，用先进的使用硅通孔（TSV）、微凸块（micro-bumps）、甚至die-to-wafer混合键合技术的3D封装方案，像乐高积木一样搭出完整的系统。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;过去我们设想的各类DSA、AI芯片、FPGA百花齐放的异构计算时代并没有如期到来，而是被NV的GPU软硬件结合且计算互连一体化的方案碾轧了，几乎只剩下TPU在继续向v5迭代。&lt;/p&gt;
+&lt;p&gt;但未来的服务器芯片本身就存在多样化异构共封装集成的可能性和倾向性。CPO(co-packaged optics)、HBM(high-bandwidth memory)这些神奇物种因Chipletization的契机而得以进驻其中。&lt;/p&gt;
+&lt;p&gt;更多的功能也就意味着更高的可编程性。有些功能甚至可以带来革命性变革，比如光学IO带来的超高通信带宽，HBM带来的超高访存带宽，高性能offpackge互连技术（Nvlink-C2C）、多个Chiplet之间的Mesh互连(NvSwitch)，现在被Nvidia用来搭建H100，被谷歌用来搭建TPUv4，未来则可能颠覆host-centric的数据中心应用设计范式，迎来硬件资源解聚（disaggregation）的新计算体系：适应资源解聚的操作系统(LegoOS就是基于早期IB network的一个尝试)、系统语言ABI、新的高级语言、新的网络IO、存储和计算形态都有可能从中孵化而生。&lt;/p&gt;
+&lt;h2 id=&#34;计算和内存层次的迭代可扩展的众核numa架构&#34;&gt;计算和内存层次的迭代：可扩展的众核NUMA架构&lt;/h2&gt;
+&lt;p&gt;在商用服务器领域，Chiplet范式中的一部分设想已经实现了，比如AMD很早就开始应用chiplet，也部分解决了chiplet间IO问题，实现了有可扩展性的众核NUMA架构。SPR之前的Xeon物理机也是NUMA，虽然只有2个NUMA节点（目前Intel的NUMA node太大了，所以不太好称之为Chiplet）。&lt;/p&gt;
+&lt;p&gt;μArch对计算/访存密集型数据中心应用的性能工程有直接影响。下图是一个6chiplet封装的96核概念机。显然当我们把集成电路的黑盒拆开，就可以看到更细粒度的组件以及它们组成的网络（Network-on-Chip）结构。这个概念机集成了各种先进设计，不仅有many-core，还支持完整的cache coherency。相比过去的多核架构，众核架构的内存层次也相应变得更深，cache miss的代价变得更高。以至于Rust的标准库用B树去实现map（而C++中众所周知是红黑树），这就是处理器和内存频率差距逐渐拉大的结果，（夸张地说）现在的内存已经慢得像是当年的磁盘了。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/IntAct.png&#34; alt=&#34;IntAct&#34;&gt;&lt;/p&gt;
+&lt;p&gt;针对NUMA架构，系统层的Linux内核和KVM的NUMA-aware scheduler，应用层的网络框架Seastar、数据库ScyllaDB、内存数据库DragonFly等都已经注意到感知硬件拓扑能极大提升整体性能（ScyllaDB、DragonFly分别数倍领先于对标的Cassandra、Redis），提出了share-nothing高性能架构：避免锁和不必要的共享内存、避免不必要的远端内存访问、避免不必要的跨晶粒通信，设计缓存友好的数据结构，更好地利用晶粒内本地的L1 cache——考虑到目前我们用的Cascade Lake机器并非完全cache coherent，未来即使做到完全cache coherent，shared cache的coherency机制也几乎一定有开销，总之在复杂拓扑深内存层次时代，需警惕cache miss。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/NUMA.png&#34; alt=&#34;NUMA&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;重新遇到io瓶颈先进互连再次成为hpc核心&#34;&gt;重新遇到I/O瓶颈：先进互连再次成为HPC核心&lt;/h2&gt;
+&lt;p&gt;数据中心应用的IO占了全球IO traffic的76%，和计算一样，IO也是耗电的，而且和计算一样，数据中心IO耗电也十年没有变过，被硬件进步offset掉了。和计算一样，互连是分层级的，近期die-to-die(on-package)链路层面有UCIe标准的发布，off-package层面有基于PCIe6.0的CXL3.0，900GB/s的NvLinkC2C，inter-node层面有Infiniband NDR。这些是基于电的互连，相比而言光学互连更有前景，但也更困难，而且还在早期研发阶段。&lt;/p&gt;
+&lt;p&gt;过去的大数据和前大模型AI时代对IO的需求较低，标准以太网足以支撑大部分数据中心应用，包括parameter servers。大模型训练产生了新的计算、IO形态，内存放不下模型，不得不做模型并行后，IO就重新成了瓶颈：H100的8个GPU每个都需要7.2Tbps的off-package带宽，相比之下，连ToR交换机都只需要10+Tbps。AI专用GPU在大模型训练场景下的带宽需求已经非常接近交换机（交换机和GPU一样，都是巨型ASIC，也都是co-packaged optics适用的领域）。在交换机领域，谷歌已经研发出了实用且收益显著的纯光学链路交换机。在GPU互连上，NV也提出过光学互连的GPU的概念系统，甚至还设计了相应的带外置激光源的GPU机架和顺便解决冷却问题的稀疏布线。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/optics.png&#34; alt=&#34;optics&#34;&gt;&lt;/p&gt;
+&lt;p&gt;先进IO技术与HPC(高性能计算)的发展密可不分，尽管HPC或者说超算在大众的想象中一直和超强悍的处理器、加速器直接相关，但实际上恰恰相反，传统的HPC workload（建模、模拟类的科学计算）的计算用的往往是普通的商用节点，反而是互连必须用高性能的HPC interconnect技术。传统超算的异构性体现在IO技术，而非FPGA、专用ASIC的应用。&lt;/p&gt;
+&lt;p&gt;后来到了大数据分析和AI时代，标准以太网足以支持适应当时模型参数量的AI训练负载。主流的互联网大数据应用可以完全基于商用IO技术和商用计算节点实现。而少数AI DC的异构性主要体现在加速器技术（GPU、TPU、专用AI芯片）而非IO。&lt;/p&gt;
+&lt;p&gt;如今出现了大模型训练主导的异构负载，大模型参数量激增导致内存不足，不得不进行模型并行后，die-to-die带宽、off-package带宽、Inter-node带宽重新成为瓶颈。先进(异构)互连技术重新成为HPC的核心话题。&lt;/p&gt;
+&lt;p&gt;Datacenter AI重回异构IO+异构计算架构，本质是超算化，因此刚好也能适应建模+模拟类的传统HPC负载，其实给了互联网行业一个新的机会，那就是卷赢大模型训练的同时，还可以顺便进军超算行业，为高校、科研机构提供廉价、可靠、易用、随时oncall的科学计算能力，舆论上一定程度上扭转互联网公司对社会缺乏贡献的负面形象，为继续征收互联网服务税寻求合法性支撑。&lt;/p&gt;
+&lt;h2 id=&#34;io技术的迭代光学io愈发接近计算端点&#34;&gt;I/O技术的迭代：光学IO愈发接近计算端点&lt;/h2&gt;
+&lt;p&gt;先进铜缆互连是现在，共封装光学互连则是未来。&lt;/p&gt;
+&lt;p&gt;前文提到的Co-packaging是先进互连的关键技术，一方面将多个晶粒共封装本身就可以缩短IO链路，降低IO能耗，另一方面允许集成共封装光学模组技术CPO(co-packaged optics)。&lt;/p&gt;
+&lt;p&gt;数据中心IO的一个演化趋势是&amp;quot;bring fiber closer to endpoints&amp;quot;。光链路相比电链路，一个明显优势是传输距离更远（受制于频率相关的衰减）。另一个优势是随着带宽增加，电信号不断变短，噪音不断变大，IB network已经逼近铜缆极限，继续发展下去只能从铜缆走向光纤。此外，高频下电互连和连接器既要接收又要发射，会经历显著的串扰，这也限制了电互连的封装密度。光纤作为信号传输介质几乎是理想的，唯一低效的地方就是两端的电光转换部分。&lt;/p&gt;
+&lt;p&gt;现在in-racks连接主流方案是铜缆，inter-rack交换则基于以太网链路。超大数据中心里，缆线长就达到几公里，因此越来越多使用光缆——甚至短距离链路现在也越来越多地用光缆。数据中心里，fiber越来越接近endpoints，越来越接近cpus、gpus，最新的趋势是直接将光学组件集成到硅片上。CPO把光电链路结合在一起，无需intervening receive and re-transmit的过程，把光电转换(optoelectonic conversion)步骤省略了。第一代CPO是pluggable optics，第二代是On-Board Optics/Near Package Optics，第三代是2.5D CPO，第四代是3D CPO，第五代则是Integrated Laser。&lt;/p&gt;
+&lt;p&gt;Google的TPUv4超算最大的创新就是4k节点上可重配置的纯光学链路的光学交换机(OCS)，节省了光电转换的能耗， Infiniband将铜缆高性能互连发展到极致，后续的roadmap也是从铜缆到光电共封装。Nvidia虽然一直在推电链路方案（Nvlink），但也和Ayar Labs签署了研发合作关系，开始支持带外激光器和硅光子互连技术的研究，毕竟NvLink本质还是NUMA，可以扩展到8GPU，16GPU，但不可能把数据中心规模的一万个GPU连起来。HP也于去年与Ayar Labs合作，试图将硅光子学引入它们的先进HPC IO产品Slignshot互连。Intel也在研究激光器嵌入芯片内部的集成方案。&lt;/p&gt;
+&lt;p&gt;下图列出了interposer、PCB、CPO、电缆、有源光缆的耗电、成本、密度、传输距离指标。CPO的优势是显而易见的。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/CPO.png&#34; alt=&#34;CPO&#34;&gt;&lt;/p&gt;
+&lt;p&gt;在当前的技术水平下，CPO仅被视为一个电光(E/O)桥的角色，以解决SiP的互连带宽密度瓶颈问题。对分布式训练等应用场景来说，电光桥，或者说bring fiber closer to endpoints已经可以大幅降低能耗，提升性能了。但CPO的潜力远不限于此，如果给CPO chiplet稍微加一些功能，就可以像协处理器、smartNiC那样offload一些CPU work，比如做一些简单的数据预处理、后处理，又如CPO无需经过CPU直接就能访问HBM，从而提供DMA能力，这对解聚架构非常有帮助，无需物理上做pooling，又比铜缆IB网络更快。&lt;/p&gt;
+&lt;p&gt;这意味着光学IO不仅可以解决大模型训练带来的带宽问题，还给数据中心应用从host-centric向解聚（disaggregated）架构转型提供了可能。&lt;/p&gt;
+&lt;p&gt;何谓解聚范式？与传统的服务器中心范式相反，解聚范式是指将作为整体的服务器掰开，拆成CPU、DRAM、磁盘、加速器等独立的硬件资源进行资源抽象和管理的数据中心应用架构设计范式。硬件解聚并非新概念。18年的USENIX OSDI最佳论文LegoOS，一句&amp;quot;We believe that datacenters should break monolithic servers&amp;quot;，充满了信念感。当年的Infiniband还没有进化到NDR版本，光学I/O也还远离数据中心内部端点，但已经足以支撑这样的宏大叙事。&lt;/p&gt;
+&lt;p&gt;有了高性能网络，解聚架构就能有效提升数据中心应用的资源利用率，减轻物理机上CPU、加速器、内存、磁盘等资源在host-centric范式下不可避免的over-provisioning问题。&lt;/p&gt;
+&lt;h2 id=&#34;评估-gh200-grace-hopper-superchip&#34;&gt;评估 GH200 Grace Hopper Superchip&lt;/h2&gt;
+&lt;p&gt;NVIDIA宣称Grace Hopper Superchip是世界上第一个真正支持HPC和AI负载的异构加速平台。
+&lt;img src=&#34;https://jipeng4974.github.io/img/GraceHopper.png&#34; alt=&#34;GraceHopper&#34;&gt;
+如下图所示，这个superchip是一个把Grace Arm Neoverse CPU+LPDDR5x内存和H100 Tensor Core GPU+HBM，NVLink-C2C集成合封成PCB的集成方案。
+&lt;img src=&#34;https://jipeng4974.github.io/img/GraceHopper2.png&#34; alt=&#34;GraceHopper&#34;&gt;
+&lt;img src=&#34;https://jipeng4974.github.io/img/GraceHopper3.png&#34; alt=&#34;GraceHopper&#34;&gt;&lt;/p&gt;
+&lt;p&gt;这并不是一个创新方案，一方面悖逆Chipletization的潮流（除了HBM算是chiplet外，H100、Grace、NvSwitch都是巨型SoC/ASIC，况且即使是HBM也是PCB合封，而不是SiP），另一方面也没有进行任何CPU-GPU超融合（物理上融合至单个SoC上，逻辑上统一页表管理、内存、缓存、并发模型等）的探索或尝试（GPU设计之初就存在太多和CPU无法兼容的设计，比如缓存模型、内存模型和并发模型，如今CUDA根基已成很难回头），只是简单粗暴的将CPU、高带宽内存、H100以PCB合封的方式集成，用NVLink-C2C提供内存一致性和更高off-package的带宽（并未尝试任何先进IO技术）。软件上也没能在CUDA基础上提供更强的可编程性，仅仅提供coherent memory access，编程模型仍然是完全异构的（这也是因为CUDA自诞生之初就是个图形加速库，也没法考虑未来会出现对这种superchip的同构编程模型的需求）。&lt;/p&gt;
+&lt;p&gt;但这是一个低风险高执行力的集成方案，正如扎克伯格所说，&amp;ldquo;Move fast and break nothing&amp;rdquo;，把原本优秀的组件原封不动地合封起来，不做侵入式修改，只要动作足够快，就能迅速占领市场，构建生态，并支撑溢价。市场上有更完美的memory coherence方案（比如AMD MI300X），更好的CPU-GPU超融合方案，也有比不得不为图形负载妥协的GPU效率更高的AI芯片，但就是没有CUDA异构编程体系，以及Grace Hooper这样把计算、内存和IO瓶颈都解决得差不多的完整解决方案。&lt;/p&gt;
+&lt;p&gt;总之，NV的方案作为生态(GPU + CUDA)与生物(ChatGPT根据A100量体裁衣的训练方案)互相作用下的best-of-breed，远远没达到理想最优，甚至也不在正确的技术路线上，AMD的所谓APU以及国内的AI DSA（如Biren）仍有弯道超车的希望。&lt;/p&gt;
+&lt;p&gt;讨论计算系统的新机会&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;（应用）端到（硬件）端的全栈优化，或者说软硬件协同。
+&lt;ul&gt;
+&lt;li&gt;TVM: deep learning compiler stack for cpu, gpu and specialized accelerators&lt;/li&gt;
+&lt;li&gt;GPU + CUDA&lt;/li&gt;
+&lt;li&gt;GH20 Grace Hopper + 新的CUDA NUMA内存API+异构编程API&lt;/li&gt;
+&lt;li&gt;司内的LavaRecord全链路优化项目，向下(LavaUOS)对接新存储硬件，试图在nvme ssd上建立高效的用户态IO软件栈。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;应用机器学习方法对参数空间较大的系统做auto-tuning。
+&lt;ul&gt;
+&lt;li&gt;存储引擎如rocksdb调参&lt;/li&gt;
+&lt;li&gt;深度学习模型在异构硬件上的auto TVM&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;先进互连技术支持下的资源解聚架构设计。
+&lt;ul&gt;
+&lt;li&gt;LegoOS&lt;/li&gt;
+&lt;li&gt;PolarDB-X的存算分离和memory pooling&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;计算节点上的Share-nothing架构，以及data-oriented设计。
+&lt;ul&gt;
+&lt;li&gt;应用框架层面已有Libtorque、DragonFly、Seastar、Scylladb等先例，主要是IO密集应用——不过只要是内存占用大的CPU应用，大多可以视为IO密集的，因为cache miss上来之后访存占比往往会远超计算。&lt;/li&gt;
+&lt;li&gt;虚拟化方向，交大IPADS实验室的CPS: A Cooperative Para-virtualized Scheduling Framework for Manycore Machines，提出协作式半虚拟化调度机制，大幅提升众核虚拟机可扩展性。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;基于深度模型白盒化研究和已有的数学工具，用direct math solution取代黑盒模型的近似。
+&lt;ul&gt;
+&lt;li&gt;例如“Low-Resource” Text Classification: A Parameter-Free Classification Method with Compressors用压缩+信息距离+KNN的简洁解决方案。&lt;/li&gt;
+&lt;li&gt;用异类不相干性、同类可压缩性（稀疏性）衡量embedding效果，不必借助某种端到端应用的指标间接衡量。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;参考文献和进一步阅读&#34;&gt;参考文献和进一步阅读&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Learning One-hidden-layer Neural Networks with Landscape Design：即使是最简单的深度学习非凸优化场景，用数学工具（数学最优化方法）进行解释也极为困难。&lt;/li&gt;
+&lt;li&gt;Functionality and performance of NVLink with IBM POWER9 processors：几年前IBM Power9（美国能源部的Summit和Sierra超算系统）就在用NVLink，而且hardware cache coherence设计（以及hardware atomic ops，addr translation）已经非常完善，比Grace Hooper方案更完善。&lt;/li&gt;
+&lt;li&gt;Faith and Fate: Limits of Transformers on Compositionality：大语言模型涌现出演绎逻辑能力，但在多步复合问题上表现不佳，在训练样本中从未出现过计算图中相同计算路径的动态规划问题上准确率更是迅速跌落。与其他emprical study相比，这个研究更严肃，也更全面，考虑了计算图中训练时未见的splits带来的影响。我们有理由确信，大语言模型涌现的演绎推理能力会受制于transformer的天然局限。&lt;/li&gt;
+&lt;li&gt;Teaching Arithmetic to Small Transformers：基于transformer的小语言模型足以学习简单算术能力， 提供包含正确的计算步骤的训练数据（chain-of-thought style data）是提升算术学习能力的关键，简单粗暴地用题目和结果进行训练，单纯靠增加模型大小无法提升准确率。&lt;/li&gt;
+&lt;li&gt;A Survey of Large Language Models：提供了对大语言模型的up-to-date review。&lt;/li&gt;
+&lt;li&gt;Variantional Inference: A Review For Statisticians：提供了解释VI、理解VI的统计学家视角，讨论了VI应用于指数级模型族的特例，并给出一个贝叶斯高斯混合模型的例子，并推导出一种使用随机优化来扩展至海量数据的VI变体。&lt;/li&gt;
+&lt;li&gt;Training language models to follow instructions with human feedback：OpenAI的经验介绍，重点是RLHF。&lt;/li&gt;
+&lt;li&gt;GPT-4 Architecture, Infrastructure, Training Dataset, Costs, Vision, MoE：来自semianalysis的爆料，颇具可信度。&lt;/li&gt;
+&lt;li&gt;Efficiently Scale LLM Training Across a Large GPU Cluster with Alpa and Ray：LLM训练。&lt;/li&gt;
+&lt;li&gt;Scaling Language Model Training to a Trillion Parameters Using Megatron：Megatron（repo： &lt;a href=&#34;https://github.com/NVIDIA/Megatron-LM&#34;&gt;https://github.com/NVIDIA/Megatron-LM&lt;/a&gt; ，paper： &lt;a href=&#34;https://arxiv.org/pdf/1909.08053.pdf&#34;&gt;https://arxiv.org/pdf/1909.08053.pdf&lt;/a&gt; ）&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=eqWPyaRcILQ&#34;&gt;https://www.youtube.com/watch?v=eqWPyaRcILQ&lt;/a&gt; 微软Azure硬件系统和基础设施团队的Ram Huggahalli关于Co-Packaged Optics的talk。&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=Xt-GY8Pkt6g&#34;&gt;https://www.youtube.com/watch?v=Xt-GY8Pkt6g&lt;/a&gt; 研究光通信和先进互连技术的Tony Chan Carusone关于Co-Packaged Optics以及Evolution of IO的talk。&lt;/li&gt;
+&lt;li&gt;Next-generation Co-Packaged Optics for Future Disaggregated AI Systems：对共封装光学模组以及未来的解聚AI系统的洞察。&lt;/li&gt;
+&lt;li&gt;TPU v4: An Optically Reconfigurable Supercomputer for Machine Learning with Hardware Support for Embeddings : Google的TPUv4，重点是纯光链路交换机&lt;/li&gt;
+&lt;li&gt;LegoOS: A Disseminated, Distributed OS for Hardware Resource Disaggregation ：乐高OS，基于早期Infiniband高速网络做硬件资源解聚的尝试&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.hpcwire.com/2020/11/16/nvidia-mellanox-debuts-ndr-400-gigabit-infiniband-at-sc20/&#34;&gt;https://www.hpcwire.com/2020/11/16/nvidia-mellanox-debuts-ndr-400-gigabit-infiniband-at-sc20/&lt;/a&gt; Mellanox(Nvidia)的Infiniband NDR版本，以及roadmap。&lt;/li&gt;
+&lt;li&gt;Rack-scale disaggregated cloud data centers: The dReDBox project vision: 数据中心应用解聚架构的早期尝试。&lt;/li&gt;
+&lt;li&gt;White-Box Transformers via Sparse Rate Reduction：马毅团队对transformer的白盒化解释，此前马毅已经给出了更通用的rate reduction原则： Learning Diverse and Discriminative Representations via the Principle of Maximal Coding Rate Reduction。&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/bgavran/Category_Theory_Machine_Learning&#34;&gt;https://github.com/bgavran/Category_Theory_Machine_Learning&lt;/a&gt; 深度学习的范畴论解释。深度学习可解释性和逆向工作还可以参考Christopher Olah的blog: colah.github.io，Olah有许多深刻的洞察，比如https://colah.github.io/posts/2014-03-NN-Manifolds-Topology/ 流形假设的可视化和深度学习分类的解释。&lt;/li&gt;
+&lt;li&gt;IntAct: A 96-Core Processor With Six Chiplets 3D-Stacked on an Active Interposer With Distributed Interconnects and Integrated Power Management：先进IC设计领域的论文，给出了一个集成了chiplet范式、3d封装、完全cache coherence等先进概念的96核众核原型系统。&lt;/li&gt;
+&lt;li&gt;“Low-Resource” Text Classification: A Parameter-Free Classification Method with Compressors：无损压缩近似柯氏复杂性，然后计算信息距离（类似rate reduction，刻画了总体与分类之间的信息差，分类的编码长度低而总体的编码长度高，表明这种分类具有异类强区分性和同类可压缩性），依据信息距离做简单的KNN即可完成分类。这个研究的代码有错，并不能击败BERT，见https://kenschutte.com/gzip-knn-paper/。&lt;/li&gt;
+&lt;li&gt;M. Li and P.M.B. Vitányi, An Introduction to Kolmogorov Complexity and Its Applications 柯尔莫哥洛夫复杂性的介绍和应用&lt;/li&gt;
+&lt;li&gt;A Mathematical Theory of Communication 1948年香农信息论的论文原著&lt;/li&gt;
+&lt;li&gt;hwloc doc：hwloc的文档，hwloc是NUMA-discovery + cpu/memory-binding library。&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://man7.org/linux/man-pages/man2/mbind.2.html&#34;&gt;https://man7.org/linux/man-pages/man2/mbind.2.html&lt;/a&gt;：libnuma的NUMA memory policy函数。&lt;/li&gt;
+&lt;li&gt;On the Turing Completeness of Modern Neural Network Architectures 证明了无限精度transformer是图灵完备的，即任意图灵机都可被无限精度transformer模拟，但只要是固定精度就不是图灵完备的。&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>
