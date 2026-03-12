@@ -82,7 +82,19 @@ $$\nabla ℒ_{|w}(w) = \frac{1}{N} \sum_{n=1}^N \nabla \ell_{n|w}(w)$$
 
 简单起见，将一个深度为$D$的模型表示为$f = f^{(D)} \circ f^{(D-1)} \circ ... \circ f^{(1)}$。则前馈过程即按顺序计算$x^{(d-1)} \rightarrow x^{(d)}$，即$x^{(d)} = f^{(d)}(x^{(d-1)};w_d)$，直到最终得到$x^{(D)}$作为模型输出。
 
-反向传播过程则是反过来计算$\nabla\ell_{{|x}^(d-1)} \leftarrow \nabla\ell_{{|x}^(d)}$以及$\nabla\ell_{|w_d} \leftarrow \nabla\ell_{{|x}^(d)}$，其中$\nabla\ell_{{|x}^(d-1)}$[^3]是$\nabla\ell_{{|x}^(d)}$[^4]和$J_{f^{(d)}|x}$[^5]乘积。而我们在训练过程中实际关心的另一个梯度$\nabla\ell_{|w_d}$是$\nabla\ell_{{|x}^(d)}$和$J_{f^{(d)}|w}$[^6]乘积。
+反向传播过程则是反过来计算
+$\nabla\ell_{|x^{(d-1)}} \leftarrow \nabla\ell_{|x^{(d)}}$
+以及
+$\nabla\ell_{|w_d} \leftarrow \nabla\ell_{|x^{(d)}}$，
+其中
+$\nabla\ell_{|x^{(d-1)}}$[^3]
+是
+$\nabla\ell_{|x^{(d)}}$[^4]
+和
+$J_{f^{(d)}|x}$[^5]
+乘积。
+
+而我们在训练过程中实际关心的另一个梯度$\nabla\ell_{|w_d}$是$\nabla\ell_{{|x}^(d)}$和$J_{f^{(d)}|w}$[^6]乘积。
 
 深度学习训练框架主要处理的就是隐藏反向传播梯度计算的复杂度，即提供自动求导/计算求导能力，该技术在深度学习之前也有广泛应用，详见AutoGrad [Baydin et al., 2015][^7]。
 

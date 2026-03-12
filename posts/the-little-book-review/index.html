@@ -175,7 +175,18 @@ $$P(A\cap B\cap C)=P(A) P(B|A) P(C|A\cap B)$$</p>
 <p>给定$\ell(w)=L(f(x;w),y)$，怎么计算$\nabla\ell_{|w}(w)$呢？考虑到$f$和$L$都是标准张量运算的组合，它们与任何数学表达式一样，基于链式法则可以得到其表达式。</p>
 <p><img src="https://jipeng4974.github.io/img/bp.png" alt="bp"></p>
 <p>简单起见，将一个深度为$D$的模型表示为$f = f^{(D)} \circ f^{(D-1)} \circ &hellip; \circ f^{(1)}$。则前馈过程即按顺序计算$x^{(d-1)} \rightarrow x^{(d)}$，即$x^{(d)} = f^{(d)}(x^{(d-1)};w_d)$，直到最终得到$x^{(D)}$作为模型输出。</p>
-<p>反向传播过程则是反过来计算$\nabla\ell_{{|x}^(d-1)} \leftarrow \nabla\ell_{{|x}^(d)}$以及$\nabla\ell_{|w_d} \leftarrow \nabla\ell_{{|x}^(d)}$，其中$\nabla\ell_{{|x}^(d-1)}$<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>是$\nabla\ell_{{|x}^(d)}$<sup id="fnref:4"><a href="#fn:4" class="footnote-ref" role="doc-noteref">4</a></sup>和$J_{f^{(d)}|x}$<sup id="fnref:5"><a href="#fn:5" class="footnote-ref" role="doc-noteref">5</a></sup>乘积。而我们在训练过程中实际关心的另一个梯度$\nabla\ell_{|w_d}$是$\nabla\ell_{{|x}^(d)}$和$J_{f^{(d)}|w}$<sup id="fnref:6"><a href="#fn:6" class="footnote-ref" role="doc-noteref">6</a></sup>乘积。</p>
+<p>反向传播过程则是反过来计算
+$\nabla\ell_{|x^{(d-1)}} \leftarrow \nabla\ell_{|x^{(d)}}$
+以及
+$\nabla\ell_{|w_d} \leftarrow \nabla\ell_{|x^{(d)}}$，
+其中
+$\nabla\ell_{|x^{(d-1)}}$<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>
+是
+$\nabla\ell_{|x^{(d)}}$<sup id="fnref:4"><a href="#fn:4" class="footnote-ref" role="doc-noteref">4</a></sup>
+和
+$J_{f^{(d)}|x}$<sup id="fnref:5"><a href="#fn:5" class="footnote-ref" role="doc-noteref">5</a></sup>
+乘积。</p>
+<p>而我们在训练过程中实际关心的另一个梯度$\nabla\ell_{|w_d}$是$\nabla\ell_{{|x}^(d)}$和$J_{f^{(d)}|w}$<sup id="fnref:6"><a href="#fn:6" class="footnote-ref" role="doc-noteref">6</a></sup>乘积。</p>
 <p>深度学习训练框架主要处理的就是隐藏反向传播梯度计算的复杂度，即提供自动求导/计算求导能力，该技术在深度学习之前也有广泛应用，详见AutoGrad [Baydin et al., 2015]<sup id="fnref:7"><a href="#fn:7" class="footnote-ref" role="doc-noteref">7</a></sup>。</p>
 <p>显然反向传播的矩阵计算量两倍于前馈推理（每层多了一次权重的反向传播）。反向传播的内存需求也远大于前馈推理，因为每一层的$x^{(d)}$都要保留在内存中，而非推理则不需要保留，只要留着最新的。解决内存占用过高的技术包括：reversible layers[Gomez et al., 2017]<sup id="fnref:8"><a href="#fn:8" class="footnote-ref" role="doc-noteref">8</a></sup>和checkpointing[Chen et al., 2016]<sup id="fnref:9"><a href="#fn:9" class="footnote-ref" role="doc-noteref">9</a></sup>。</p>
 <p>深度模型的一个问题是梯度消失（见[Glorot and Bengio, 2010]<sup id="fnref:10"><a href="#fn:10" class="footnote-ref" role="doc-noteref">10</a></sup>），即经过很多次反向传播后，数值变得太大或太小。常规应对做法是gradient norm clipping[Pascanu et al., 2013]<sup id="fnref:11"><a href="#fn:11" class="footnote-ref" role="doc-noteref">11</a></sup>。</p>
