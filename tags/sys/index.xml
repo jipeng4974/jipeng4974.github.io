@@ -6,7 +6,102 @@
     <description>Recent content in sys on Structure over Unstructured Realities</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 22 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/tags/sys/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 14 Mar 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/tags/sys/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Music Re-ID</title>
+      <link>https://jipeng4974.github.io/posts/reid/</link>
+      <pubDate>Sat, 14 Mar 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://jipeng4974.github.io/posts/reid/</guid>
+      <description>从基于纯先验的手工特征检索，到纯数据驱动的深度度量学习，再到给模型提供一些先验领域知识辅助学习，是螺旋上升的过程。
+即便是代表极致数据驱动的预训练MLLM，也普遍将log mel频谱而非原始波形送入模型的audio encoder，这本身就是一种基于人耳听觉和心理声学的归纳偏置。
+音乐是天然高度结构化的，音乐检索领域的标注数据天然是稀缺且不公开的，因此基于先验知识引入归纳偏置是合乎逻辑的，可以让模型不必从声学、信号处理、音乐理论学起。
+归纳偏置 选取合适的语义深度 语义深度(semantic depth)是我生造的指标。
+从现实世界采样信号到人的主观认知之间存在若干个抽象层次，自信号层面每下潜一个抽象层次，则语义深度+1。
+音乐表征领域中，不妨将语义深度定义如下：
+语义深度为0的通用音频信号特征，无音乐语义，如peaks、spectra flux、shazam/quad fingerprints、mfcc。
+语义深度为1的音乐微观结构特征，携带音乐语义，如harmonic peaks/ridges、attack onsets、beat positions、spectral envelope、pitch contour。
+语义深度为2的音乐中观结构特征，往往覆盖5~30s有记忆点的motif，如melody、rhythm、groove。
+语义深度为3的音乐宏观结构特征，往往覆盖全曲，能挖掘更深层的叙事、情感、结构、风格、关联信息、特定语境下的信息。
+选取恰当的输入形态 如果确定应用场景中query和doc几乎都是音乐，输入层面自然可以选用合乎乐理的cqt频谱，并根据该场景所需的语义深度选取对应的音频切片粒度。
+捕捉不变量的归纳偏置 其次可以将某些手工特征作为辅助信息提供给模型。这些手工特征大多属于频谱的某种压缩表示，关注特定语义深度为1的音乐不变量，例如pitch contour，harmonic peaks的拓扑关系。
+数据驱动 硬样本挖掘 确定一个fpr足够低的得分阈值，基于KNN检索取top k，得分超阈值则为positive(用于扩充sim group)，其他为negative。
+从top k中negative cands中剔除掉hard negative（得分大于sim group平均相似度而小于阈值，这部分只能依赖人工标注），留下得分低于sim group平均相似度的semi-hard negatives。
+生成数据 音乐或视频生成模型续写、改编样本。
+数据增强 变速变调、扰动加噪、混音。
+性能工程 Encoder轻量化 当query足够短，比如普遍是仅10s的音频clip时，可fit in cnn1感受野，且该cnn架构进行过恰当的attention hybrid改造2，transformer encoder的长程相关性建模优势就不存在了。
+MRL MRL（套娃表征学习）允许表征向量的前若干维构成的子向量是直接可用于检索的，这显然优于独立的PCA降维或训练时加个线性层降维，更加灵活，值得尝试。
+MRL主要用于超大规模检索中降低向量索引的存储和检索开销。
+MRL在推理阶段也降低了分类头实际激活参数量，在class数量特别多的场景可稍稍降低检索成本。
+QAT 和MRL相比，QAT固然也减小向量尺寸，但主要是为了发挥硬件低精度推理的性能优势，大幅降低推理成本。QAT和MRL的收益和损失均正交。
+级联排序 多数场景下，metrics learning + 大规模ANN向量检索足以解决音频检索问题。
+少数困难场景，需要引入级联检索，用embedding模型做粗召，用某种reranker做精排。
+reranker可以是一个基于原有embedding模型的cross-encoder reranker。 或基于预训练MLLM在rerank任务上做后训练。 这里的CNN只是大类，实际会使用Resnet中的ResNeSt变种。ResNeSt比Resnet多了Split-Attention Conv。&amp;#160;&amp;#x21a9;&amp;#xfe0e;
+在ResNeSt-50基础上，还可以在layer2, layer3插入NonLocal自注意力模块，进一步提升上下文理解能力。此外，低层还会用IBN替代BN，即一半通道走InstanceNorm，另一半SyncBN。引入InstanceNorm可去风格，抑制模型对能量包络的学习。&amp;#160;&amp;#x21a9;&amp;#xfe0e;</description>
+      <content>&lt;p&gt;从基于纯先验的手工特征检索，到纯数据驱动的深度度量学习，再到给模型提供一些先验领域知识辅助学习，是螺旋上升的过程。&lt;/p&gt;
+&lt;p&gt;即便是代表极致数据驱动的预训练MLLM，也普遍将log mel频谱而非原始波形送入模型的audio encoder，这本身就是一种基于人耳听觉和心理声学的归纳偏置。&lt;/p&gt;
+&lt;p&gt;音乐是天然高度结构化的，音乐检索领域的标注数据天然是稀缺且不公开的，因此基于先验知识引入归纳偏置是合乎逻辑的，可以让模型不必从声学、信号处理、音乐理论学起。&lt;/p&gt;
+&lt;h1 id=&#34;归纳偏置&#34;&gt;归纳偏置&lt;/h1&gt;
+&lt;h2 id=&#34;选取合适的语义深度&#34;&gt;选取合适的语义深度&lt;/h2&gt;
+&lt;p&gt;语义深度(semantic depth)是我生造的指标。&lt;/p&gt;
+&lt;p&gt;从现实世界采样信号到人的主观认知之间存在若干个抽象层次，自信号层面每下潜一个抽象层次，则语义深度+1。&lt;/p&gt;
+&lt;p&gt;音乐表征领域中，不妨将语义深度定义如下：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;语义深度为0的通用音频信号特征，无音乐语义，如peaks、spectra flux、shazam/quad fingerprints、mfcc。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;语义深度为1的音乐微观结构特征，携带音乐语义，如harmonic peaks/ridges、attack onsets、beat positions、spectral envelope、pitch contour。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;语义深度为2的音乐中观结构特征，往往覆盖5~30s有记忆点的motif，如melody、rhythm、groove。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;语义深度为3的音乐宏观结构特征，往往覆盖全曲，能挖掘更深层的叙事、情感、结构、风格、关联信息、特定语境下的信息。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;选取恰当的输入形态&#34;&gt;选取恰当的输入形态&lt;/h2&gt;
+&lt;p&gt;如果确定应用场景中query和doc几乎都是音乐，输入层面自然可以选用合乎乐理的cqt频谱，并根据该场景所需的语义深度选取对应的音频切片粒度。&lt;/p&gt;
+&lt;h2 id=&#34;捕捉不变量的归纳偏置&#34;&gt;捕捉不变量的归纳偏置&lt;/h2&gt;
+&lt;p&gt;其次可以将某些手工特征作为辅助信息提供给模型。这些手工特征大多属于频谱的某种压缩表示，关注特定语义深度为1的音乐不变量，例如pitch contour，harmonic peaks的拓扑关系。&lt;/p&gt;
+&lt;h1 id=&#34;数据驱动&#34;&gt;数据驱动&lt;/h1&gt;
+&lt;h2 id=&#34;硬样本挖掘&#34;&gt;硬样本挖掘&lt;/h2&gt;
+&lt;p&gt;确定一个fpr足够低的得分阈值，基于KNN检索取top k，得分超阈值则为positive(用于扩充sim group)，其他为negative。&lt;/p&gt;
+&lt;p&gt;从top k中negative cands中剔除掉hard negative（得分大于sim group平均相似度而小于阈值，这部分只能依赖人工标注），留下得分低于sim group平均相似度的semi-hard negatives。&lt;/p&gt;
+&lt;h2 id=&#34;生成数据&#34;&gt;生成数据&lt;/h2&gt;
+&lt;p&gt;音乐或视频生成模型续写、改编样本。&lt;/p&gt;
+&lt;h2 id=&#34;数据增强&#34;&gt;数据增强&lt;/h2&gt;
+&lt;p&gt;变速变调、扰动加噪、混音。&lt;/p&gt;
+&lt;h1 id=&#34;性能工程&#34;&gt;性能工程&lt;/h1&gt;
+&lt;h2 id=&#34;encoder轻量化&#34;&gt;Encoder轻量化&lt;/h2&gt;
+&lt;p&gt;当query足够短，比如普遍是仅10s的音频clip时，可fit in cnn&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;感受野，且该cnn架构进行过恰当的attention hybrid改造&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;，transformer encoder的长程相关性建模优势就不存在了。&lt;/p&gt;
+&lt;h2 id=&#34;mrl&#34;&gt;MRL&lt;/h2&gt;
+&lt;p&gt;MRL（套娃表征学习）允许表征向量的前若干维构成的子向量是直接可用于检索的，这显然优于独立的PCA降维或训练时加个线性层降维，更加灵活，值得尝试。&lt;/p&gt;
+&lt;p&gt;MRL主要用于超大规模检索中降低向量索引的存储和检索开销。&lt;/p&gt;
+&lt;p&gt;MRL在推理阶段也降低了分类头实际激活参数量，在class数量特别多的场景可稍稍降低检索成本。&lt;/p&gt;
+&lt;h2 id=&#34;qat&#34;&gt;QAT&lt;/h2&gt;
+&lt;p&gt;和MRL相比，QAT固然也减小向量尺寸，但主要是为了发挥硬件低精度推理的性能优势，大幅降低推理成本。QAT和MRL的收益和损失均正交。&lt;/p&gt;
+&lt;h1 id=&#34;级联排序&#34;&gt;级联排序&lt;/h1&gt;
+&lt;p&gt;多数场景下，metrics learning + 大规模ANN向量检索足以解决音频检索问题。&lt;/p&gt;
+&lt;p&gt;少数困难场景，需要引入级联检索，用embedding模型做粗召，用某种reranker做精排。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;reranker可以是一个基于原有embedding模型的cross-encoder reranker。&lt;/li&gt;
+&lt;li&gt;或基于预训练MLLM在rerank任务上做后训练。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;
+&lt;p&gt;这里的CNN只是大类，实际会使用Resnet中的ResNeSt变种。ResNeSt比Resnet多了Split-Attention Conv。&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;
+&lt;p&gt;在ResNeSt-50基础上，还可以在layer2, layer3插入NonLocal自注意力模块，进一步提升上下文理解能力。此外，低层还会用IBN替代BN，即一半通道走InstanceNorm，另一半SyncBN。引入InstanceNorm可去风格，抑制模型对能量包络的学习。&amp;#160;&lt;a href=&#34;#fnref:2&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content>
+    </item>
+    
     <item>
       <title>Recommender Systems</title>
       <link>https://jipeng4974.github.io/posts/recomendation-systems/</link>
