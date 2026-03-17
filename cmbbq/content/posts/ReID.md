@@ -1,8 +1,8 @@
 +++
-title = "Music Re-ID"
+title = "Semantic Depth & Music Re-ID"
 date = "2026-03-14"
 tags = ["sys", "ai"]
-description = "本文从归纳偏置、数据驱动、性能工程、级联排序等角度讨论Music Re-ID。"
+description = "本文提出语义深度指标，从归纳偏置、数据驱动、性能工程、级联排序等角度讨论Music Re-ID。"
 showFullContent = false
 +++
 
