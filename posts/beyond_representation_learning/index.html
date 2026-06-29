@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>超越表征学习：预测驱动的编码器&#43;可学习的传感器 :: Structure over Unstructured Realities</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="现有的多模态表征学习原始、孤立且残缺，还需要预测驱动的编码器&#43;可学习的传感器。" />
+<meta name="keywords" content="" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://jipeng4974.github.io/posts/beyond_representation_learning/" />
+
+
+
+
+
+<link rel="stylesheet" href="https://jipeng4974.github.io/assets/style.css">
+
+  <link rel="stylesheet" href="https://jipeng4974.github.io/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://jipeng4974.github.io/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://jipeng4974.github.io/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="超越表征学习：预测驱动的编码器&#43;可学习的传感器">
+<meta property="og:description" content="现有的多模态表征学习原始、孤立且残缺，还需要预测驱动的编码器&#43;可学习的传感器。" />
+<meta property="og:url" content="https://jipeng4974.github.io/posts/beyond_representation_learning/" />
+<meta property="og:site_name" content="Structure over Unstructured Realities" />
+
+  
+    <meta property="og:image" content="https://jipeng4974.github.io/img/favicon/green.png">
+  
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2026-06-29 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container center headings--one-size">
+
+  <header class="header">
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: false,
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+</script>
+<script
+    type="text/javascript" id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@4.0.0-beta.4/tex-mml-chtml.js">
+</script>
+    
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    Structure over Unstructured Realities
+  </div>
+</a>
+
+    </div>
+    
+  </div>
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://jipeng4974.github.io/posts/beyond_representation_learning/">超越表征学习：预测驱动的编码器+可学习的传感器</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2026-06-29
+        
+      </span>
+    
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://jipeng4974.github.io/tags/research/">research</a>&nbsp;
+    
+    #<a href="https://jipeng4974.github.io/tags/ai/">ai</a>&nbsp;
+    
+  </span>
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+        <p>高维信号表征学习的核心挑战之一是输入的维度和输出的维度之间存在巨大的落差。</p>
+<ul>
+<li>音视频计算领域一直以极度性能饥渴知名，正是因为物理世界的音视频信号的维度极高。</li>
+<li>人脑处理的视觉流带宽约80Mbps，思考的速度约800bps，相差5个数量级。</li>
+</ul>
+<p>高维信号表征学习的核心挑战之二是输入的信号一定是对物理现实的某种采样和侧写。</p>
+<ul>
+<li>不同尺度下，听到的音乐是不同的。</li>
+<li>不同视角下，看到的场景是不同的。</li>
+<li>不同分辨率下，关注的结构是不同的。</li>
+<li>只研究”信号 -&gt; 表征“的过程是不够的，还要考虑如何让模型学会自主设计观测信号的策略。</li>
+</ul>
+<h2 id="基于预测误差筛选有效信号">基于预测误差筛选有效信号<a href="#基于预测误差筛选有效信号" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>我们的大脑时时刻刻在预测下一帧。有了这种预测，只需少量修正信号即可合成稳定连贯的视觉体验。因此维度极高的视觉信号作为超高带宽输入，大脑这样低功率的计算湿件却也能应付自如。</p>
+<p>当我们把没有防抖的运动相机固定在头顶时，拍出来的视频会抖得让人怀疑人生，而我们自己走路的视觉体验却稳定自然。这是视觉体验合成论的直接证据。</p>
+<p>当我们来到异国他乡，fresh off the boat，哪怕只是在寻常街头走走，也会有新鲜新奇感，同时伴随着感官过载的疲惫，这就是预测模型暂时失效带来的神经系统过载所致。</p>
+<p>类似的，小时候，车马很慢，时间也漫长，记忆密度似乎远比成年后高。正是因为小时候的世界模型尚不成熟，天天都有新鲜的预测误差出炉。</p>
+<p>BTW，对于Asperger来说，声光不耐受，也往往是预测模型失效导致的over-excitabilities。对常人来说可以接受的灯光/信号闪烁，对asperger来说会越过下丘脑直抵永恒内心对话的圣殿，引发生理上深层神经痛苦，往往遍查眼疾无果后才知晓这是神经系统上的过载。</p>
+<p>当代的音视频encoder很大程度上仍然是孤立和被动的存在，缺一个积极剔除平凡信号，聚焦“惊讶信号”的<strong>主动预测模型</strong>来辅助编码器进行有效降维。</p>
+<p>Gemma4 12B做了一个激进（可能也不算激进，在遵循bitter lesson的角度说反而是保守）的尝试，完全去掉了编码器，直接将音视频降维到LLM的hidden size，从而消除了编码器层面的inductive bias。Transformer理论上有能力学出&quot;预测模型 + 编码策略&quot;，但仅凭标准next-token objective，很难想象它有动力学出一个复杂的prediction-driven encoder。</p>
+<h2 id="将切换观察视角的权力交还模型">将切换观察视角的权力交还模型<a href="#将切换观察视角的权力交还模型" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>视角对智能的影响巨大，哪怕复杂精妙如人类，也难以抵抗这种影响。长期用14-35mm和用85mm镜头时的心境、性格都有微妙的不同。广角赋予人镜收天地的豪迈，中长焦则使人更加安静、专注、温柔。</p>
+<p>在生物界，切换视角是廉价、高效、实时的，是学习者的必备禀赋。</p>
+<p>哪怕原始如蜥蜴，观察这个世界时，也懂得转动眼球。</p>
+<p>可惜目前MLLM竟然不具备这种能力，固定的patchification，固定的视角，让高维信号在抵达编码器之前就已经丧失了对世界进行全面刻画和contextualized刻画的可能。</p>
+<p>今天的机器学习尚不具备自主切换视角的能力，全凭人为设计，“观察策略”被外包给了研究员。在漫长昂贵的训练后，研究员通过评估和反思，才有可能调整“观察视角”，反馈链条极长。一个12B模型的dataloader/projector/sampler调整往往需要一周时间，消耗几百万千卡。相比之下，蜥蜴转动眼球只需要20ms，消耗1微焦耳。</p>
+<p>如今的MLLM作为learner，缺一个廉价、高频、闭环的视角控制系统——一个实时具身的变焦镜头和掌控这支变焦镜头的大脑。</p>
+<p>出于对bitter lesson的尊重，很多MLLM选择将更原始的表示（比如waveform往往比mel spectrogram更原始）送给模型，让模型自主选择如何从原始表示学习到有用的知识。这么做算是把视角控制权交给了模型了吗？我认为不算。如果不引入任何inductive bias，模型推理时其实没有说不的权力，它必须咽下硬塞给它的巨量音视频信号——低级生物知道拒绝，MLLM无法拒绝。训练时更不用说了，根本还不存在数据准备层面的实时反馈闭环。</p>
+<ul>
+<li>目前的training Loop(data pipeline &amp; learning algorithm)完全写死在代码里，未来如果能将其中比较简单的data pipeline做成可学习的（成为模型权重的一部分）——不妨将其称为learnable sensor，让模型在训练时自主调整对世界的观测策略，至少能形成反馈闭环。</li>
+</ul>
+<pre tabindex="0"><code>## 不可学习的training loop中，data pipeline显然是最容易被做成可学习的
+for batch in dataloader:
+    x = augment(batch)
+    y = model(x)
+    loss = criterion(y)
+    loss.backward()
+    optimizer.step()
+</code></pre><p>新增可学习的传感器是否与简化/去除encoder方向背道而驰？否。二者不仅不背道而驰，还不谋而合地echo了bitter lesson：可学习的传感器负责的是如何去观测数据——这个过程目前是代码写死的完全没有灵活性，因此任何一点灵活性上的松动都是进步，都是在减少人为硬编码。而encoder负责的是拿到数据后进行特征工程——这个过程确实没必要引入过多inductive bias（连CNN都是一种罪，跟不必说手工特征了），简化/去除encoder也是减少人为硬编码。</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">阅读其他博文</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        
+        <span class="button next">
+            <a href="https://jipeng4974.github.io/posts/cognitive-phase-transitions/">
+                <span class="button__text">Cognitive Phase Transitions</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        
+    
+
+        <span> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope" viewBox="0 0 16 16">
+          <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z"/>
+        </svg> rpb.cmbbq@gmail.com </span>
+      </div>
+  </div>
+</footer>
+
+<script src="https://jipeng4974.github.io/assets/main.js"></script>
+<script src="https://jipeng4974.github.io/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>
