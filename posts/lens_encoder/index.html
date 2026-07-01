@@ -133,19 +133,19 @@
 
   <div class="post-content"><div>
         <h2 id="lens-cong-encoder">Lens $\cong$ Encoder<a href="#lens-cong-encoder" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
-<p>相机镜头和图片、音频的编码器是同构的，本质都是以高维物理现实为输入的降维函数$$ f: \mathbb{R}^n \to \mathbb{R}^d, d &laquo; n$$。</p>
+<p>相机镜头和图片、音频的编码器是同构的，本质都是以高维物理现实为输入的降维函数：$$ f: \mathbb{R}^n \to \mathbb{R}^d, d &laquo; n$$</p>
 <p>镜头将无穷光场压缩成相机传感器上的像素矩阵：</p>
-<pre tabindex="0"><code>3D Scene
+<pre tabindex="0"><code> 3D Scene
     ↓
    Lens
     ↓
 2D Sensor Image
 </code></pre><p>Encoder将无限物理现实的某种人工采样压缩成低维向量：</p>
-<pre tabindex="0"><code>Waveform
+<pre tabindex="0"><code> Waveform
     ↓
- Encoder
+  Encoder
     ↓
-Embedding
+ Embedding
 </code></pre><h2 id="像散慧差-cong-各向异性">像散&amp;慧差 $\cong$ 各向异性<a href="#像散慧差-cong-各向异性" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p>我新买了一个rf28mm f2.8 pancake，发现它用了形状特殊的非球面树脂镜片，树脂材质天然不均匀，因此有像散（垂直和水平方向分辨率不同）和慧差（斜向误差）。这个过程简直和表征学习中模型“材质”的天然不均匀以及模型输出的天然各向异性有一模一样的结构。我意识到人类的种种活动，在更高维存在眼中或许都是一回事。佳能的光学设计师设计镜头，和我尝试做一个audio encoder，本质上都是要把高维物理现实经过一个非线性变换投射到一个低维表示上。</p>
 <p>树脂镜片的不均匀性导致了最终输出中必然存在各向异性。我们的各种表征模型也一样，输出的embedding几乎一定具有强烈的各向异性性。</p>
