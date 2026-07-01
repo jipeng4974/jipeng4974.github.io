@@ -13,7 +13,7 @@
       <pubDate>Wed, 01 Jul 2026 00:00:00 +0000</pubDate>
       
       <guid>https://jipeng4974.github.io/posts/lens_encoder/</guid>
-      <description>Lens $\cong$ Encoder 相机镜头和图片、音频的编码器是同构的，本质都是以高维物理现实为输入的降维函数：$$ f: \mathbb{R}^n \to \mathbb{R}^d, d &amp;laquo; n$$
+      <description>Lens $\cong$ Encoder 相机镜头和图片、音频的编码器是同构的，本质都是以高维物理现实为输入的降维函数：$$ f: \mathbb{R}^n \to \mathbb{R}^d, d \ll n$$
 镜头将无穷光场压缩成相机传感器上的像素矩阵：
 3D Scene ↓ Lens ↓ 2D Sensor Image Encoder将无限物理现实的某种人工采样压缩成低维向量：
 Waveform ↓ Encoder ↓ Embedding 像散&amp;amp;慧差 $\cong$ 各向异性 我新买了一个rf28mm f2.8 pancake，发现它用了形状特殊的非球面树脂镜片，树脂材质天然不均匀，因此有像散（垂直和水平方向分辨率不同）和慧差（斜向误差）。这个过程简直和表征学习中模型“材质”的天然不均匀以及模型输出的天然各向异性有一模一样的结构。我意识到人类的种种活动，在更高维存在眼中或许都是一回事。佳能的光学设计师设计镜头，和我尝试做一个audio encoder，本质上都是要把高维物理现实经过一个非线性变换投射到一个低维表示上。
@@ -22,7 +22,7 @@ Waveform ↓ Encoder ↓ Embedding 像散&amp;amp;慧差 $\cong$ 各向异性 �
 如果光学工程师换更高级的玻璃镜片，用上种种补偿元件，则可接近各向同性。最终像平面上就不会因慧差出现彗星形光斑和纵向横向清晰度不同的问题。从而让镜头可以冠上红圈L头之名。 如果ML工程师用SIGReg正则等手段约束模型输出各个维度更均匀的embeddings，那么这些embeddings的应用场景就更泛化，不局限于loss+sampler设计时关注的单一supervised场景，也能用在跨模态对齐、聚类等场景，从而让模型可以冠上foundation model之名。 适应各向异性 另一个思路则是接受各向异性的事实，利用它降本。相机矫正算法/固件工程师和大规模向量检索系统的HPC工程师都在适应各向异性。
 比如佳能相机的数字矫正技术和镜头设计就是相辅相成的，rf28 2.8用了树脂镜片反而可以节省成本。 又如Google的工程师接受了大多数模型的embedding不那么“圆”的事实，提出了scann各向异性量化，做到了更激进的ANNS性能优化。 这种思路固然在工程上有效，却缺乏鲁棒性和泛化性。一旦失去机内校正（假设我们可以将它强行移植到一个奇怪的机身上），rf28mmf2.8的成像就会显著劣化。一旦用在非ANNS场景，各向异性量化也无法发挥出向量检索时的最小化误差。</description>
       <content>&lt;h2 id=&#34;lens-cong-encoder&#34;&gt;Lens $\cong$ Encoder&lt;/h2&gt;
-&lt;p&gt;相机镜头和图片、音频的编码器是同构的，本质都是以高维物理现实为输入的降维函数：$$ f: \mathbb{R}^n \to \mathbb{R}^d, d &amp;laquo; n$$&lt;/p&gt;
+&lt;p&gt;相机镜头和图片、音频的编码器是同构的，本质都是以高维物理现实为输入的降维函数：$$ f: \mathbb{R}^n \to \mathbb{R}^d, d \ll n$$&lt;/p&gt;
 &lt;p&gt;镜头将无穷光场压缩成相机传感器上的像素矩阵：&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt; 3D Scene
     ↓

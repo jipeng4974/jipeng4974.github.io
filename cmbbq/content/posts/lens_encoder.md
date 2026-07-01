@@ -7,7 +7,7 @@ showFullContent = false
 +++
 
 ## Lens $\cong$ Encoder
-相机镜头和图片、音频的编码器是同构的，本质都是以高维物理现实为输入的降维函数：$$ f: \mathbb{R}^n \to \mathbb{R}^d, d << n$$
+相机镜头和图片、音频的编码器是同构的，本质都是以高维物理现实为输入的降维函数：$$ f: \mathbb{R}^n \to \mathbb{R}^d, d \ll n$$
 
 镜头将无穷光场压缩成相机传感器上的像素矩阵：
 ```
