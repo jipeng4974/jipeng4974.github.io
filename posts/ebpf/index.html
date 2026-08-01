@@ -26,7 +26,7 @@
 
 <link rel="apple-touch-icon" href="https://jipeng4974.github.io/img/apple-touch-icon-192x192.png">
 
-  <link rel="shortcut icon" href="https://jipeng4974.github.io/img/favicon/green.png">
+  <link rel="shortcut icon" href="https://jipeng4974.github.io/img/favicon/fav.png">
 
 
 
@@ -42,7 +42,7 @@
 <meta property="og:site_name" content="Structure over Unstructured Realities" />
 
   
-    <meta property="og:image" content="https://jipeng4974.github.io/img/favicon/green.png">
+    <meta property="og:image" content="https://jipeng4974.github.io/img/favicon/fav.png">
   
 
 <meta property="og:image:width" content="2048">
@@ -148,7 +148,7 @@
 <p>eBPF tracing与传统的off-CPU tracer(比如<code>perf</code>)相比，最显著的优势是不必把所有内核事件往用户空间dump（调度事件是非常频繁的，<code>perf</code>往往生成巨量数据，注入的额外开销太大，不仅仅是CPU开销，还有磁盘IO开销），而是在内核就按照某种可编程的规则做了总结，把精简的信息输出出来。</p>
 <p>此外，内核支持eBPF后，各种off-CPU分析需求都可以统一用eBPF实现，不再需要针对不同场景使用或制作不同的工具了——此前用<code>perf</code>做事件追踪，用storage tracing做存储IO追踪，用内核统计数据观测调度时延，不成体系，且性能良莠不一。</p>
 <p>eBPF追踪off-CPU时长的思路是在context switch事件结束时记录一次stack（off—CPU期间stack是不变的，一次足矣），为当前context的off-CPU时长增加线程睡眠时间。其伪代码如下：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>on context switch finish:
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>on context switch finish:
 </span></span><span style="display:flex;"><span>	sleeptime[prev_thread_id] <span style="color:#f92672">=</span> timestamp
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#960050;background-color:#1e0010">!</span>sleeptime[thread_id]
 </span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
@@ -192,7 +192,7 @@
   
 <div class="pagination">
     <div class="pagination__title">
-        <span class="pagination__title-h">阅读其他博文</span>
+        <span class="pagination__title-h"></span>
         <hr />
     </div>
     <div class="pagination__buttons">

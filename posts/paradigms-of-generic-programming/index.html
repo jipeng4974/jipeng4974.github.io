@@ -26,7 +26,7 @@
 
 <link rel="apple-touch-icon" href="https://jipeng4974.github.io/img/apple-touch-icon-192x192.png">
 
-  <link rel="shortcut icon" href="https://jipeng4974.github.io/img/favicon/green.png">
+  <link rel="shortcut icon" href="https://jipeng4974.github.io/img/favicon/fav.png">
 
 
 
@@ -42,7 +42,7 @@
 <meta property="og:site_name" content="Structure over Unstructured Realities" />
 
   
-    <meta property="og:image" content="https://jipeng4974.github.io/img/favicon/green.png">
+    <meta property="og:image" content="https://jipeng4974.github.io/img/favicon/fav.png">
   
 
 <meta property="og:image:width" content="2048">
@@ -170,76 +170,76 @@ generic programming is not about how to use template。第一个版本的STL尽�
 </ul>
 <p>本节命名的三种范式名称恰好都以type结尾，一方面是因为这样比较帅，另一方面是因为（对C++/Rust这种抽象层次的语言来说）编程本身就是在打造一个个类型，泛型编程就是在打造一个个类型规约+遵循规约的类型。Archetype和Subtype范式中，类型规约恰好就是一种抽象类型，所以这两种范式写起来更简单自然。Ducktype范式（C++模板）中，类型规约是结构化规约，可以是语言实体(concept)，也可以心照不宣，无论如何都不是类型。</p>
 <table>
-<thead>
-<tr>
-<th style="text-align:center">Paradigms</th>
-<th style="text-align:center">Archetype</th>
-<th style="text-align:center">Ducktype</th>
-<th style="text-align:center">Subtype</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:center">具体语言实例</td>
-<td style="text-align:center">Swift protocol, Carbon interface, Rust trait</td>
-<td style="text-align:center">C++ template(constrained or not), Rust generic</td>
-<td style="text-align:center">C++/Java/Python class hierarchy</td>
-</tr>
-<tr>
-<td style="text-align:center">在哪里写泛型代码？</td>
-<td style="text-align:center">泛型函数</td>
-<td style="text-align:center">函数模板</td>
-<td style="text-align:center">子类方法</td>
-</tr>
-<tr>
-<td style="text-align:center">承载泛型代码的语言实体</td>
-<td style="text-align:center">普通函数，只不过是以规约类型为参数</td>
-<td style="text-align:center">模板文本</td>
-<td style="text-align:center">普通函数，不过函数指针被语言特性暗中与callsite指针绑定了</td>
-</tr>
-<tr>
-<td style="text-align:center">规约</td>
-<td style="text-align:center">定义一些类的方法或属性共性的协议类型</td>
-<td style="text-align:center">模板参数应符合的一组需求闭集，可以是成文约束Concept或SFINAE，也可以是不成文约束</td>
-<td style="text-align:center">面向对象语言继承图中的某个基类的虚函数</td>
-</tr>
-<tr>
-<td style="text-align:center">承载规约的语言实体</td>
-<td style="text-align:center">类，类型擦除之后的共性类，类型的类型，本质上仍然是类型</td>
-<td style="text-align:center">对文本替换的placeholder的结构化约束。即使约束了，我们也无法对placeholder做类型/语法检查</td>
-<td style="text-align:center">被基类列入必要功能列表的函数</td>
-</tr>
-<tr>
-<td style="text-align:center">遵循规约的语言实体</td>
-<td style="text-align:center">具体的类</td>
-<td style="text-align:center">用于模板实例化的模板参数</td>
-<td style="text-align:center">子类</td>
-</tr>
-<tr>
-<td style="text-align:center">何时做name lookup决议？</td>
-<td style="text-align:center">早绑定，允许独立编译</td>
-<td style="text-align:center">晚绑定，实例化时，不用的话就一直不绑定</td>
-<td style="text-align:center">早绑定，允许独立编译</td>
-</tr>
-<tr>
-<td style="text-align:center">何时做类型检查？</td>
-<td style="text-align:center">独立编译时</td>
-<td style="text-align:center">实例化后</td>
-<td style="text-align:center">独立编译时</td>
-</tr>
-<tr>
-<td style="text-align:center">是否允许支持动态绑定？</td>
-<td style="text-align:center">是</td>
-<td style="text-align:center">否</td>
-<td style="text-align:center">是</td>
-</tr>
-<tr>
-<td style="text-align:center">如何将已有泛型接口在新的类型上进行扩展？</td>
-<td style="text-align:center">允许基于已有类型创造一个数据表示兼容的新类型，只不过规约变了，允许它实现某个新的规约，或提供与原类型的已实现的某个规约提供不同的实现。</td>
-<td style="text-align:center">为新偏特化场景写新的函数模板即可扩展，可用Concept或SFINAE修订重载决议规则。也可以在函数模板里用某个约定好的函数名、成员变量名、关联类型作为客制点，新的类型只需实现这些客制点。</td>
-<td style="text-align:center">继承，子类数据表示可能会变</td>
-</tr>
-</tbody>
+	<thead>
+			<tr>
+					<th style="text-align: center">Paradigms</th>
+					<th style="text-align: center">Archetype</th>
+					<th style="text-align: center">Ducktype</th>
+					<th style="text-align: center">Subtype</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: center">具体语言实例</td>
+					<td style="text-align: center">Swift protocol, Carbon interface, Rust trait</td>
+					<td style="text-align: center">C++ template(constrained or not), Rust generic</td>
+					<td style="text-align: center">C++/Java/Python class hierarchy</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">在哪里写泛型代码？</td>
+					<td style="text-align: center">泛型函数</td>
+					<td style="text-align: center">函数模板</td>
+					<td style="text-align: center">子类方法</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">承载泛型代码的语言实体</td>
+					<td style="text-align: center">普通函数，只不过是以规约类型为参数</td>
+					<td style="text-align: center">模板文本</td>
+					<td style="text-align: center">普通函数，不过函数指针被语言特性暗中与callsite指针绑定了</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">规约</td>
+					<td style="text-align: center">定义一些类的方法或属性共性的协议类型</td>
+					<td style="text-align: center">模板参数应符合的一组需求闭集，可以是成文约束Concept或SFINAE，也可以是不成文约束</td>
+					<td style="text-align: center">面向对象语言继承图中的某个基类的虚函数</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">承载规约的语言实体</td>
+					<td style="text-align: center">类，类型擦除之后的共性类，类型的类型，本质上仍然是类型</td>
+					<td style="text-align: center">对文本替换的placeholder的结构化约束。即使约束了，我们也无法对placeholder做类型/语法检查</td>
+					<td style="text-align: center">被基类列入必要功能列表的函数</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">遵循规约的语言实体</td>
+					<td style="text-align: center">具体的类</td>
+					<td style="text-align: center">用于模板实例化的模板参数</td>
+					<td style="text-align: center">子类</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">何时做name lookup决议？</td>
+					<td style="text-align: center">早绑定，允许独立编译</td>
+					<td style="text-align: center">晚绑定，实例化时，不用的话就一直不绑定</td>
+					<td style="text-align: center">早绑定，允许独立编译</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">何时做类型检查？</td>
+					<td style="text-align: center">独立编译时</td>
+					<td style="text-align: center">实例化后</td>
+					<td style="text-align: center">独立编译时</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">是否允许支持动态绑定？</td>
+					<td style="text-align: center">是</td>
+					<td style="text-align: center">否</td>
+					<td style="text-align: center">是</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">如何将已有泛型接口在新的类型上进行扩展？</td>
+					<td style="text-align: center">允许基于已有类型创造一个数据表示兼容的新类型，只不过规约变了，允许它实现某个新的规约，或提供与原类型的已实现的某个规约提供不同的实现。</td>
+					<td style="text-align: center">为新偏特化场景写新的函数模板即可扩展，可用Concept或SFINAE修订重载决议规则。也可以在函数模板里用某个约定好的函数名、成员变量名、关联类型作为客制点，新的类型只需实现这些客制点。</td>
+					<td style="text-align: center">继承，子类数据表示可能会变</td>
+			</tr>
+	</tbody>
 </table>
 <h2 id="archetype范式">Archetype范式<a href="#archetype范式" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p>Archetype在Rust中是语言的核心机制——trait，要写好Rust的泛型代码，就要习惯于基于archetype编程。相比与DuckType、SubType，Archetype范式天然有一些优势。</p>
@@ -264,7 +264,7 @@ Archetype范式中不仅可以为自己的类型提供多种Archetype adaption�
   
 <div class="pagination">
     <div class="pagination__title">
-        <span class="pagination__title-h">阅读其他博文</span>
+        <span class="pagination__title-h"></span>
         <hr />
     </div>
     <div class="pagination__buttons">

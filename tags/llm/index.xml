@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>llm on Structure over Unstructured Realities</title>
+    <title>Llm on Structure over Unstructured Realities</title>
     <link>https://jipeng4974.github.io/tags/llm/</link>
-    <description>Recent content in llm on Structure over Unstructured Realities</description>
+    <description>Recent content in Llm on Structure over Unstructured Realities</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 28 Jul 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/tags/llm/index.xml" rel="self" type="application/rss+xml" />
@@ -11,11 +11,16 @@
       <title>Kimi K3: Scaling LLMs Across Sequence, Depth, and Width</title>
       <link>https://jipeng4974.github.io/posts/llm_arch/</link>
       <pubDate>Tue, 28 Jul 2026 00:00:00 +0000</pubDate>
-      
       <guid>https://jipeng4974.github.io/posts/llm_arch/</guid>
-      <description>1. Core Architecture of LLMs Modern LLMs can be understood as multi-layer, multi-head, and increasingly multi-expert systems.
-At a high level:
-Multi-layer: L Transformer-style decoder layers are stacked vertically, creating depth. Multi-head: each attention layer uses H heads, typically with d_model = H × d_head. Multi-expert: many frontier models replace dense FFN/MLP layers with Mixture-of-Experts MoE layers, increasing total parameter capacity while activating only a subset of experts per token. A standard pre-norm decoder block looks like:</description>
+      <description>&lt;h2 id=&#34;1-core-architecture-of-llms&#34;&gt;1. Core Architecture of LLMs&lt;/h2&gt;
+&lt;p&gt;Modern LLMs can be understood as &lt;strong&gt;multi-layer, multi-head, and increasingly multi-expert&lt;/strong&gt; systems.&lt;/p&gt;
+&lt;p&gt;At a high level:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Multi-layer&lt;/strong&gt;: &lt;code&gt;L&lt;/code&gt; Transformer-style decoder layers are stacked vertically, creating depth.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Multi-head&lt;/strong&gt;: each attention layer uses &lt;code&gt;H&lt;/code&gt; heads, typically with &lt;code&gt;d_model = H × d_head&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Multi-expert&lt;/strong&gt;: many frontier models replace dense FFN/MLP layers with &lt;strong&gt;Mixture-of-Experts MoE&lt;/strong&gt; layers, increasing total parameter capacity while activating only a subset of experts per token.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;A standard pre-norm decoder block looks like:&lt;/p&gt;</description>
       <content>&lt;h2 id=&#34;1-core-architecture-of-llms&#34;&gt;1. Core Architecture of LLMs&lt;/h2&gt;
 &lt;p&gt;Modern LLMs can be understood as &lt;strong&gt;multi-layer, multi-head, and increasingly multi-expert&lt;/strong&gt; systems.&lt;/p&gt;
 &lt;p&gt;At a high level:&lt;/p&gt;
@@ -25,7 +30,7 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
 &lt;li&gt;&lt;strong&gt;Multi-expert&lt;/strong&gt;: many frontier models replace dense FFN/MLP layers with &lt;strong&gt;Mixture-of-Experts MoE&lt;/strong&gt; layers, increasing total parameter capacity while activating only a subset of experts per token.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;A standard pre-norm decoder block looks like:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Input x
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Input x
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ↓
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;LayerNorm
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ↓
@@ -45,7 +50,7 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ↓
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Output
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The hidden state usually has shape:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;(B, T, d_model)
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;(B, T, d_model)
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;where:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;B&lt;/code&gt; = batch size&lt;/li&gt;
@@ -77,7 +82,7 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
 &lt;li&gt;&lt;strong&gt;model width / parameter count&lt;/strong&gt;.&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;The architecture path can be summarized as:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Vanilla MHA
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Vanilla MHA
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;→ FlashAttention-optimized MHA
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;→ Linear Attention / MLA
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;→ DeltaNet
@@ -86,13 +91,13 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;→ Hybrid KDA + Gated MLA + MoE + AttnRes
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;31-vanilla-mha&#34;&gt;3.1 Vanilla MHA&lt;/h3&gt;
 &lt;p&gt;Vanilla multi-head attention has quadratic sequence complexity:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;O(N²)
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;O(N²)
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;It is expressive and provides direct global token-to-token interaction, but it becomes expensive for long contexts.&lt;/p&gt;
 &lt;h3 id=&#34;32-flashattention&#34;&gt;3.2 FlashAttention&lt;/h3&gt;
 &lt;p&gt;FlashAttention keeps the standard softmax attention formulation but improves memory access and kernel execution. It mainly changes &lt;strong&gt;how attention is computed&lt;/strong&gt;, not what attention computes.&lt;/p&gt;
 &lt;h3 id=&#34;33-linear-attention-and-mla&#34;&gt;3.3 Linear Attention and MLA&lt;/h3&gt;
 &lt;p&gt;Linear attention tries to reduce sequence complexity:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;O(N²) → O(N)
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;O(N²) → O(N)
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This improves long-context scalability but can lose some of the exact global retrieval behavior of full attention.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;MLA Multi-head Latent Attention&lt;/strong&gt; addresses a different bottleneck: KV-cache size. Instead of caching full head-specific keys and values, MLA caches a compressed latent representation and reconstructs keys and values during attention, reducing KV-cache memory while preserving global attention behavior. Kimi K3 uses Gated MLA as its periodic global-attention layer&lt;a href=&#34;https://github.com/MoonshotAI/Kimi-K3&#34;&gt;[1]&lt;/a&gt;.&lt;/p&gt;
 &lt;h3 id=&#34;34-deltanet-and-gated-deltanet&#34;&gt;3.4 DeltaNet and Gated DeltaNet&lt;/h3&gt;
@@ -130,10 +135,10 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
 &lt;p&gt;This is a better abstraction than listing items such as “MLA query LoRA,” “output gating,” and “SiTU activations” at the same level. Those are important implementation details, but the main architectural structure is the three-axis scaling design.&lt;/p&gt;
 &lt;h3 id=&#34;51-sequence-mixing-hybrid-kda--gated-mla&#34;&gt;5.1 Sequence Mixing: Hybrid KDA + Gated MLA&lt;/h3&gt;
 &lt;p&gt;Kimi K3 uses a repeating &lt;strong&gt;4-layer attention unit&lt;/strong&gt;:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;3 × KDA layers + 1 × Gated MLA layer
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;3 × KDA layers + 1 × Gated MLA layer
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This gives a 3:1 ratio between efficient linear-style sequence mixing and full global attention.&lt;/p&gt;
 &lt;p&gt;Kimi K3 has &lt;strong&gt;93 layers&lt;/strong&gt;, 23 × 4 units + 1 final gated MLA layer.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;23 repeating attention units:
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;23 repeating attention units:
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  each = 3 KDA + 1 Gated MLA
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  total = 69 KDA + 23 Gated MLA
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
@@ -154,7 +159,7 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
 &lt;h3 id=&#34;53-width-mixing-stable-latentmoe&#34;&gt;5.3 Width Mixing: Stable LatentMoE&lt;/h3&gt;
 &lt;p&gt;Kimi K3 uses &lt;strong&gt;Stable LatentMoE&lt;/strong&gt; for sparse channel mixing. The model has &lt;strong&gt;896 routed experts&lt;/strong&gt;, activates &lt;strong&gt;16 routed experts per token&lt;/strong&gt;, and also uses &lt;strong&gt;2 shared experts&lt;/strong&gt;&lt;a href=&#34;https://github.com/MoonshotAI/Kimi-K3&#34;&gt;[1]&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;The key idea is that the routed expert path operates in a lower-dimensional latent space. Kimi K3 uses:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;d_model = 7168
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;d_model = 7168
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;latent MoE dimension = 3584
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;So the expert routing path works at half the model width, reducing communication and expert-weight traffic while still allowing a large expert pool.&lt;/p&gt;
 &lt;p&gt;Stable LatentMoE adds several stabilizers:&lt;/p&gt;
@@ -167,70 +172,70 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
 &lt;h2 id=&#34;6-kimi-k3-key-specs&#34;&gt;6. Kimi K3 Key Specs&lt;/h2&gt;
 &lt;p&gt;Kimi K3 is a &lt;strong&gt;2.78T-parameter MoE model&lt;/strong&gt; with &lt;strong&gt;104.2B activated parameters per token&lt;/strong&gt;, a &lt;strong&gt;7168 hidden dimension&lt;/strong&gt;, &lt;strong&gt;96 attention heads&lt;/strong&gt;, and a &lt;strong&gt;1M-token training context length&lt;/strong&gt;&lt;a href=&#34;https://github.com/MoonshotAI/Kimi-K3&#34;&gt;[1]&lt;/a&gt;.&lt;/p&gt;
 &lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th&gt;Design Area&lt;/th&gt;
-&lt;th style=&#34;text-align:right&#34;&gt;Kimi K3 Choice&lt;/th&gt;
-&lt;th&gt;Purpose&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td&gt;Total layers&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;93&lt;/td&gt;
-&lt;td&gt;Deeper backbone&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Attention composition&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;69 KDA + 24 Gated MLA&lt;/td&gt;
-&lt;td&gt;Efficient long-context mixing plus periodic global attention&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Repeating attention unit&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;3 KDA + 1 Gated MLA&lt;/td&gt;
-&lt;td&gt;3:1 hybrid attention ratio&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Extra final layer&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;1 final Gated MLA&lt;/td&gt;
-&lt;td&gt;Ensures final layer has global attention&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Hidden dimension&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;7168&lt;/td&gt;
-&lt;td&gt;Main model width&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Attention heads&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;96&lt;/td&gt;
-&lt;td&gt;Higher attention parallelism&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Routed experts&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;896&lt;/td&gt;
-&lt;td&gt;Larger sparse expert pool&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Active routed experts&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;16 per token&lt;/td&gt;
-&lt;td&gt;Higher activated capacity&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Shared experts&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;2&lt;/td&gt;
-&lt;td&gt;Stable common transformation path&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Latent MoE dimension&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;3584&lt;/td&gt;
-&lt;td&gt;Reduces routed-path cost&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Context length&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;1M tokens&lt;/td&gt;
-&lt;td&gt;Long-context capability&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Design Area&lt;/th&gt;
+					&lt;th style=&#34;text-align: right&#34;&gt;Kimi K3 Choice&lt;/th&gt;
+					&lt;th&gt;Purpose&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Total layers&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;93&lt;/td&gt;
+					&lt;td&gt;Deeper backbone&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Attention composition&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;69 KDA + 24 Gated MLA&lt;/td&gt;
+					&lt;td&gt;Efficient long-context mixing plus periodic global attention&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Repeating attention unit&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;3 KDA + 1 Gated MLA&lt;/td&gt;
+					&lt;td&gt;3:1 hybrid attention ratio&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Extra final layer&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;1 final Gated MLA&lt;/td&gt;
+					&lt;td&gt;Ensures final layer has global attention&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Hidden dimension&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;7168&lt;/td&gt;
+					&lt;td&gt;Main model width&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Attention heads&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;96&lt;/td&gt;
+					&lt;td&gt;Higher attention parallelism&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Routed experts&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;896&lt;/td&gt;
+					&lt;td&gt;Larger sparse expert pool&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Active routed experts&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;16 per token&lt;/td&gt;
+					&lt;td&gt;Higher activated capacity&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Shared experts&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;2&lt;/td&gt;
+					&lt;td&gt;Stable common transformation path&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Latent MoE dimension&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;3584&lt;/td&gt;
+					&lt;td&gt;Reduces routed-path cost&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Context length&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;1M tokens&lt;/td&gt;
+					&lt;td&gt;Long-context capability&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
 &lt;/table&gt;
 &lt;h2 id=&#34;7-nope-and-long-context&#34;&gt;7. NoPE and Long Context&lt;/h2&gt;
 &lt;p&gt;Kimi K3 uses &lt;strong&gt;NoPE&lt;/strong&gt;, meaning no explicit positional encoding is applied to MLA queries or keys. Positional and recency information is instead handled implicitly through KDA’s recurrent gating and decay mechanism.&lt;/p&gt;
@@ -330,16 +335,78 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
       <title>LLM Serving</title>
       <link>https://jipeng4974.github.io/posts/llm-serving/</link>
       <pubDate>Mon, 09 Dec 2024 00:00:00 +0000</pubDate>
-      
       <guid>https://jipeng4974.github.io/posts/llm-serving/</guid>
-      <description>LLM推理有别于小模型推理，更加memory-bound，输入输出也有可以利用的独特模式，自然涌现出系统层面可优化的点。我将这些系统层面的优化机会粗略分为batching优化、sampling优化、模型压缩3类。
-其中batching优化负责输入端将GPU等加速器的计算单元喂的更饱和、更好地利用SRAM locality1，sampling优化2负责输出端更快速拿到LLM的结果，模型压缩负责让大模型不要那么大。
-LLM Serving的计算形态 LLM serving相比此前主流的深度模型serving，有一些独有的特性和约束：
-一次LLM调用中很多时间耗费在加载模型参数上（HBM-&amp;gt;SRAM）。 batching可以让一次参数加载负责多个seq的推理，显著减少了总体的模型参数加载开销。 Seq2Seq：变长输入、变长输出。 因此batching机制必须适应batch size，seq len皆为变量。 自回归（通过若干次迭代才能处理一个请求），且为每个对话维护一个跨迭代的KV。 纯粹无状态的方法需每次重新计算所有KV，开销会大得无法接受，因此必须基于KV caching做incremental decoding。 RNN也是自回归，transformer相比RNN，还有一个不同之处是每次迭代KV cache都会变大。 非自回归模型往往以request为粒度做batching，对自回归场景并不适用，后者明显更适合以iteration为粒度。 GPT不同于原版transformer，是decoder-only的。 此前encoder-only和encoder-decoder架构的变长batching padding策略不适用于LLM。 GPT多了一个前置的计算密集的prefill阶段（也叫infill），用于处理prompt。 prefill阶段和增量迭代阶段的序列不好batching（计算要完全一样才好batching）。 这个阶段消化prompt，考虑到很多LLM应用都有非常巨大、内容也差不多的prompt，prefill阶段很多计算都是重复的。 GPT在生成token概率分布后，还有一个后置的sampling阶段：基于概率密度从vocab中选择token。 token选择完成后，当前迭代选中的token还需要再作为下次迭代的forward pass输入参数。 若seq[A~A+5]在此前的迭代中已经进行了采样，在新一轮迭代中除了需要对seq[A+6]采样之外，仍然要对seq[A~A+5]再算一遍。 已处理tokens的decoding结果可以cache下来。 很多LLM应用会要求结构化输出，输出的格式比较固定。 Transformer的attention算子的input张量形状和已处理tokens长度有关。 不同序列，序列长度不同，attn计算的输入形状不统一，就不好做batching。 好在attn计算做不做batching影响不大，因为attn计算并不涉及任何模型权重，也就不存在一次参数加载重用于多序列推理的加速效应。 LLM在GPU上跑的一个关键瓶颈是将数据（请求+参数）加载进HBM的开销。LLM serving吞吐明显会受限于batch size——即一次性能放入多少数据而不至于爆显存。 在简单的静态batching实现中，seq_len * nr_seqs + 模型大小决定了显存占用。seq_len假设定的比较高，又用不完，那也会让nr_seqs缩小很多。 显存如此紧张，自然使量化、剪枝等模型压缩技术在LLM serving中变得尤为重要，比如awq, gptq, gguf, smooth quant。 Continuous Batching 上文提及LLM做batching好处虽多，困难更多，并不存在特别简单、显而易见的GPT特供batching机制。
-Orca3首先为GPT模型的batching提出了一个完整的解决方案，在迭代层面进行调度，并通过一个必要的selective batching机制剔除不能做batching的操作（若不做剔除，两个请求整体能做batching的几率可以忽略不计），这些操作虽然不能做batching，但对整体性能提升的影响很小。
-Paged Attention Orca方案并未考虑KV cache的HBM占用，默认预分配max_seq_len。
-但monolithic KV cache导致HBM碎片化，为每个seq预分配巨大内存进而导致并发不足也是真实瓶颈所在，vLLM中就对此进行了优化，提出了Paged Attention4，一种近似页表的分块kv cache技术：
-在prefill阶段允许kv cache在非连续内存中以页的方式组织起来，因此不必为max_seq_len提前分配内存，运行时再分配就好。 大多数seq显然不会触及max_seq_len，paged attention因此节省了大量内存，也就允许batch size大大提高。 vLLM的实现中并未采纳Orca的selective batching，主要是因为它的paged attention算子是自己写的cuda，可以与非attn算子一起兼容batching。vLLM将prefill和decoding分开做batching，整体上就不需要实现selective batching这么麻烦的机制了。 但这种做法也阻止了prefill和decoding step的融合。如果某个prompt过长，prefill开销太大，确实会出现block后续所有decoding batch的情形。 详见Paged Attention。</description>
+      <description>&lt;p&gt;LLM推理有别于小模型推理，更加memory-bound，输入输出也有可以利用的独特模式，自然涌现出系统层面可优化的点。我将这些系统层面的优化机会粗略分为batching优化、sampling优化、模型压缩3类。&lt;/p&gt;
+&lt;p&gt;其中batching优化负责输入端将GPU等加速器的计算单元喂的更饱和、更好地利用SRAM locality&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;，sampling优化&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;负责输出端更快速拿到LLM的结果，模型压缩负责让大模型不要那么大。&lt;/p&gt;
+&lt;h2 id=&#34;llm-serving的计算形态&#34;&gt;LLM Serving的计算形态&lt;/h2&gt;
+&lt;p&gt;LLM serving相比此前主流的深度模型serving，有一些独有的特性和约束：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;一次LLM调用中很多时间耗费在加载模型参数上（HBM-&amp;gt;SRAM）。
+&lt;ul&gt;
+&lt;li&gt;batching可以让一次参数加载负责多个seq的推理，显著减少了总体的模型参数加载开销。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Seq2Seq：变长输入、变长输出。
+&lt;ul&gt;
+&lt;li&gt;因此batching机制必须适应batch size，seq len皆为变量。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;自回归（通过若干次迭代才能处理一个请求），且为每个对话维护一个跨迭代的KV。
+&lt;ul&gt;
+&lt;li&gt;纯粹无状态的方法需每次重新计算所有KV，开销会大得无法接受，因此必须基于KV caching做incremental decoding。&lt;/li&gt;
+&lt;li&gt;RNN也是自回归，transformer相比RNN，还有一个不同之处是每次迭代KV cache都会变大。&lt;/li&gt;
+&lt;li&gt;非自回归模型往往以request为粒度做batching，对自回归场景并不适用，后者明显更适合以iteration为粒度。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;GPT不同于原版transformer，是decoder-only的。
+&lt;ul&gt;
+&lt;li&gt;此前encoder-only和encoder-decoder架构的变长batching padding策略不适用于LLM。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;GPT多了一个前置的计算密集的prefill阶段（也叫infill），用于处理prompt。
+&lt;ul&gt;
+&lt;li&gt;prefill阶段和增量迭代阶段的序列不好batching（计算要完全一样才好batching）。&lt;/li&gt;
+&lt;li&gt;这个阶段消化prompt，考虑到很多LLM应用都有非常巨大、内容也差不多的prompt，prefill阶段很多计算都是重复的。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;GPT在生成token概率分布后，还有一个后置的sampling阶段：基于概率密度从vocab中选择token。
+&lt;ul&gt;
+&lt;li&gt;token选择完成后，当前迭代选中的token还需要再作为下次迭代的forward pass输入参数。&lt;/li&gt;
+&lt;li&gt;若seq[A&lt;del&gt;A+5]在此前的迭代中已经进行了采样，在新一轮迭代中除了需要对seq[A+6]采样之外，仍然要对seq[A&lt;/del&gt;A+5]再算一遍。&lt;/li&gt;
+&lt;li&gt;已处理tokens的decoding结果可以cache下来。&lt;/li&gt;
+&lt;li&gt;很多LLM应用会要求结构化输出，输出的格式比较固定。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Transformer的attention算子的input张量形状和已处理tokens长度有关。
+&lt;ul&gt;
+&lt;li&gt;不同序列，序列长度不同，attn计算的输入形状不统一，就不好做batching。&lt;/li&gt;
+&lt;li&gt;好在attn计算做不做batching影响不大，因为attn计算并不涉及任何模型权重，也就不存在一次参数加载重用于多序列推理的加速效应。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;LLM在GPU上跑的一个关键瓶颈是将数据（请求+参数）加载进HBM的开销。LLM serving吞吐明显会受限于batch size——即一次性能放入多少数据而不至于爆显存。
+&lt;ul&gt;
+&lt;li&gt;在简单的静态batching实现中，seq_len * nr_seqs + 模型大小决定了显存占用。seq_len假设定的比较高，又用不完，那也会让nr_seqs缩小很多。&lt;/li&gt;
+&lt;li&gt;显存如此紧张，自然使量化、剪枝等模型压缩技术在LLM serving中变得尤为重要，比如awq, gptq, gguf, smooth quant。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;continuous-batching&#34;&gt;Continuous Batching&lt;/h2&gt;
+&lt;p&gt;上文提及LLM做batching好处虽多，困难更多，并不存在特别简单、显而易见的GPT特供batching机制。&lt;/p&gt;
+&lt;p&gt;Orca&lt;sup id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;首先为GPT模型的batching提出了一个完整的解决方案，在迭代层面进行调度，并通过一个必要的selective batching机制剔除不能做batching的操作（若不做剔除，两个请求整体能做batching的几率可以忽略不计），这些操作虽然不能做batching，但对整体性能提升的影响很小。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/orca.png&#34; alt=&#34;orca&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;paged-attention&#34;&gt;Paged Attention&lt;/h2&gt;
+&lt;p&gt;Orca方案并未考虑KV cache的HBM占用，默认预分配max_seq_len。&lt;/p&gt;
+&lt;p&gt;但monolithic KV cache导致HBM碎片化，为每个seq预分配巨大内存进而导致并发不足也是真实瓶颈所在，vLLM中就对此进行了优化，提出了Paged Attention&lt;sup id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;4&lt;/a&gt;&lt;/sup&gt;，一种近似页表的分块kv cache技术：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在prefill阶段允许kv cache在非连续内存中以页的方式组织起来，因此不必为max_seq_len提前分配内存，运行时再分配就好。&lt;/li&gt;
+&lt;li&gt;大多数seq显然不会触及max_seq_len，paged attention因此节省了大量内存，也就允许batch size大大提高。&lt;/li&gt;
+&lt;li&gt;vLLM的实现中并未采纳Orca的selective batching，主要是因为它的paged attention算子是自己写的cuda，可以与非attn算子一起兼容batching。vLLM将prefill和decoding分开做batching，整体上就不需要实现selective batching这么麻烦的机制了。
+&lt;ul&gt;
+&lt;li&gt;但这种做法也阻止了prefill和decoding step的融合。如果某个prompt过长，prefill开销太大，确实会出现block后续所有decoding batch的情形。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/block_table.png&#34; alt=&#34;block_table&#34;&gt;&lt;/p&gt;</description>
       <content>&lt;p&gt;LLM推理有别于小模型推理，更加memory-bound，输入输出也有可以利用的独特模式，自然涌现出系统层面可优化的点。我将这些系统层面的优化机会粗略分为batching优化、sampling优化、模型压缩3类。&lt;/p&gt;
 &lt;p&gt;其中batching优化负责输入端将GPU等加速器的计算单元喂的更饱和、更好地利用SRAM locality&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;，sampling优化&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;负责输出端更快速拿到LLM的结果，模型压缩负责让大模型不要那么大。&lt;/p&gt;
 &lt;h2 id=&#34;llm-serving的计算形态&#34;&gt;LLM Serving的计算形态&lt;/h2&gt;
@@ -376,7 +443,7 @@ Paged Attention Orca方案并未考虑KV cache的HBM占用，默认预分配max_
 &lt;li&gt;GPT在生成token概率分布后，还有一个后置的sampling阶段：基于概率密度从vocab中选择token。
 &lt;ul&gt;
 &lt;li&gt;token选择完成后，当前迭代选中的token还需要再作为下次迭代的forward pass输入参数。&lt;/li&gt;
-&lt;li&gt;若seq[A~A+5]在此前的迭代中已经进行了采样，在新一轮迭代中除了需要对seq[A+6]采样之外，仍然要对seq[A~A+5]再算一遍。&lt;/li&gt;
+&lt;li&gt;若seq[A&lt;del&gt;A+5]在此前的迭代中已经进行了采样，在新一轮迭代中除了需要对seq[A+6]采样之外，仍然要对seq[A&lt;/del&gt;A+5]再算一遍。&lt;/li&gt;
 &lt;li&gt;已处理tokens的decoding结果可以cache下来。&lt;/li&gt;
 &lt;li&gt;很多LLM应用会要求结构化输出，输出的格式比较固定。&lt;/li&gt;
 &lt;/ul&gt;
@@ -466,14 +533,23 @@ Paged Attention Orca方案并未考虑KV cache的HBM占用，默认预分配max_
       <title>Paged Attention</title>
       <link>https://jipeng4974.github.io/posts/paged-attention/</link>
       <pubDate>Tue, 30 Jul 2024 00:00:00 +0000</pubDate>
-      
       <guid>https://jipeng4974.github.io/posts/paged-attention/</guid>
-      <description>在LLM serving场景，通过恰当的batching积攒足够多的请求，可提升LLM吞吐。但每个请求对应的KV Cache非常巨大——在原始实现中，KV Cache需要为max_tokens预留内存，但每个请求实际上携带的tokens数目普遍远小于max_tokens，造成大量内存浪费和反复的动态内存分配。
-PagedAttention1的目标就是消除这种内存浪费、在请求内部和请求之间灵活共享一些KV cache。vLLM通过PagedAttention达到此前sota的FasterTransformer和Orca的2~4倍吞吐。
-此前，朴素的KV Cache实现如下图所示，简短的prompt和并不长的当前iteration只占据了7+4个slots，剩余2038个slots不得不预留在内存里以支撑最大序列长达2048的承诺（采样结束才能知道实际tokens数目），在这之后才能是下一个请求的slots，中间预留的部分就完全浪费掉了。
-PagedAttention把连续的kv存在不连续的内存空间上，借用类似页表的机制（引入一个block_table）规避内存碎片化问题。具体来讲，PagedAttention把KV cache分区成若干个K blocks和V blocks，每个K/V block容纳固定数量tokens所对应的K/V向量，因此attention计算也被转化为blockwise计算。这和FlashAttention有点像，不过应用的尺度不同，前者是为了大规模serving时克服碎片化、按需取用，后者是为了单次self-attention计算能全部fit in SRAM。
-这个物理kv blocks显然是支持多个请求复用的。如下图所示，为每个请求维护一个小的block table即可。
-W. Kwon, et al. Efficient Memory Management for Large Language Model Serving with PagedAttention. [pdf]&amp;#160;&amp;#x21a9;&amp;#xfe0e;</description>
+      <description>&lt;p&gt;在LLM serving场景，通过恰当的batching积攒足够多的请求，可提升LLM吞吐。但每个请求对应的KV Cache非常巨大——在原始实现中，KV Cache需要为&lt;code&gt;max_tokens&lt;/code&gt;预留内存，但每个请求实际上携带的tokens数目普遍远小于&lt;code&gt;max_tokens&lt;/code&gt;，造成大量内存浪费和反复的动态内存分配。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;PagedAttention&lt;/code&gt;&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;的目标就是消除这种内存浪费、在请求内部和请求之间灵活共享一些KV cache。vLLM通过&lt;code&gt;PagedAttention&lt;/code&gt;达到此前sota的&lt;code&gt;FasterTransformer&lt;/code&gt;和&lt;code&gt;Orca&lt;/code&gt;的2~4倍吞吐。&lt;/p&gt;
+&lt;p&gt;此前，朴素的KV Cache实现如下图所示，简短的prompt和并不长的当前iteration只占据了7+4个slots，剩余2038个slots不得不预留在内存里以支撑最大序列长达2048的承诺（采样结束才能知道实际tokens数目），在这之后才能是下一个请求的slots，中间预留的部分就完全浪费掉了。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/naive_kv_cache.png&#34; alt=&#34;naive_kv_cache&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;PagedAttention&lt;/code&gt;把连续的kv存在不连续的内存空间上，借用类似页表的机制（引入一个block_table）规避内存碎片化问题。具体来讲，&lt;code&gt;PagedAttention&lt;/code&gt;把KV cache分区成若干个K blocks和V blocks，每个K/V block容纳固定数量tokens所对应的K/V向量，因此attention计算也被转化为blockwise计算。这和&lt;code&gt;FlashAttention&lt;/code&gt;有点像，不过应用的尺度不同，前者是为了大规模serving时克服碎片化、按需取用，后者是为了单次self-attention计算能全部fit in SRAM。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/block_table.png&#34; alt=&#34;block_table&#34;&gt;&lt;/p&gt;
+&lt;p&gt;这个物理kv blocks显然是支持多个请求复用的。如下图所示，为每个请求维护一个小的block table即可。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/vllm_two_requests.png&#34; alt=&#34;vllm_two_requests&#34;&gt;&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;
+&lt;p&gt;W. Kwon, et al. Efficient Memory Management for Large Language Model Serving with PagedAttention. &lt;a href=&#34;https://arxiv.org/pdf/2309.06180&#34;&gt;[pdf]&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;</description>
       <content>&lt;p&gt;在LLM serving场景，通过恰当的batching积攒足够多的请求，可提升LLM吞吐。但每个请求对应的KV Cache非常巨大——在原始实现中，KV Cache需要为&lt;code&gt;max_tokens&lt;/code&gt;预留内存，但每个请求实际上携带的tokens数目普遍远小于&lt;code&gt;max_tokens&lt;/code&gt;，造成大量内存浪费和反复的动态内存分配。&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;PagedAttention&lt;/code&gt;&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;的目标就是消除这种内存浪费、在请求内部和请求之间灵活共享一些KV cache。vLLM通过&lt;code&gt;PagedAttention&lt;/code&gt;达到此前sota的&lt;code&gt;FasterTransformer&lt;/code&gt;和&lt;code&gt;Orca&lt;/code&gt;的2~4倍吞吐。&lt;/p&gt;
 &lt;p&gt;此前，朴素的KV Cache实现如下图所示，简短的prompt和并不长的当前iteration只占据了7+4个slots，剩余2038个slots不得不预留在内存里以支撑最大序列长达2048的承诺（采样结束才能知道实际tokens数目），在这之后才能是下一个请求的slots，中间预留的部分就完全浪费掉了。&lt;/p&gt;
@@ -497,20 +573,29 @@ W. Kwon, et al. Efficient Memory Management for Large Language Model Serving wit
       <title>Flash Attention</title>
       <link>https://jipeng4974.github.io/posts/flash-attention/</link>
       <pubDate>Mon, 22 Jul 2024 00:00:00 +0000</pubDate>
-      
       <guid>https://jipeng4974.github.io/posts/flash-attention/</guid>
-      <description>由于self-attention的时、空复杂度都是序列长的平方，长序列LLM和高分辨率ViT都是非常吃内存的。
-此前针对self-attention的优化大多是近似计算，其核心是优化FLOPs，例如把理论上的时间复杂度降低到O(N)，但这并不能有效加速self-attention，因为该操作（以及transformer中多数操作）的实际瓶颈在访存——更准确地说是HBM和SRAM之间的IO。
-FlashAttention的原理就是基于tiling，确保内层循环计算fit in SRAM，减少了HBM和SRAM之间的IO频次，因而真切有效地提升了transformer性能，解锁了更长的context，迅速在各种高性能框架中得到应用。
-传统的Self-Attention实现 Attention Layer具有将局部信息和张量中较远位置的信息结合起来的能力——通过为所得张量的每个组件与输入张量的每个组件计算注意力得分，不受局部性约束地，在整个张量范围内对特征进行平均。
-给定$N^Q\times D^{QK}$维queries张量$Q$，$N^{KV}\times D^{QK}$维keys张量$K$，$N^{KV}\times D^V$维values张量$V$，通过Attention操作$att(K,Q,V)$计算得到$N^Q\times D^V$维的张量Y：
-$$Y = att(K,Q,V) = \underbrace{softargmax(\frac{QK^T}{\frac{1}{\sqrt{D^{QK}}}})}_A V$$
-整个过程分两步，第一步先计算每个query index $q$和每个key index $k$的注意力得分，即queries和keys点乘后的softargmax结果：$A_{q,k} = \frac{exp(\frac{1}{\sqrt{D^{QK}}} Q_q \cdot K_k ) }{\sum_l exp(\frac{1}{\sqrt{D^{QK}}} Q_q \cdot K_l)}$，其中$\frac{1}{\sqrt{D^{QK}}}$是一个缩放参数，用于保证取值范围在$D^{QK}$变大时大体不变。
-得到注意力得分$A_{q,k}$后，再进行第二步计算：$Y_q = \sum_k A_{q,k}V_k$。注意力得分即queries和keys之间的匹配程度，匹配程度越高，该权重就越高。如果某个query和某个key匹配度达到极限，注意力得分接近1，则直接拿到这个key对应的value。如果和好几个key都有中等水准的匹配，则按注意力得分做加权平均。
-FlashAttention的IO优化 FlashAttention注意到事实上并不需要完整的输入K、V、Q，可以分批读入、分批计算、分批把结果写回O，即所谓tiling：
-在外层循环，遍历K、V矩阵。每次只需加载一个block的 $K^T$ 和 $V$ 到片上SRAM中。 在内层循环，遍历Q的各个block，加载到SRAM中，进行 $att(K,Q,V)$ 计算，把局部结果写回HBM上 $N\times d$ 的结果矩阵1。 对softmax归一化因子做相应调整，即可保证最后加起来得到的最终结果和标准实现等价，具体代数见2附录。 设置K、V的block size为 $\lceil \frac{M}{4d} \rceil$，Q、O的block size为$min(\lceil \frac{M}{4d} \rceil, d)$3。 此外，对于训练负载来说，FlashAttention还在反向传播中复用前馈过程暂存的softmax归一化因子$\frac{1}{\sqrt{D^{QK}}}$，这也比从HBM读$N\times N$的巨大attention中间矩阵要快得多。这可被视作selective gradient checkpointing。
-FlashAttention2: 改进并行和工作切分 相比GEMM，FlashAttention只达到了25~40%理论FLOPs，可优化空间巨大。FlashAttention24在原版基础上做了并行化和工作切分优化。
-减少非矩阵乘算子，因为GPU矩阵乘是高度优化的，其他算子与之差距非常大。 避免循环中算O时每次都rescale，而是在算最终结果时施加softmax归一化因子。 对反向传播时保持的状态进行了精简。 在不同线程块[^8]上进行并行计算，从而充分利用GPU资源。 原版一个线程块处理一个head/一个batch，每个线程块跑在一个SM上。不过在长序列场景，head数目和batch size可能都偏小，导致二者相乘后都未必能打满A100的128个SM。 显而易见可以并行的部分是外层循环，可以随便调度到不同线程块上，相互之间完全没有通信需求。 反向传播时并行化外层循环也只有dQ更新时需要简单的通信/同步，这是一个顺序不重要的加法，atomic add足以解决。 既然有了线程块，就要考虑在每个线程块内，不同warps之间如何进行工作的切分。 如上图所示，FlashAttention的切分方式导致内层循环中各个warp都需要把结果写到共享内存且做一个同步加，存在一定的通信开销，而FlashAttention2的切分方式可以保证warp之间完全没有通信需求。</description>
+      <description>&lt;p&gt;由于&lt;code&gt;self-attention&lt;/code&gt;的时、空复杂度都是序列长的平方，长序列LLM和高分辨率ViT都是非常吃内存的。&lt;/p&gt;
+&lt;p&gt;此前针对&lt;code&gt;self-attention&lt;/code&gt;的优化大多是近似计算，其核心是优化FLOPs，例如把理论上的时间复杂度降低到O(N)，但这并不能有效加速&lt;code&gt;self-attention&lt;/code&gt;，因为该操作（以及transformer中多数操作）的实际瓶颈在访存——更准确地说是HBM和SRAM之间的IO。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;FlashAttention&lt;/code&gt;的原理就是基于&lt;code&gt;tiling&lt;/code&gt;，确保内层循环计算fit in SRAM，减少了HBM和SRAM之间的IO频次，因而真切有效地提升了transformer性能，解锁了更长的context，迅速在各种高性能框架中得到应用。&lt;/p&gt;
+&lt;h2 id=&#34;传统的self-attention实现&#34;&gt;传统的Self-Attention实现&lt;/h2&gt;
+&lt;p&gt;Attention Layer具有将局部信息和张量中较远位置的信息结合起来的能力——通过为所得张量的每个组件与输入张量的每个组件计算注意力得分，不受局部性约束地，在整个张量范围内对特征进行平均。&lt;/p&gt;
+&lt;p&gt;给定$N^Q\times D^{QK}$维queries张量$Q$，$N^{KV}\times D^{QK}$维keys张量$K$，$N^{KV}\times D^V$维values张量$V$，通过&lt;code&gt;Attention操作&lt;/code&gt;$att(K,Q,V)$计算得到$N^Q\times D^V$维的张量Y：&lt;/p&gt;
+&lt;p&gt;$$Y = att(K,Q,V) = \underbrace{softargmax(\frac{QK^T}{\frac{1}{\sqrt{D^{QK}}}})}_A V$$&lt;/p&gt;
+&lt;p&gt;整个过程分两步，第一步先计算每个query index $q$和每个key index $k$的注意力得分，即queries和keys点乘后的&lt;code&gt;softargmax&lt;/code&gt;结果：$A_{q,k} = \frac{exp(\frac{1}{\sqrt{D^{QK}}} Q_q \cdot K_k ) }{\sum_l exp(\frac{1}{\sqrt{D^{QK}}} Q_q \cdot K_l)}$，其中$\frac{1}{\sqrt{D^{QK}}}$是一个缩放参数，用于保证取值范围在$D^{QK}$变大时大体不变。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/attention.png&#34; alt=&#34;att&#34;&gt;&lt;/p&gt;
+&lt;p&gt;得到注意力得分$A_{q,k}$后，再进行第二步计算：$Y_q = \sum_k A_{q,k}V_k$。注意力得分即queries和keys之间的匹配程度，匹配程度越高，该权重就越高。如果某个query和某个key匹配度达到极限，注意力得分接近1，则直接拿到这个key对应的value。如果和好几个key都有中等水准的匹配，则按注意力得分做加权平均。&lt;/p&gt;
+&lt;h2 id=&#34;flashattention的io优化&#34;&gt;FlashAttention的IO优化&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;FlashAttention&lt;/code&gt;注意到事实上并不需要完整的输入K、V、Q，可以分批读入、分批计算、分批把结果写回O，即所谓&lt;code&gt;tiling&lt;/code&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在外层循环，遍历K、V矩阵。每次只需加载一个block的 $K^T$ 和 $V$ 到片上SRAM中。&lt;/li&gt;
+&lt;li&gt;在内层循环，遍历Q的各个block，加载到SRAM中，进行 $att(K,Q,V)$ 计算，把局部结果写回HBM上 $N\times d$ 的结果矩阵&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;li&gt;对softmax归一化因子做相应调整，即可保证最后加起来得到的最终结果和标准实现等价，具体代数见&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;附录。&lt;/li&gt;
+&lt;li&gt;设置K、V的block size为 $\lceil \frac{M}{4d} \rceil$，Q、O的block size为$min(\lceil \frac{M}{4d} \rceil, d)$&lt;sup id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://jipeng4974.github.io/img/fast_attention.png&#34; alt=&#34;fast_att&#34;&gt;&lt;/p&gt;
+&lt;p&gt;此外，对于训练负载来说，&lt;code&gt;FlashAttention&lt;/code&gt;还在反向传播中复用前馈过程暂存的softmax归一化因子$\frac{1}{\sqrt{D^{QK}}}$，这也比从HBM读$N\times N$的巨大attention中间矩阵要快得多。这可被视作selective gradient checkpointing。&lt;/p&gt;
+&lt;h2 id=&#34;flashattention2-改进并行和工作切分&#34;&gt;FlashAttention2: 改进并行和工作切分&lt;/h2&gt;
+&lt;p&gt;相比GEMM，&lt;code&gt;FlashAttention&lt;/code&gt;只达到了25~40%理论FLOPs，可优化空间巨大。&lt;code&gt;FlashAttention2&lt;/code&gt;&lt;sup id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;4&lt;/a&gt;&lt;/sup&gt;在原版基础上做了并行化和工作切分优化。&lt;/p&gt;</description>
       <content>&lt;p&gt;由于&lt;code&gt;self-attention&lt;/code&gt;的时、空复杂度都是序列长的平方，长序列LLM和高分辨率ViT都是非常吃内存的。&lt;/p&gt;
 &lt;p&gt;此前针对&lt;code&gt;self-attention&lt;/code&gt;的优化大多是近似计算，其核心是优化FLOPs，例如把理论上的时间复杂度降低到O(N)，但这并不能有效加速&lt;code&gt;self-attention&lt;/code&gt;，因为该操作（以及transformer中多数操作）的实际瓶颈在访存——更准确地说是HBM和SRAM之间的IO。&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;FlashAttention&lt;/code&gt;的原理就是基于&lt;code&gt;tiling&lt;/code&gt;，确保内层循环计算fit in SRAM，减少了HBM和SRAM之间的IO频次，因而真切有效地提升了transformer性能，解锁了更长的context，迅速在各种高性能框架中得到应用。&lt;/p&gt;

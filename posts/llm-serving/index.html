@@ -26,7 +26,7 @@
 
 <link rel="apple-touch-icon" href="https://jipeng4974.github.io/img/apple-touch-icon-192x192.png">
 
-  <link rel="shortcut icon" href="https://jipeng4974.github.io/img/favicon/green.png">
+  <link rel="shortcut icon" href="https://jipeng4974.github.io/img/favicon/fav.png">
 
 
 
@@ -42,7 +42,7 @@
 <meta property="og:site_name" content="Structure over Unstructured Realities" />
 
   
-    <meta property="og:image" content="https://jipeng4974.github.io/img/favicon/green.png">
+    <meta property="og:image" content="https://jipeng4974.github.io/img/favicon/fav.png">
   
 
 <meta property="og:image:width" content="2048">
@@ -170,7 +170,7 @@
 <li>GPT在生成token概率分布后，还有一个后置的sampling阶段：基于概率密度从vocab中选择token。
 <ul>
 <li>token选择完成后，当前迭代选中的token还需要再作为下次迭代的forward pass输入参数。</li>
-<li>若seq[A~A+5]在此前的迭代中已经进行了采样，在新一轮迭代中除了需要对seq[A+6]采样之外，仍然要对seq[A~A+5]再算一遍。</li>
+<li>若seq[A<del>A+5]在此前的迭代中已经进行了采样，在新一轮迭代中除了需要对seq[A+6]采样之外，仍然要对seq[A</del>A+5]再算一遍。</li>
 <li>已处理tokens的decoding结果可以cache下来。</li>
 <li>很多LLM应用会要求结构化输出，输出的格式比较固定。</li>
 </ul>
@@ -260,7 +260,7 @@
   
 <div class="pagination">
     <div class="pagination__title">
-        <span class="pagination__title-h">阅读其他博文</span>
+        <span class="pagination__title-h"></span>
         <hr />
     </div>
     <div class="pagination__buttons">

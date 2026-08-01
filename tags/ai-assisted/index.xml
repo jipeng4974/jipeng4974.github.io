@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>ai-assisted on Structure over Unstructured Realities</title>
+    <title>Ai-Assisted on Structure over Unstructured Realities</title>
     <link>https://jipeng4974.github.io/tags/ai-assisted/</link>
-    <description>Recent content in ai-assisted on Structure over Unstructured Realities</description>
+    <description>Recent content in Ai-Assisted on Structure over Unstructured Realities</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 28 Jul 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/tags/ai-assisted/index.xml" rel="self" type="application/rss+xml" />
@@ -11,11 +11,16 @@
       <title>Kimi K3: Scaling LLMs Across Sequence, Depth, and Width</title>
       <link>https://jipeng4974.github.io/posts/llm_arch/</link>
       <pubDate>Tue, 28 Jul 2026 00:00:00 +0000</pubDate>
-      
       <guid>https://jipeng4974.github.io/posts/llm_arch/</guid>
-      <description>1. Core Architecture of LLMs Modern LLMs can be understood as multi-layer, multi-head, and increasingly multi-expert systems.
-At a high level:
-Multi-layer: L Transformer-style decoder layers are stacked vertically, creating depth. Multi-head: each attention layer uses H heads, typically with d_model = H × d_head. Multi-expert: many frontier models replace dense FFN/MLP layers with Mixture-of-Experts MoE layers, increasing total parameter capacity while activating only a subset of experts per token. A standard pre-norm decoder block looks like:</description>
+      <description>&lt;h2 id=&#34;1-core-architecture-of-llms&#34;&gt;1. Core Architecture of LLMs&lt;/h2&gt;
+&lt;p&gt;Modern LLMs can be understood as &lt;strong&gt;multi-layer, multi-head, and increasingly multi-expert&lt;/strong&gt; systems.&lt;/p&gt;
+&lt;p&gt;At a high level:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Multi-layer&lt;/strong&gt;: &lt;code&gt;L&lt;/code&gt; Transformer-style decoder layers are stacked vertically, creating depth.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Multi-head&lt;/strong&gt;: each attention layer uses &lt;code&gt;H&lt;/code&gt; heads, typically with &lt;code&gt;d_model = H × d_head&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Multi-expert&lt;/strong&gt;: many frontier models replace dense FFN/MLP layers with &lt;strong&gt;Mixture-of-Experts MoE&lt;/strong&gt; layers, increasing total parameter capacity while activating only a subset of experts per token.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;A standard pre-norm decoder block looks like:&lt;/p&gt;</description>
       <content>&lt;h2 id=&#34;1-core-architecture-of-llms&#34;&gt;1. Core Architecture of LLMs&lt;/h2&gt;
 &lt;p&gt;Modern LLMs can be understood as &lt;strong&gt;multi-layer, multi-head, and increasingly multi-expert&lt;/strong&gt; systems.&lt;/p&gt;
 &lt;p&gt;At a high level:&lt;/p&gt;
@@ -25,7 +30,7 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
 &lt;li&gt;&lt;strong&gt;Multi-expert&lt;/strong&gt;: many frontier models replace dense FFN/MLP layers with &lt;strong&gt;Mixture-of-Experts MoE&lt;/strong&gt; layers, increasing total parameter capacity while activating only a subset of experts per token.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;A standard pre-norm decoder block looks like:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Input x
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Input x
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ↓
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;LayerNorm
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ↓
@@ -45,7 +50,7 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ↓
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Output
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The hidden state usually has shape:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;(B, T, d_model)
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;(B, T, d_model)
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;where:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;B&lt;/code&gt; = batch size&lt;/li&gt;
@@ -77,7 +82,7 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
 &lt;li&gt;&lt;strong&gt;model width / parameter count&lt;/strong&gt;.&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;The architecture path can be summarized as:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Vanilla MHA
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Vanilla MHA
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;→ FlashAttention-optimized MHA
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;→ Linear Attention / MLA
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;→ DeltaNet
@@ -86,13 +91,13 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;→ Hybrid KDA + Gated MLA + MoE + AttnRes
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;31-vanilla-mha&#34;&gt;3.1 Vanilla MHA&lt;/h3&gt;
 &lt;p&gt;Vanilla multi-head attention has quadratic sequence complexity:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;O(N²)
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;O(N²)
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;It is expressive and provides direct global token-to-token interaction, but it becomes expensive for long contexts.&lt;/p&gt;
 &lt;h3 id=&#34;32-flashattention&#34;&gt;3.2 FlashAttention&lt;/h3&gt;
 &lt;p&gt;FlashAttention keeps the standard softmax attention formulation but improves memory access and kernel execution. It mainly changes &lt;strong&gt;how attention is computed&lt;/strong&gt;, not what attention computes.&lt;/p&gt;
 &lt;h3 id=&#34;33-linear-attention-and-mla&#34;&gt;3.3 Linear Attention and MLA&lt;/h3&gt;
 &lt;p&gt;Linear attention tries to reduce sequence complexity:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;O(N²) → O(N)
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;O(N²) → O(N)
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This improves long-context scalability but can lose some of the exact global retrieval behavior of full attention.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;MLA Multi-head Latent Attention&lt;/strong&gt; addresses a different bottleneck: KV-cache size. Instead of caching full head-specific keys and values, MLA caches a compressed latent representation and reconstructs keys and values during attention, reducing KV-cache memory while preserving global attention behavior. Kimi K3 uses Gated MLA as its periodic global-attention layer&lt;a href=&#34;https://github.com/MoonshotAI/Kimi-K3&#34;&gt;[1]&lt;/a&gt;.&lt;/p&gt;
 &lt;h3 id=&#34;34-deltanet-and-gated-deltanet&#34;&gt;3.4 DeltaNet and Gated DeltaNet&lt;/h3&gt;
@@ -130,10 +135,10 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
 &lt;p&gt;This is a better abstraction than listing items such as “MLA query LoRA,” “output gating,” and “SiTU activations” at the same level. Those are important implementation details, but the main architectural structure is the three-axis scaling design.&lt;/p&gt;
 &lt;h3 id=&#34;51-sequence-mixing-hybrid-kda--gated-mla&#34;&gt;5.1 Sequence Mixing: Hybrid KDA + Gated MLA&lt;/h3&gt;
 &lt;p&gt;Kimi K3 uses a repeating &lt;strong&gt;4-layer attention unit&lt;/strong&gt;:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;3 × KDA layers + 1 × Gated MLA layer
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;3 × KDA layers + 1 × Gated MLA layer
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This gives a 3:1 ratio between efficient linear-style sequence mixing and full global attention.&lt;/p&gt;
 &lt;p&gt;Kimi K3 has &lt;strong&gt;93 layers&lt;/strong&gt;, 23 × 4 units + 1 final gated MLA layer.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;23 repeating attention units:
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;23 repeating attention units:
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  each = 3 KDA + 1 Gated MLA
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  total = 69 KDA + 23 Gated MLA
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
@@ -154,7 +159,7 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
 &lt;h3 id=&#34;53-width-mixing-stable-latentmoe&#34;&gt;5.3 Width Mixing: Stable LatentMoE&lt;/h3&gt;
 &lt;p&gt;Kimi K3 uses &lt;strong&gt;Stable LatentMoE&lt;/strong&gt; for sparse channel mixing. The model has &lt;strong&gt;896 routed experts&lt;/strong&gt;, activates &lt;strong&gt;16 routed experts per token&lt;/strong&gt;, and also uses &lt;strong&gt;2 shared experts&lt;/strong&gt;&lt;a href=&#34;https://github.com/MoonshotAI/Kimi-K3&#34;&gt;[1]&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;The key idea is that the routed expert path operates in a lower-dimensional latent space. Kimi K3 uses:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;d_model = 7168
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;d_model = 7168
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;latent MoE dimension = 3584
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;So the expert routing path works at half the model width, reducing communication and expert-weight traffic while still allowing a large expert pool.&lt;/p&gt;
 &lt;p&gt;Stable LatentMoE adds several stabilizers:&lt;/p&gt;
@@ -167,70 +172,70 @@ Multi-layer: L Transformer-style decoder layers are stacked vertically, creating
 &lt;h2 id=&#34;6-kimi-k3-key-specs&#34;&gt;6. Kimi K3 Key Specs&lt;/h2&gt;
 &lt;p&gt;Kimi K3 is a &lt;strong&gt;2.78T-parameter MoE model&lt;/strong&gt; with &lt;strong&gt;104.2B activated parameters per token&lt;/strong&gt;, a &lt;strong&gt;7168 hidden dimension&lt;/strong&gt;, &lt;strong&gt;96 attention heads&lt;/strong&gt;, and a &lt;strong&gt;1M-token training context length&lt;/strong&gt;&lt;a href=&#34;https://github.com/MoonshotAI/Kimi-K3&#34;&gt;[1]&lt;/a&gt;.&lt;/p&gt;
 &lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th&gt;Design Area&lt;/th&gt;
-&lt;th style=&#34;text-align:right&#34;&gt;Kimi K3 Choice&lt;/th&gt;
-&lt;th&gt;Purpose&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td&gt;Total layers&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;93&lt;/td&gt;
-&lt;td&gt;Deeper backbone&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Attention composition&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;69 KDA + 24 Gated MLA&lt;/td&gt;
-&lt;td&gt;Efficient long-context mixing plus periodic global attention&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Repeating attention unit&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;3 KDA + 1 Gated MLA&lt;/td&gt;
-&lt;td&gt;3:1 hybrid attention ratio&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Extra final layer&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;1 final Gated MLA&lt;/td&gt;
-&lt;td&gt;Ensures final layer has global attention&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Hidden dimension&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;7168&lt;/td&gt;
-&lt;td&gt;Main model width&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Attention heads&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;96&lt;/td&gt;
-&lt;td&gt;Higher attention parallelism&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Routed experts&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;896&lt;/td&gt;
-&lt;td&gt;Larger sparse expert pool&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Active routed experts&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;16 per token&lt;/td&gt;
-&lt;td&gt;Higher activated capacity&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Shared experts&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;2&lt;/td&gt;
-&lt;td&gt;Stable common transformation path&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Latent MoE dimension&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;3584&lt;/td&gt;
-&lt;td&gt;Reduces routed-path cost&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;Context length&lt;/td&gt;
-&lt;td style=&#34;text-align:right&#34;&gt;1M tokens&lt;/td&gt;
-&lt;td&gt;Long-context capability&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Design Area&lt;/th&gt;
+					&lt;th style=&#34;text-align: right&#34;&gt;Kimi K3 Choice&lt;/th&gt;
+					&lt;th&gt;Purpose&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Total layers&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;93&lt;/td&gt;
+					&lt;td&gt;Deeper backbone&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Attention composition&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;69 KDA + 24 Gated MLA&lt;/td&gt;
+					&lt;td&gt;Efficient long-context mixing plus periodic global attention&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Repeating attention unit&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;3 KDA + 1 Gated MLA&lt;/td&gt;
+					&lt;td&gt;3:1 hybrid attention ratio&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Extra final layer&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;1 final Gated MLA&lt;/td&gt;
+					&lt;td&gt;Ensures final layer has global attention&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Hidden dimension&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;7168&lt;/td&gt;
+					&lt;td&gt;Main model width&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Attention heads&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;96&lt;/td&gt;
+					&lt;td&gt;Higher attention parallelism&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Routed experts&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;896&lt;/td&gt;
+					&lt;td&gt;Larger sparse expert pool&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Active routed experts&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;16 per token&lt;/td&gt;
+					&lt;td&gt;Higher activated capacity&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Shared experts&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;2&lt;/td&gt;
+					&lt;td&gt;Stable common transformation path&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Latent MoE dimension&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;3584&lt;/td&gt;
+					&lt;td&gt;Reduces routed-path cost&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Context length&lt;/td&gt;
+					&lt;td style=&#34;text-align: right&#34;&gt;1M tokens&lt;/td&gt;
+					&lt;td&gt;Long-context capability&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
 &lt;/table&gt;
 &lt;h2 id=&#34;7-nope-and-long-context&#34;&gt;7. NoPE and Long Context&lt;/h2&gt;
 &lt;p&gt;Kimi K3 uses &lt;strong&gt;NoPE&lt;/strong&gt;, meaning no explicit positional encoding is applied to MLA queries or keys. Positional and recency information is instead handled implicitly through KDA’s recurrent gating and decay mechanism.&lt;/p&gt;

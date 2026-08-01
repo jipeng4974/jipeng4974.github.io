@@ -12,7 +12,7 @@ showFullContent = false
 
 前者推断神秘，后者解决问题。
 
-前者[完备]((https://en.wikipedia.org/wiki/Complete_theory))而不可计算，后者[可计算](https://en.wikipedia.org/wiki/Computability_theory)而不完备。
+前者[完备](https://en.wikipedia.org/wiki/Complete_theory)而不可计算，后者[可计算](https://en.wikipedia.org/wiki/Computability_theory)而不完备。
 
 ## 何为问题？
 何为问题？本文中指代可求解问题——有良好定义的输入、输出，存在确定性算法能逐步计算，最终得到正确结果，比如[八皇后问题](https://en.wikipedia.org/wiki/Eight_queens_puzzle)，[哈密顿路径问题](https://en.wikipedia.org/wiki/Hamiltonian_path_problem)。

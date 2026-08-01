@@ -26,7 +26,7 @@
 
 <link rel="apple-touch-icon" href="https://jipeng4974.github.io/img/apple-touch-icon-192x192.png">
 
-  <link rel="shortcut icon" href="https://jipeng4974.github.io/img/favicon/green.png">
+  <link rel="shortcut icon" href="https://jipeng4974.github.io/img/favicon/fav.png">
 
 
 
@@ -42,7 +42,7 @@
 <meta property="og:site_name" content="Structure over Unstructured Realities" />
 
   
-    <meta property="og:image" content="https://jipeng4974.github.io/img/favicon/green.png">
+    <meta property="og:image" content="https://jipeng4974.github.io/img/favicon/fav.png">
   
 
 <meta property="og:image:width" content="2048">
@@ -143,7 +143,7 @@
 <li><strong>Multi-expert</strong>: many frontier models replace dense FFN/MLP layers with <strong>Mixture-of-Experts MoE</strong> layers, increasing total parameter capacity while activating only a subset of experts per token.</li>
 </ul>
 <p>A standard pre-norm decoder block looks like:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Input x
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Input x
 </span></span><span style="display:flex;"><span>  ↓
 </span></span><span style="display:flex;"><span>LayerNorm
 </span></span><span style="display:flex;"><span>  ↓
@@ -163,7 +163,7 @@
 </span></span><span style="display:flex;"><span>  ↓
 </span></span><span style="display:flex;"><span>Output
 </span></span></code></pre></div><p>The hidden state usually has shape:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>(B, T, d_model)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>(B, T, d_model)
 </span></span></code></pre></div><p>where:</p>
 <ul>
 <li><code>B</code> = batch size</li>
@@ -195,7 +195,7 @@
 <li><strong>model width / parameter count</strong>.</li>
 </ol>
 <p>The architecture path can be summarized as:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Vanilla MHA
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Vanilla MHA
 </span></span><span style="display:flex;"><span>→ FlashAttention-optimized MHA
 </span></span><span style="display:flex;"><span>→ Linear Attention / MLA
 </span></span><span style="display:flex;"><span>→ DeltaNet
@@ -204,13 +204,13 @@
 </span></span><span style="display:flex;"><span>→ Hybrid KDA + Gated MLA + MoE + AttnRes
 </span></span></code></pre></div><h3 id="31-vanilla-mha">3.1 Vanilla MHA<a href="#31-vanilla-mha" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
 <p>Vanilla multi-head attention has quadratic sequence complexity:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>O(N²)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>O(N²)
 </span></span></code></pre></div><p>It is expressive and provides direct global token-to-token interaction, but it becomes expensive for long contexts.</p>
 <h3 id="32-flashattention">3.2 FlashAttention<a href="#32-flashattention" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
 <p>FlashAttention keeps the standard softmax attention formulation but improves memory access and kernel execution. It mainly changes <strong>how attention is computed</strong>, not what attention computes.</p>
 <h3 id="33-linear-attention-and-mla">3.3 Linear Attention and MLA<a href="#33-linear-attention-and-mla" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
 <p>Linear attention tries to reduce sequence complexity:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>O(N²) → O(N)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>O(N²) → O(N)
 </span></span></code></pre></div><p>This improves long-context scalability but can lose some of the exact global retrieval behavior of full attention.</p>
 <p><strong>MLA Multi-head Latent Attention</strong> addresses a different bottleneck: KV-cache size. Instead of caching full head-specific keys and values, MLA caches a compressed latent representation and reconstructs keys and values during attention, reducing KV-cache memory while preserving global attention behavior. Kimi K3 uses Gated MLA as its periodic global-attention layer<a href="https://github.com/MoonshotAI/Kimi-K3">[1]</a>.</p>
 <h3 id="34-deltanet-and-gated-deltanet">3.4 DeltaNet and Gated DeltaNet<a href="#34-deltanet-and-gated-deltanet" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
@@ -248,10 +248,10 @@
 <p>This is a better abstraction than listing items such as “MLA query LoRA,” “output gating,” and “SiTU activations” at the same level. Those are important implementation details, but the main architectural structure is the three-axis scaling design.</p>
 <h3 id="51-sequence-mixing-hybrid-kda--gated-mla">5.1 Sequence Mixing: Hybrid KDA + Gated MLA<a href="#51-sequence-mixing-hybrid-kda--gated-mla" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
 <p>Kimi K3 uses a repeating <strong>4-layer attention unit</strong>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>3 × KDA layers + 1 × Gated MLA layer
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>3 × KDA layers + 1 × Gated MLA layer
 </span></span></code></pre></div><p>This gives a 3:1 ratio between efficient linear-style sequence mixing and full global attention.</p>
 <p>Kimi K3 has <strong>93 layers</strong>, 23 × 4 units + 1 final gated MLA layer.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>23 repeating attention units:
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>23 repeating attention units:
 </span></span><span style="display:flex;"><span>  each = 3 KDA + 1 Gated MLA
 </span></span><span style="display:flex;"><span>  total = 69 KDA + 23 Gated MLA
 </span></span><span style="display:flex;"><span>
@@ -272,7 +272,7 @@
 <h3 id="53-width-mixing-stable-latentmoe">5.3 Width Mixing: Stable LatentMoE<a href="#53-width-mixing-stable-latentmoe" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
 <p>Kimi K3 uses <strong>Stable LatentMoE</strong> for sparse channel mixing. The model has <strong>896 routed experts</strong>, activates <strong>16 routed experts per token</strong>, and also uses <strong>2 shared experts</strong><a href="https://github.com/MoonshotAI/Kimi-K3">[1]</a>.</p>
 <p>The key idea is that the routed expert path operates in a lower-dimensional latent space. Kimi K3 uses:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>d_model = 7168
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>d_model = 7168
 </span></span><span style="display:flex;"><span>latent MoE dimension = 3584
 </span></span></code></pre></div><p>So the expert routing path works at half the model width, reducing communication and expert-weight traffic while still allowing a large expert pool.</p>
 <p>Stable LatentMoE adds several stabilizers:</p>
@@ -285,70 +285,70 @@
 <h2 id="6-kimi-k3-key-specs">6. Kimi K3 Key Specs<a href="#6-kimi-k3-key-specs" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p>Kimi K3 is a <strong>2.78T-parameter MoE model</strong> with <strong>104.2B activated parameters per token</strong>, a <strong>7168 hidden dimension</strong>, <strong>96 attention heads</strong>, and a <strong>1M-token training context length</strong><a href="https://github.com/MoonshotAI/Kimi-K3">[1]</a>.</p>
 <table>
-<thead>
-<tr>
-<th>Design Area</th>
-<th style="text-align:right">Kimi K3 Choice</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Total layers</td>
-<td style="text-align:right">93</td>
-<td>Deeper backbone</td>
-</tr>
-<tr>
-<td>Attention composition</td>
-<td style="text-align:right">69 KDA + 24 Gated MLA</td>
-<td>Efficient long-context mixing plus periodic global attention</td>
-</tr>
-<tr>
-<td>Repeating attention unit</td>
-<td style="text-align:right">3 KDA + 1 Gated MLA</td>
-<td>3:1 hybrid attention ratio</td>
-</tr>
-<tr>
-<td>Extra final layer</td>
-<td style="text-align:right">1 final Gated MLA</td>
-<td>Ensures final layer has global attention</td>
-</tr>
-<tr>
-<td>Hidden dimension</td>
-<td style="text-align:right">7168</td>
-<td>Main model width</td>
-</tr>
-<tr>
-<td>Attention heads</td>
-<td style="text-align:right">96</td>
-<td>Higher attention parallelism</td>
-</tr>
-<tr>
-<td>Routed experts</td>
-<td style="text-align:right">896</td>
-<td>Larger sparse expert pool</td>
-</tr>
-<tr>
-<td>Active routed experts</td>
-<td style="text-align:right">16 per token</td>
-<td>Higher activated capacity</td>
-</tr>
-<tr>
-<td>Shared experts</td>
-<td style="text-align:right">2</td>
-<td>Stable common transformation path</td>
-</tr>
-<tr>
-<td>Latent MoE dimension</td>
-<td style="text-align:right">3584</td>
-<td>Reduces routed-path cost</td>
-</tr>
-<tr>
-<td>Context length</td>
-<td style="text-align:right">1M tokens</td>
-<td>Long-context capability</td>
-</tr>
-</tbody>
+	<thead>
+			<tr>
+					<th>Design Area</th>
+					<th style="text-align: right">Kimi K3 Choice</th>
+					<th>Purpose</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Total layers</td>
+					<td style="text-align: right">93</td>
+					<td>Deeper backbone</td>
+			</tr>
+			<tr>
+					<td>Attention composition</td>
+					<td style="text-align: right">69 KDA + 24 Gated MLA</td>
+					<td>Efficient long-context mixing plus periodic global attention</td>
+			</tr>
+			<tr>
+					<td>Repeating attention unit</td>
+					<td style="text-align: right">3 KDA + 1 Gated MLA</td>
+					<td>3:1 hybrid attention ratio</td>
+			</tr>
+			<tr>
+					<td>Extra final layer</td>
+					<td style="text-align: right">1 final Gated MLA</td>
+					<td>Ensures final layer has global attention</td>
+			</tr>
+			<tr>
+					<td>Hidden dimension</td>
+					<td style="text-align: right">7168</td>
+					<td>Main model width</td>
+			</tr>
+			<tr>
+					<td>Attention heads</td>
+					<td style="text-align: right">96</td>
+					<td>Higher attention parallelism</td>
+			</tr>
+			<tr>
+					<td>Routed experts</td>
+					<td style="text-align: right">896</td>
+					<td>Larger sparse expert pool</td>
+			</tr>
+			<tr>
+					<td>Active routed experts</td>
+					<td style="text-align: right">16 per token</td>
+					<td>Higher activated capacity</td>
+			</tr>
+			<tr>
+					<td>Shared experts</td>
+					<td style="text-align: right">2</td>
+					<td>Stable common transformation path</td>
+			</tr>
+			<tr>
+					<td>Latent MoE dimension</td>
+					<td style="text-align: right">3584</td>
+					<td>Reduces routed-path cost</td>
+			</tr>
+			<tr>
+					<td>Context length</td>
+					<td style="text-align: right">1M tokens</td>
+					<td>Long-context capability</td>
+			</tr>
+	</tbody>
 </table>
 <h2 id="7-nope-and-long-context">7. NoPE and Long Context<a href="#7-nope-and-long-context" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p>Kimi K3 uses <strong>NoPE</strong>, meaning no explicit positional encoding is applied to MLA queries or keys. Positional and recency information is instead handled implicitly through KDA’s recurrent gating and decay mechanism.</p>
@@ -448,7 +448,7 @@
   
 <div class="pagination">
     <div class="pagination__title">
-        <span class="pagination__title-h">阅读其他博文</span>
+        <span class="pagination__title-h"></span>
         <hr />
     </div>
     <div class="pagination__buttons">
