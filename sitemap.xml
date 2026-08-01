@@ -2,31 +2,37 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://jipeng4974.github.io/tags/philosophy/</loc>
-    <lastmod>2026-07-29T00:00:00+00:00</lastmod>
+    <loc>https://jipeng4974.github.io/tags/ai/</loc>
+    <lastmod>2026-08-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jipeng4974.github.io/tags/ai-assisted/</loc>
+    <lastmod>2026-08-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jipeng4974.github.io/posts/dspark/</loc>
+    <lastmod>2026-08-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jipeng4974.github.io/tags/llm/</loc>
+    <lastmod>2026-08-01T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jipeng4974.github.io/posts/</loc>
-    <lastmod>2026-07-29T00:00:00+00:00</lastmod>
+    <lastmod>2026-08-01T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jipeng4974.github.io/</loc>
-    <lastmod>2026-07-29T00:00:00+00:00</lastmod>
+    <lastmod>2026-08-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jipeng4974.github.io/tags/sys/</loc>
+    <lastmod>2026-08-01T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jipeng4974.github.io/tags/</loc>
+    <lastmod>2026-08-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jipeng4974.github.io/tags/philosophy/</loc>
     <lastmod>2026-07-29T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jipeng4974.github.io/posts/free_will/</loc>
     <lastmod>2026-07-29T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://jipeng4974.github.io/tags/ai/</loc>
-    <lastmod>2026-07-28T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://jipeng4974.github.io/tags/ai-assisted/</loc>
-    <lastmod>2026-07-28T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://jipeng4974.github.io/posts/llm_arch/</loc>
-    <lastmod>2026-07-28T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://jipeng4974.github.io/tags/llm/</loc>
     <lastmod>2026-07-28T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jipeng4974.github.io/posts/music_lejepa/</loc>
@@ -51,9 +57,6 @@
     <lastmod>2026-06-05T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jipeng4974.github.io/posts/reid/</loc>
-    <lastmod>2026-03-14T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://jipeng4974.github.io/tags/sys/</loc>
     <lastmod>2026-03-14T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jipeng4974.github.io/posts/recomendation-systems/</loc>

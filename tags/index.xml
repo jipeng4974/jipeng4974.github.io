@@ -6,20 +6,11 @@
     <description>Recent content in Tags on Structure over Unstructured Realities</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 29 Jul 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Philosophy</title>
-      <link>https://jipeng4974.github.io/tags/philosophy/</link>
-      <pubDate>Wed, 29 Jul 2026 00:00:00 +0000</pubDate>
-      <guid>https://jipeng4974.github.io/tags/philosophy/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
+    <lastBuildDate>Sat, 01 Aug 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Ai</title>
       <link>https://jipeng4974.github.io/tags/ai/</link>
-      <pubDate>Tue, 28 Jul 2026 00:00:00 +0000</pubDate>
+      <pubDate>Sat, 01 Aug 2026 00:00:00 +0000</pubDate>
       <guid>https://jipeng4974.github.io/tags/ai/</guid>
       <description></description>
       <content></content>
@@ -28,7 +19,7 @@
     <item>
       <title>Ai-Assisted</title>
       <link>https://jipeng4974.github.io/tags/ai-assisted/</link>
-      <pubDate>Tue, 28 Jul 2026 00:00:00 +0000</pubDate>
+      <pubDate>Sat, 01 Aug 2026 00:00:00 +0000</pubDate>
       <guid>https://jipeng4974.github.io/tags/ai-assisted/</guid>
       <description></description>
       <content></content>
@@ -37,8 +28,26 @@
     <item>
       <title>Llm</title>
       <link>https://jipeng4974.github.io/tags/llm/</link>
-      <pubDate>Tue, 28 Jul 2026 00:00:00 +0000</pubDate>
+      <pubDate>Sat, 01 Aug 2026 00:00:00 +0000</pubDate>
       <guid>https://jipeng4974.github.io/tags/llm/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Sys</title>
+      <link>https://jipeng4974.github.io/tags/sys/</link>
+      <pubDate>Sat, 01 Aug 2026 00:00:00 +0000</pubDate>
+      <guid>https://jipeng4974.github.io/tags/sys/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Philosophy</title>
+      <link>https://jipeng4974.github.io/tags/philosophy/</link>
+      <pubDate>Wed, 29 Jul 2026 00:00:00 +0000</pubDate>
+      <guid>https://jipeng4974.github.io/tags/philosophy/</guid>
       <description></description>
       <content></content>
     </item>
@@ -66,15 +75,6 @@
       <link>https://jipeng4974.github.io/tags/humanity/</link>
       <pubDate>Fri, 05 Jun 2026 00:00:00 +0000</pubDate>
       <guid>https://jipeng4974.github.io/tags/humanity/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>Sys</title>
-      <link>https://jipeng4974.github.io/tags/sys/</link>
-      <pubDate>Sat, 14 Mar 2026 00:00:00 +0000</pubDate>
-      <guid>https://jipeng4974.github.io/tags/sys/</guid>
       <description></description>
       <content></content>
     </item>
