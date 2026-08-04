@@ -281,22 +281,21 @@
 &lt;/ul&gt;
 &lt;p&gt;$$T_\beta = \frac{1}{B^2}\sum_{j,k} e^{-\frac{\beta^2}{2}|Y_j - Y_k|^2} - \frac{2}{B}(1+\beta^2)^{-D/2}\sum_j e^{-\frac{\beta^2|Y_j|^2}{2(1+\beta^2)}} + (1+2\beta^2)^{-D/2}$$
 其中Y_j=Σ^{-1/2}(z_j−z̄)是studentized样本，β≈1即可。特征函数唯一确定分布，所以它对任何偏离多元正态的方向都非零——不会被因子重混合骗过，也没有sketch噪声。&lt;/p&gt;
-&lt;h2 id=&#34;vicregvisreg接力待验证&#34;&gt;VICReg→VisReg接力（待验证）&lt;/h2&gt;
-&lt;p&gt;一个待验证的想法：训练早期用VICReg的确定性约束迅速把erank撑起来，中后期切换成VisReg，让embedding分布收敛到isotropic高斯。&lt;/p&gt;
-&lt;p&gt;支持可行性的论据：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;VICReg的方差hinge对每个维度给确定性、满强度、不稀释的梯度，协方差项是确定性的去相关——恰好补上VisReg唯一的反坍缩通道（shape sketch）最弱的地方。早期坍缩压力最强时用硬约束顶住，符合防优先原则。&lt;/li&gt;
-&lt;li&gt;切换后VisReg只需在已撑开的谱上把形状修成高斯，回避它&amp;quot;从低秩恢复&amp;quot;的最弱项，发挥它&amp;quot;分布形状精修&amp;quot;的强项。&lt;/li&gt;
-&lt;li&gt;目标兼容：VICReg的约束（逐维std≥γ、去相关）是Σ=I的松版本，切换时没有目标冲突。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;风险与注意事项：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;VICReg只约束二阶矩，撑起来的&amp;quot;秩&amp;quot;可能是非高斯的怪形状，切换后VisReg需要额外预算修形状。&lt;/li&gt;
-&lt;li&gt;切换点由erank曲线决定（回升进入平台期即切），而非固定step；切换时λ保持连续，避免loss尺度跳变冲击优化。&lt;/li&gt;
-&lt;li&gt;更平滑的替代方案：不做硬切换，全程VisReg外加一个小的方差hinge项（或per-dim variance floor），用极低成本补上逐维确定性下限。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;验证方案：纯VisReg、VICReg→VisReg硬切换、VisReg+方差hinge混合，三组对照用同一λ调度，跟踪emb和proj两处erank曲线、逐维std直方图、下游音乐任务指标。预期后两组的早期erank不跌破报警线，且中后期收敛到不低于纯VisReg的水平。&lt;/p&gt;
-&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;h2 id=&#34;针对低秩盲区和死维复活的改进&#34;&gt;针对低秩盲区和死维复活的改进&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;可以考虑训练早期用VICReg的确定性约束迅速把erank撑起来，中后期切换成VisReg，让embedding分布收敛到isotropic高斯。&lt;/li&gt;
+&lt;li&gt;将VIC的协方差项加入VIS中。&lt;/li&gt;
+&lt;li&gt;对VIS的scale项进行改进，避免过度稀释，通过更强力的scale项保证下限，硬抬eranks。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;# 现状：1/D 平均，死维的求救信号被 512 分母稀释
+l_scale = (1.0 - std).square().mean()
+
+# 改法：恒定推力聚焦最差的 k 维，让死维获得 O(1) 级复活力
+k = max(1, std.size(-1) // 8)
+worst = std.topk(k, largest=False).values          # bottom-k std
+l_revive = (1.0 - worst).square().mean()
+l_scale = 0.5 * (1.0 - std).square().mean() + 0.5 * l_revive
+&lt;/code&gt;&lt;/pre&gt;&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
 &lt;hr&gt;
 &lt;ol&gt;
 &lt;li id=&#34;fn:1&#34;&gt;

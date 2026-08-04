@@ -249,23 +249,22 @@ $$T_\beta = \frac{1}{B^2}\sum_{j,k} e^{-\frac{\beta^2}{2}\|Y_j - Y_k\|^2} - \fra
 
 
 
-## VICReg→VisReg接力（待验证）
+## 针对低秩盲区和死维复活的改进
 
-一个待验证的想法：训练早期用VICReg的确定性约束迅速把erank撑起来，中后期切换成VisReg，让embedding分布收敛到isotropic高斯。
+1. 可以考虑训练早期用VICReg的确定性约束迅速把erank撑起来，中后期切换成VisReg，让embedding分布收敛到isotropic高斯。
+2. 将VIC的协方差项加入VIS中。
+3. 对VIS的scale项进行改进，避免过度稀释，通过更强力的scale项保证下限，硬抬eranks。
 
-支持可行性的论据：
+```
+# 现状：1/D 平均，死维的求救信号被 512 分母稀释
+l_scale = (1.0 - std).square().mean()
 
-- VICReg的方差hinge对每个维度给确定性、满强度、不稀释的梯度，协方差项是确定性的去相关——恰好补上VisReg唯一的反坍缩通道（shape sketch）最弱的地方。早期坍缩压力最强时用硬约束顶住，符合防优先原则。
-- 切换后VisReg只需在已撑开的谱上把形状修成高斯，回避它"从低秩恢复"的最弱项，发挥它"分布形状精修"的强项。
-- 目标兼容：VICReg的约束（逐维std≥γ、去相关）是Σ=I的松版本，切换时没有目标冲突。
-
-风险与注意事项：
-
-- VICReg只约束二阶矩，撑起来的"秩"可能是非高斯的怪形状，切换后VisReg需要额外预算修形状。
-- 切换点由erank曲线决定（回升进入平台期即切），而非固定step；切换时λ保持连续，避免loss尺度跳变冲击优化。
-- 更平滑的替代方案：不做硬切换，全程VisReg外加一个小的方差hinge项（或per-dim variance floor），用极低成本补上逐维确定性下限。
-
-验证方案：纯VisReg、VICReg→VisReg硬切换、VisReg+方差hinge混合，三组对照用同一λ调度，跟踪emb和proj两处erank曲线、逐维std直方图、下游音乐任务指标。预期后两组的早期erank不跌破报警线，且中后期收敛到不低于纯VisReg的水平。
+# 改法：恒定推力聚焦最差的 k 维，让死维获得 O(1) 级复活力
+k = max(1, std.size(-1) // 8)
+worst = std.topk(k, largest=False).values          # bottom-k std
+l_revive = (1.0 - worst).square().mean()
+l_scale = 0.5 * (1.0 - std).square().mean() + 0.5 * l_revive
+```
 
 [^1]: Bardes, Ponce, LeCun. VICReg: Variance-Invariance-Covariance Regularization for Self-Supervised Learning. ICLR 2022. [[arxiv]](https://arxiv.org/abs/2105.04906)
 [^2]: Balestriero, LeCun. LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics. 2025. [[arxiv]](https://arxiv.org/abs/2511.08544)
