@@ -6,7 +6,324 @@
     <description>Recent content on Structure over Unstructured Realities</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 01 Aug 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 04 Aug 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Music LeJEPA Regularizers</title>
+      <link>https://jipeng4974.github.io/posts/music_lejepa_reg/</link>
+      <pubDate>Tue, 04 Aug 2026 00:00:00 +0000</pubDate>
+      <guid>https://jipeng4974.github.io/posts/music_lejepa_reg/</guid>
+      <description>&lt;p&gt;防止维度塌陷远比复活死维度简单——抗坍缩正则的λ调度艺术，建立在这种不对称性之上。&lt;/p&gt;
+&lt;p&gt;本文接续&lt;a href=&#34;https://jipeng4974.github.io/posts/music_lejepa/&#34;&gt;Music LeJEPA&lt;/a&gt;的实践，把VicReg、SigReg、VisReg三种正则项的数学原理、源码实现，以及实践中踩到的低秩局部最优陷阱一并归档。&lt;/p&gt;
+&lt;h2 id=&#34;三种正则&#34;&gt;三种正则&lt;/h2&gt;
+&lt;p&gt;三者都是JEPA式训练里的抗坍缩正则项，共用同一个框架：&lt;/p&gt;
+&lt;p&gt;$$L = \lambda \cdot L_{reg} + (1-\lambda) \cdot L_{inv}$$&lt;/p&gt;
+&lt;p&gt;proj形状&lt;code&gt;(V, B, D)&lt;/code&gt;——V个view、batch size B、embedding维度D。inv项让同一样本不同view的投影互相靠近（L2 loss），reg项防止所有样本坍缩成一个点。三种方法的区别只在reg项：把embedding分布约束成什么形状、用什么方式约束。&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;方法&lt;/th&gt;
+					&lt;th&gt;约束目标&lt;/th&gt;
+					&lt;th&gt;约束方式&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;VICReg&lt;/td&gt;
+					&lt;td&gt;每维方差≥γ，维度间去相关&lt;/td&gt;
+					&lt;td&gt;逐维统计量（二阶矩）&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;SIGReg&lt;/td&gt;
+					&lt;td&gt;embedding分布=各向同性标准高斯N(0,I)&lt;/td&gt;
+					&lt;td&gt;随机1D投影+特征函数匹配（Epps-Pulley检验）&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;VISReg&lt;/td&gt;
+					&lt;td&gt;同为N(0,I)，但分离center/scale/shape&lt;/td&gt;
+					&lt;td&gt;随机1D投影+排序分位数匹配（sliced Wasserstein风格）&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;vicreg&#34;&gt;VICReg&lt;/h2&gt;
+&lt;p&gt;VICReg&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;把&lt;code&gt;(V, B, D)&lt;/code&gt;的投影flatten成&lt;code&gt;N = V·B&lt;/code&gt;个样本，对每个维度施加两个约束。&lt;/p&gt;
+&lt;p&gt;方差项，用hinge loss把每维标准差推到阈值γ以上：&lt;/p&gt;
+&lt;p&gt;$$v(Z) = \frac{1}{D}\sum_{d=1}^{D} \max(0,\ \gamma - \mathrm{Std}(Z_{:,d}))^2$$&lt;/p&gt;
+&lt;p&gt;协方差项，惩罚协方差矩阵非对角元，让不同维度去相关：&lt;/p&gt;
+&lt;p&gt;$$c(Z) = \frac{1}{D}\sum_{i \neq j} \mathrm{Cov}(Z)_{i,j}^2$$&lt;/p&gt;
+&lt;p&gt;源码（连同invariance项之外的完整正则）：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch.nn &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; nn
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch.nn.functional &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; F
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;VICReg&lt;/span&gt;(nn&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Module):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;(self, var_weight&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;25.0&lt;/span&gt;, cov_weight&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;, gamma&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        super()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;var_weight &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; var_weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;cov_weight &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; cov_weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;gamma &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; gamma
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;forward&lt;/span&gt;(self, z):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        V, B, D &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;shape
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z_flat &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;reshape(V &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; B, D)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        std &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z_flat&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;std(dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1e-6&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        var_loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; F&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;relu(self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;gamma &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; std)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean()          &lt;span style=&#34;color:#75715e&#34;&gt;# hinge(γ - std)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z_centered &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z_flat &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; z_flat&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean(dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, keepdim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;True&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        cov &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (z_centered&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;T &lt;span style=&#34;color:#f92672&#34;&gt;@&lt;/span&gt; z_centered) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; (V &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; B &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)            &lt;span style=&#34;color:#75715e&#34;&gt;# D×D 协方差矩阵&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        off_diag &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; cov&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sum() &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; cov&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;diagonal()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sum()  &lt;span style=&#34;color:#75715e&#34;&gt;# 非对角元平方和&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        cov_loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; off_diag &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; D
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;var_weight &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; var_loss &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;cov_weight &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; cov_loss
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;优点是简单、无随机性、每个维度都能拿到确定性满强度的梯度。缺点同样直白——二阶矩约束不紧，方差够、协方差对角化的分布不一定是高斯（球面均匀分布也能蒙混过关）；且协方差矩阵是$O(B \cdot D^2)$，高维时昂贵。&lt;/p&gt;</description>
+      <content>&lt;p&gt;防止维度塌陷远比复活死维度简单——抗坍缩正则的λ调度艺术，建立在这种不对称性之上。&lt;/p&gt;
+&lt;p&gt;本文接续&lt;a href=&#34;https://jipeng4974.github.io/posts/music_lejepa/&#34;&gt;Music LeJEPA&lt;/a&gt;的实践，把VicReg、SigReg、VisReg三种正则项的数学原理、源码实现，以及实践中踩到的低秩局部最优陷阱一并归档。&lt;/p&gt;
+&lt;h2 id=&#34;三种正则&#34;&gt;三种正则&lt;/h2&gt;
+&lt;p&gt;三者都是JEPA式训练里的抗坍缩正则项，共用同一个框架：&lt;/p&gt;
+&lt;p&gt;$$L = \lambda \cdot L_{reg} + (1-\lambda) \cdot L_{inv}$$&lt;/p&gt;
+&lt;p&gt;proj形状&lt;code&gt;(V, B, D)&lt;/code&gt;——V个view、batch size B、embedding维度D。inv项让同一样本不同view的投影互相靠近（L2 loss），reg项防止所有样本坍缩成一个点。三种方法的区别只在reg项：把embedding分布约束成什么形状、用什么方式约束。&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;方法&lt;/th&gt;
+					&lt;th&gt;约束目标&lt;/th&gt;
+					&lt;th&gt;约束方式&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;VICReg&lt;/td&gt;
+					&lt;td&gt;每维方差≥γ，维度间去相关&lt;/td&gt;
+					&lt;td&gt;逐维统计量（二阶矩）&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;SIGReg&lt;/td&gt;
+					&lt;td&gt;embedding分布=各向同性标准高斯N(0,I)&lt;/td&gt;
+					&lt;td&gt;随机1D投影+特征函数匹配（Epps-Pulley检验）&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;VISReg&lt;/td&gt;
+					&lt;td&gt;同为N(0,I)，但分离center/scale/shape&lt;/td&gt;
+					&lt;td&gt;随机1D投影+排序分位数匹配（sliced Wasserstein风格）&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;vicreg&#34;&gt;VICReg&lt;/h2&gt;
+&lt;p&gt;VICReg&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;把&lt;code&gt;(V, B, D)&lt;/code&gt;的投影flatten成&lt;code&gt;N = V·B&lt;/code&gt;个样本，对每个维度施加两个约束。&lt;/p&gt;
+&lt;p&gt;方差项，用hinge loss把每维标准差推到阈值γ以上：&lt;/p&gt;
+&lt;p&gt;$$v(Z) = \frac{1}{D}\sum_{d=1}^{D} \max(0,\ \gamma - \mathrm{Std}(Z_{:,d}))^2$$&lt;/p&gt;
+&lt;p&gt;协方差项，惩罚协方差矩阵非对角元，让不同维度去相关：&lt;/p&gt;
+&lt;p&gt;$$c(Z) = \frac{1}{D}\sum_{i \neq j} \mathrm{Cov}(Z)_{i,j}^2$$&lt;/p&gt;
+&lt;p&gt;源码（连同invariance项之外的完整正则）：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch.nn &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; nn
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch.nn.functional &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; F
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;VICReg&lt;/span&gt;(nn&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Module):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;(self, var_weight&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;25.0&lt;/span&gt;, cov_weight&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;, gamma&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        super()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;var_weight &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; var_weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;cov_weight &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; cov_weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;gamma &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; gamma
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;forward&lt;/span&gt;(self, z):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        V, B, D &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;shape
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z_flat &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;reshape(V &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; B, D)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        std &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z_flat&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;std(dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1e-6&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        var_loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; F&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;relu(self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;gamma &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; std)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean()          &lt;span style=&#34;color:#75715e&#34;&gt;# hinge(γ - std)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z_centered &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z_flat &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; z_flat&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean(dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, keepdim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;True&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        cov &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (z_centered&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;T &lt;span style=&#34;color:#f92672&#34;&gt;@&lt;/span&gt; z_centered) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; (V &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; B &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)            &lt;span style=&#34;color:#75715e&#34;&gt;# D×D 协方差矩阵&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        off_diag &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; cov&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sum() &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; cov&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;diagonal()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sum()  &lt;span style=&#34;color:#75715e&#34;&gt;# 非对角元平方和&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        cov_loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; off_diag &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; D
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;var_weight &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; var_loss &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;cov_weight &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; cov_loss
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;优点是简单、无随机性、每个维度都能拿到确定性满强度的梯度。缺点同样直白——二阶矩约束不紧，方差够、协方差对角化的分布不一定是高斯（球面均匀分布也能蒙混过关）；且协方差矩阵是$O(B \cdot D^2)$，高维时昂贵。&lt;/p&gt;
+&lt;h2 id=&#34;sigreg&#34;&gt;SIGReg&lt;/h2&gt;
+&lt;p&gt;SIGReg出自LeJEPA&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;，数学上依赖两个统计学结果。&lt;/p&gt;
+&lt;p&gt;一是Cramér–Wold定理：D维分布由它所有1D投影唯一确定。随机采K个单位方向$a_1..a_K$，让每个投影$z \cdot a_k$都是N(0,1)，即逼近&amp;quot;整个分布是各向同性高斯&amp;quot;。&lt;/p&gt;
+&lt;p&gt;二是Epps–Pulley检验&lt;sup id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;：1983年的经典正态性拟合优度检验。依据是分布由其特征函数唯一确定（Bochner定理）。标准正态的特征函数是$\varphi(t) = e^{-t^2/2}$（纯实数），于是比较经验特征函数$\hat\varphi(t) = \frac{1}{N}\sum_j e^{itx_j}$与它的加权L2距离：&lt;/p&gt;
+&lt;p&gt;$$T = N \int_{-\infty}^{\infty} \left|\hat\varphi(t) - e^{-t^2/2}\right|^2 e^{-t^2/2}, dt$$&lt;/p&gt;
+&lt;p&gt;把模方展开成cos/sin实虚部，在$t \in [0, t_{max}]$上取knots个点做梯形数值积分（利用对称性，t&amp;lt;0部分权重翻倍），即得可微loss。关键在于这个统计量对样本完全可微——假设检验摇身一变成为正则项，这是LeJEPA的核心observation。&lt;/p&gt;
+&lt;p&gt;源码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch.nn &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; nn
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;SIGReg&lt;/span&gt;(nn&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Module):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;(self, &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;, knots: int &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;17&lt;/span&gt;, t_max: float &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;3.0&lt;/span&gt;, num_projections: int &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        super()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;num_projections &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; int(num_projections)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        t &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;linspace(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, float(t_max), int(knots), dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;float32)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        dt &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; float(t_max) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; (int(knots) &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        weights &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;full((int(knots),), &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; dt, dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;float32)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        weights[[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;]] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; dt                       &lt;span style=&#34;color:#75715e&#34;&gt;# 梯形规则：端点半权重&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        window &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;exp(&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;t&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;square() &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2.0&lt;/span&gt;)       &lt;span style=&#34;color:#75715e&#34;&gt;# 权重函数 = 目标特征函数&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;register_buffer(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;t&amp;#34;&lt;/span&gt;, t)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;register_buffer(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;phi&amp;#34;&lt;/span&gt;, window)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;register_buffer(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;weights&amp;#34;&lt;/span&gt;, weights &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; window)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;forward&lt;/span&gt;(self, proj: torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Tensor) &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Tensor:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        _, B, D &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;shape
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;randn(D, self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;num_projections, device&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;device, dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;dtype)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;div_(A&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;norm(p&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;, dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, keepdim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;True&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1e-12&lt;/span&gt;)   &lt;span style=&#34;color:#75715e&#34;&gt;# 随机单位投影方向&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        t &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;t&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;to(device&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;device, dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;dtype)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        phi &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;phi&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;to(device&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;device, dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;dtype)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        weights &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;weights&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;to(device&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;device, dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;dtype)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        x_t &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (proj &lt;span style=&#34;color:#f92672&#34;&gt;@&lt;/span&gt; A)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;unsqueeze(&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; t                        &lt;span style=&#34;color:#75715e&#34;&gt;# (V,B,K,knots)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        err &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (x_t&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;cos()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean(&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; phi)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;square() &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; x_t&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sin()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean(&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;square()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        statistic &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (err &lt;span style=&#34;color:#f92672&#34;&gt;@&lt;/span&gt; weights) &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; B                           &lt;span style=&#34;color:#75715e&#34;&gt;# 每个投影的 EP 统计量&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; statistic&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; loss
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;逐行对应数学：&lt;code&gt;proj @ A&lt;/code&gt;是Cramér–Wold slicing，把embedding投到K=256个随机方向；&lt;code&gt;x_t.cos().mean(-3)&lt;/code&gt;和&lt;code&gt;x_t.sin().mean(-3)&lt;/code&gt;是经验特征函数的实虚部（对batch取均值）；误差项里虚部直接平方，因为标准正态特征函数是纯实数；&lt;code&gt;err @ weights&lt;/code&gt;是以$e^{-t^2/2}$为权重的梯形积分，×B是EP统计量的N倍缩放。&lt;/p&gt;
+&lt;p&gt;SIGReg约束的是完整分布而非二阶矩，理论上严格防坍缩，计算量$O(B \cdot D \cdot K)$，通常远小于VICReg的$O(B \cdot D^2)$。缺点是随机投影带来Monte Carlo噪声，且均值偏移、整体尺度、分布形状的惩罚混在一个统计量里，梯度信噪比一般。&lt;/p&gt;
+&lt;h2 id=&#34;visreg&#34;&gt;VisReg&lt;/h2&gt;
+&lt;p&gt;VisReg目标同为N(0,I)，但把约束确定性地拆成center/scale/shape三部分，替代SIGReg&amp;quot;什么都靠随机投影+特征函数&amp;quot;的做法。&lt;/p&gt;
+&lt;p&gt;Center，均值归零：&lt;/p&gt;
+&lt;p&gt;$$L_{center} = |\bar{z}|^2$$&lt;/p&gt;
+&lt;p&gt;Scale，到均值的RMS半径为1：&lt;/p&gt;
+&lt;p&gt;$$L_{scale} = \left(\frac{|z - \bar z|_2}{\sqrt{B}} - 1\right)^2$$&lt;/p&gt;
+&lt;p&gt;Shape，中心化归一化后在K个随机方向上投影，把排序后的样本值与标准正态的理论分位数对齐。标准正态的B个均匀分位点由逆误差函数给出：&lt;/p&gt;
+&lt;p&gt;$$q_i = \sqrt{2},\mathrm{erf}^{-1}!\left(\frac{2i}{B+1} - 1\right),\quad i = 1..B$$&lt;/p&gt;
+&lt;p&gt;$$L_{shape} = \frac{1}{K}\sum_{k}\frac{1}{B}\sum_{i}\left(\mathrm{sort}(z_{norm} \cdot a_k)_i - q_i\right)^2$$&lt;/p&gt;
+&lt;p&gt;这本质上是sliced 1D Wasserstein-2距离的平方——1D时W₂的最优传输就是排序对齐，方向随机化对应isotropic Gaussian的sketching。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; math
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch.nn &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; nn
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch.nn.functional &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; F
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;VISReg&lt;/span&gt;(nn&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Module):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;(self, num_projections: int &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt;, scale_weight: float &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                 shape_weight: float &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;, center_weight: float &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        super()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;K &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; num_projections
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;_cached_B &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;_cached_target &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;scale_weight &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; scale_weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;shape_weight &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; shape_weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;center_weight &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; center_weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;_get_target&lt;/span&gt;(self, B: int, device) &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Tensor:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;_cached_B &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; B:                      &lt;span style=&#34;color:#75715e&#34;&gt;# 目标分位数只依赖 B，缓存复用&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;linspace(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, B, B, device&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;device, dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;float32) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; (B &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;_cached_target &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;erfinv(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; q &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mul_(math&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sqrt(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;_cached_B &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; B
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;_cached_target&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;to(device&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;device)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;forward&lt;/span&gt;(self, z: torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Tensor) &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Tensor:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        _, B, D &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;shape
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        mu &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean(dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, keepdim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;True&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        center_loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; mu&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean()                               &lt;span style=&#34;color:#75715e&#34;&gt;# center&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z_centered &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; mu
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        std &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z_centered&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;norm(dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;div(math&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sqrt(B))&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;clamp_min(&lt;span style=&#34;color:#ae81ff&#34;&gt;1e-6&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        scale_loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (std &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean()                       &lt;span style=&#34;color:#75715e&#34;&gt;# scale&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z_norm &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z_centered &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; std&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;detach()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;unsqueeze(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)              &lt;span style=&#34;color:#75715e&#34;&gt;# detach: 形状与尺度解耦&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        W &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; F&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;normalize(torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;randn(D, self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;K, device&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;device, dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;dtype), dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        p_sorted &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (z_norm &lt;span style=&#34;color:#f92672&#34;&gt;@&lt;/span&gt; W)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sort(dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;values                   &lt;span style=&#34;color:#75715e&#34;&gt;# K 个随机投影, 每个排序&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        target &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;_get_target(B, z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;device)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;view(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, B, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)         &lt;span style=&#34;color:#75715e&#34;&gt;# N(0,1) 理论分位数&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        shape_loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (p_sorted &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; target)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean()               &lt;span style=&#34;color:#75715e&#34;&gt;# 排序对齐 = 1D W2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;scale_weight &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; scale_loss &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;shape_weight &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; shape_loss \
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;             &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;center_weight &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; center_loss
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;注意&lt;code&gt;std.detach()&lt;/code&gt;这一行——尺度学习完全交给scale_loss，shape_loss只负责&amp;quot;形状像不像正态&amp;quot;，两者梯度互不干扰。这是VisReg相对SIGReg梯度更干净的原因，也是后文陷阱的伏笔。center/scale用确定性闭式约束（无Monte Carlo噪声），只有shape用随机投影；t网格、knots这类超参也都省掉了。&lt;/p&gt;
+&lt;h2 id=&#34;实践观察erank先崩后升然后停滞&#34;&gt;实践观察：erank先崩后升，然后停滞&lt;/h2&gt;
+&lt;p&gt;我的设定：anchor music clip与degraded music clip做invariance对齐，同时施加正则项，用effective rank（embedding协方差谱的熵有效维度）监控坍缩。随机初始化时音乐频谱输入模型得到的embeds的erank约20~30，训练曲线呈现三阶段：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;早期迅速崩到~6——可以称之为维度塌陷；&lt;/li&gt;
+&lt;li&gt;缓慢回升到~100；&lt;/li&gt;
+&lt;li&gt;增速几乎归零，停滞。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;SigReg如此；VisReg稍好&lt;sup id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;4&lt;/a&gt;&lt;/sup&gt;；VICReg未试。&lt;/p&gt;
+&lt;p&gt;如果训练早期λ不调得比较大，inv loss迅速收敛，坍缩直接压倒正则。&lt;/p&gt;
+&lt;p&gt;另一个反常实验：VisReg + λ=0.99维持前3000步，erank早期不升反降，阴跌——而VisReg loss在同步下降。表面上embedding更接近isotropic Gaussian，dead dims却变多了。实践中我没见谁真的用0.99的λ，试了一下出乎意料，但数学上解释得通。&lt;/p&gt;
+&lt;h2 id=&#34;低秩局部最优陷阱&#34;&gt;低秩局部最优陷阱&lt;/h2&gt;
+&lt;p&gt;先说结论：VisReg的全局最优确实是N(0,I)，问题不在目标，在优化路径的梯度结构。loss度量边际分布形状，erank度量协方差谱，两者在优化路径上可以反向走。具体四个机制。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;(a) 恢复梯度是稀释且随机的。&lt;/strong&gt; shape项对高斯云N(0,Σ)在随机方向a上度量的领头项等价于W₂²，即$(a^\top\Sigma a - 1)^2$。对随机单位方向取期望：&lt;/p&gt;
+&lt;p&gt;$$\mathbb{E}_a\big[(a^\top\Sigma a - 1)^2\big] \propto \frac{|\Sigma - I|_F^2}{D}$$&lt;/p&gt;
+&lt;p&gt;Σ=I确实是全局最优，但单个濒死特征值对期望loss的贡献只有O(1/D)，而每步只用K=256个方向Monte Carlo估计，单步噪声~1/√K。相比之下invariance的坍缩压力是确定性的、每步满强度的——凡是对degradation敏感的维度都是inv loss的来源，梯度直接掐掉它。确定性坍缩对上随机稀释恢复，早期谁赢一目了然。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;(b) 自抑制：恢复力∝缺陷大小。&lt;/strong&gt; 特征值λ_j越小，它在sketch里留下的残差越小，恢复梯度越弱。且深度坍缩时B个样本在投影上几乎重合，排序匹配的相对顺序近乎随机，梯度被排列噪声主导。erank回升到~100后停滞不是&amp;quot;失去动力&amp;quot;，是恢复力衰减到与inv坍缩压力平衡的不动点。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;(c) 因子丢失逃逸路径。&lt;/strong&gt; &lt;code&gt;std.detach()&lt;/code&gt;的白化让shape项对逐维方差免疫，检测死维只剩scale_loss的$(std_d - 1)^2$——而它只问&amp;quot;方差是不是1&amp;quot;，不问&amp;quot;方差从哪来&amp;quot;。不妨设想embedding各维度是k个潜在因子的线性混合：网络丢掉一个因子后，把剩余k−1个因子重新混合，让每个坐标维仍保持std=1、均值0、边际钟形。此时center、scale、shape三项全绿，VisReg loss继续下降，erank掉一格。λ=0.99实验中&amp;quot;loss降、dead dims变多&amp;quot;正是这个机制。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;(d) λ=0.99主动走进陷阱。&lt;/strong&gt; rank的有用扩张只能由invariance任务驱动——reg只要云像高斯，不在乎样本在云里的排布（排序匹配在投影内置换不变）。0.99把inv锚定砍到0.01：样本相对几何失去维护，判别性因子被weight decay和噪声梯度慢慢侵蚀；reg主导时，从当前云出发最近的类高斯配置是&amp;quot;压缩、重排现有结构&amp;quot;而非&amp;quot;扩张新方向&amp;quot;——扩张需要编码新的输入信息，没有inv信号组织它。正则太纯，就是在优化一个与信息量正交的目标，低秩局域解成了最速下降方向。&lt;/p&gt;
+&lt;h2 id=&#34;λ调度防优先于救&#34;&gt;λ调度：防优先于救&lt;/h2&gt;
+&lt;p&gt;坍缩的下坡是确定性、满强度、逐维直接的；复活的上坡是O(1/D)稀释、1/√K带噪、且恢复力∝缺陷大小的——维度死得越深越难救，λ_j→0时梯度信噪比趋于零。不对称性极其悬殊。因此λ调度的首要目标不是&amp;quot;坍缩后把erank拉回来&amp;quot;，而是&amp;quot;根本不让坍缩发生&amp;quot;。一旦erank崩到个位数，后续训练大部分时间在还早期的债，且只能还到不动点为止。&lt;/p&gt;
+&lt;p&gt;具体策略：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;不用极端λ。0.99切断inv锚定，主动走进陷阱；太小则inv秒收敛直接坍缩。取中间偏大（0.5~0.8区间，按erank监控微调）。&lt;/li&gt;
+&lt;li&gt;λ从第0步就设在目标值附近（或只经数百步短warmup到位）。等看到erank下跌再调大λ已经晚了——死维恢复又慢又不完全，让inv从不在无监管状态下运行。&lt;/li&gt;
+&lt;li&gt;以erank为调度信号，而不是以loss为信号。VisReg loss下降不能说明分布健康（因子丢失路径），erank才是谱的直接度量。设一个下限报警线（如初始值的70%），跌破即升λ或降lr。&lt;/li&gt;
+&lt;li&gt;erank算在哪个空间要确认。VisReg作用在proj上，若监控的是emb，还有projector hiding的问题——projector可以把一个正在坍缩的emb白化成高斯proj。emb和proj的erank都监控。&lt;/li&gt;
+&lt;li&gt;逐维std直方图辅助诊断：std全≈1而erank掉，确认是因子丢失（相关性坍缩）；部分维std→0，是scale项被inv压制，说明λ不够。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;监控指标erank之外还需要什么&#34;&gt;监控指标：erank之外还需要什么&lt;/h2&gt;
+&lt;p&gt;erank只看谱的熵，VisReg loss只看K个随机sketch上的边际——各自有盲区。分布趋近isotropic Gaussian有三个正交的失效模式：各向异性（Σ≠I，二阶）、非高斯性（形状，高阶）、维度间依赖（联合结构），单一标量覆盖不了，用分层套件。&lt;/p&gt;
+&lt;p&gt;首先应该增加per-dim std以便诊断死维。std=0是完全死维——该维度在整个batch上是常数，不携带任何区分样本的信息。std=1只是达到scale项的目标值——只说明&amp;quot;非死&amp;quot;，不说明&amp;quot;有用&amp;quot;：方差来源可以是真实信息，可以是噪声，也可以是其他因子的重混合。&lt;/p&gt;
+&lt;p&gt;第二步、第三步是引入相关矩阵和kurtosis，用于判断方差是否&amp;quot;独立且高斯&amp;quot;。&lt;/p&gt;
+&lt;p&gt;最终如果为了追求完美，还可以算Epps-Pulley检验的多元闭式版本，于是整体就形成了不同时间尺度上的分层监控：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;每step 轻量metrics（O(D³)特征分解）：
+&lt;ul&gt;
+&lt;li&gt;逐维std直方图+erank。&lt;/li&gt;
+&lt;li&gt;log det Σ&lt;sup id=&#34;fnref:5&#34;&gt;&lt;a href=&#34;#fn:5&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;5&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;li&gt;−log det R&lt;sup id=&#34;fnref:6&#34;&gt;&lt;a href=&#34;#fn:6&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;6&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;每3k steps 中量metrics（O(B·D²)）：
+&lt;ul&gt;
+&lt;li&gt;逐维excess kurtosis与skew的均值/最大值——谱全平但每维尖峰厚尾时，谱指标完全无感，kurtosis立刻暴露。逐维边际都正态不等于联合正态（copula反例），所以这一层只查必要条件。&lt;/li&gt;
+&lt;li&gt;Mahalanobis χ²检验：若z~N(μ,Σ)，马氏距离平方d²=(z−μ)ᵀΣ⁻¹(z−μ)服从χ²_D。对batch算d²的经验分布，与χ²_D分位数做QQ图，或用KS距离压成单标量——同时检验径向轮廓（高斯的壳层结构）和椭球性，对&amp;quot;谱接近I但形状是球面均匀分布&amp;quot;这类二阶矩漏网之鱼很敏感。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;每10k steps 重量metrics（O(B²·D)）：
+&lt;ul&gt;
+&lt;li&gt;BHEP统计量——Epps-Pulley检验的多元闭式版本。权重取高斯核后积分有解析解，完全不需要数值积分和随机方向：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;$$T_\beta = \frac{1}{B^2}\sum_{j,k} e^{-\frac{\beta^2}{2}|Y_j - Y_k|^2} - \frac{2}{B}(1+\beta^2)^{-D/2}\sum_j e^{-\frac{\beta^2|Y_j|^2}{2(1+\beta^2)}} + (1+2\beta^2)^{-D/2}$$
+其中Y_j=Σ^{-1/2}(z_j−z̄)是studentized样本，β≈1即可。特征函数唯一确定分布，所以它对任何偏离多元正态的方向都非零——不会被因子重混合骗过，也没有sketch噪声。&lt;/p&gt;
+&lt;h2 id=&#34;vicregvisreg接力待验证&#34;&gt;VICReg→VisReg接力（待验证）&lt;/h2&gt;
+&lt;p&gt;一个待验证的想法：训练早期用VICReg的确定性约束迅速把erank撑起来，中后期切换成VisReg，让embedding分布收敛到isotropic高斯。&lt;/p&gt;
+&lt;p&gt;支持可行性的论据：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;VICReg的方差hinge对每个维度给确定性、满强度、不稀释的梯度，协方差项是确定性的去相关——恰好补上VisReg唯一的反坍缩通道（shape sketch）最弱的地方。早期坍缩压力最强时用硬约束顶住，符合防优先原则。&lt;/li&gt;
+&lt;li&gt;切换后VisReg只需在已撑开的谱上把形状修成高斯，回避它&amp;quot;从低秩恢复&amp;quot;的最弱项，发挥它&amp;quot;分布形状精修&amp;quot;的强项。&lt;/li&gt;
+&lt;li&gt;目标兼容：VICReg的约束（逐维std≥γ、去相关）是Σ=I的松版本，切换时没有目标冲突。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;风险与注意事项：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;VICReg只约束二阶矩，撑起来的&amp;quot;秩&amp;quot;可能是非高斯的怪形状，切换后VisReg需要额外预算修形状。&lt;/li&gt;
+&lt;li&gt;切换点由erank曲线决定（回升进入平台期即切），而非固定step；切换时λ保持连续，避免loss尺度跳变冲击优化。&lt;/li&gt;
+&lt;li&gt;更平滑的替代方案：不做硬切换，全程VisReg外加一个小的方差hinge项（或per-dim variance floor），用极低成本补上逐维确定性下限。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;验证方案：纯VisReg、VICReg→VisReg硬切换、VisReg+方差hinge混合，三组对照用同一λ调度，跟踪emb和proj两处erank曲线、逐维std直方图、下游音乐任务指标。预期后两组的早期erank不跌破报警线，且中后期收敛到不低于纯VisReg的水平。&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;
+&lt;p&gt;Bardes, Ponce, LeCun. VICReg: Variance-Invariance-Covariance Regularization for Self-Supervised Learning. ICLR 2022. &lt;a href=&#34;https://arxiv.org/abs/2105.04906&#34;&gt;[arxiv]&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;
+&lt;p&gt;Balestriero, LeCun. LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics. 2025. &lt;a href=&#34;https://arxiv.org/abs/2511.08544&#34;&gt;[arxiv]&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:2&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;
+&lt;p&gt;Epps, Pulley. A test for normality based on the empirical characteristic function. Biometrika 70(3), 1983.&amp;#160;&lt;a href=&#34;#fnref:3&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:4&#34;&gt;
+&lt;p&gt;不严谨的猜测：&amp;ldquo;稍好&amp;quot;可能只是因为排序匹配对低方差方向的恢复力强于被$e^{-t^2/2}$窗口钝化的特征函数匹配——两者梯度几何不同，需要更长的训练曲线验证。&amp;#160;&lt;a href=&#34;#fnref:4&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:5&#34;&gt;
+&lt;p&gt;log det Σ = Σᵢ log λᵢ，λᵢ为协方差特征值。几何上是高维椭球体积的对数——每个维度贡献一个log λ，死一个维度体积归零、log det→−∞，因此对濒死维度比erank敏感得多。scale项把trace锁定为D后，它在Σ=I取最大值；它还正比于高斯微分熵h = ½·log det(2πe·Σ)。&amp;#160;&lt;a href=&#34;#fnref:5&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:6&#34;&gt;
+&lt;p&gt;R是相关矩阵（Σ归一化到对角线全1）。−log det R度量维度间的整体相关性：R=I时为0，相关性越强行列式越小。对高斯分布，−½·log det R恰好等于total correlation，即各维互信息之和——因子丢失/重混合时它确定性升高，不经过任何sketch。&amp;#160;&lt;a href=&#34;#fnref:6&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content>
+    </item>
+    
     <item>
       <title>DSpark</title>
       <link>https://jipeng4974.github.io/posts/dspark/</link>

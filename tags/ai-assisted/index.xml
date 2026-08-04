@@ -6,7 +6,324 @@
     <description>Recent content in Ai-Assisted on Structure over Unstructured Realities</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 01 Aug 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/tags/ai-assisted/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 04 Aug 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/tags/ai-assisted/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Music LeJEPA Regularizers</title>
+      <link>https://jipeng4974.github.io/posts/music_lejepa_reg/</link>
+      <pubDate>Tue, 04 Aug 2026 00:00:00 +0000</pubDate>
+      <guid>https://jipeng4974.github.io/posts/music_lejepa_reg/</guid>
+      <description>&lt;p&gt;防止维度塌陷远比复活死维度简单——抗坍缩正则的λ调度艺术，建立在这种不对称性之上。&lt;/p&gt;
+&lt;p&gt;本文接续&lt;a href=&#34;https://jipeng4974.github.io/posts/music_lejepa/&#34;&gt;Music LeJEPA&lt;/a&gt;的实践，把VicReg、SigReg、VisReg三种正则项的数学原理、源码实现，以及实践中踩到的低秩局部最优陷阱一并归档。&lt;/p&gt;
+&lt;h2 id=&#34;三种正则&#34;&gt;三种正则&lt;/h2&gt;
+&lt;p&gt;三者都是JEPA式训练里的抗坍缩正则项，共用同一个框架：&lt;/p&gt;
+&lt;p&gt;$$L = \lambda \cdot L_{reg} + (1-\lambda) \cdot L_{inv}$$&lt;/p&gt;
+&lt;p&gt;proj形状&lt;code&gt;(V, B, D)&lt;/code&gt;——V个view、batch size B、embedding维度D。inv项让同一样本不同view的投影互相靠近（L2 loss），reg项防止所有样本坍缩成一个点。三种方法的区别只在reg项：把embedding分布约束成什么形状、用什么方式约束。&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;方法&lt;/th&gt;
+					&lt;th&gt;约束目标&lt;/th&gt;
+					&lt;th&gt;约束方式&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;VICReg&lt;/td&gt;
+					&lt;td&gt;每维方差≥γ，维度间去相关&lt;/td&gt;
+					&lt;td&gt;逐维统计量（二阶矩）&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;SIGReg&lt;/td&gt;
+					&lt;td&gt;embedding分布=各向同性标准高斯N(0,I)&lt;/td&gt;
+					&lt;td&gt;随机1D投影+特征函数匹配（Epps-Pulley检验）&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;VISReg&lt;/td&gt;
+					&lt;td&gt;同为N(0,I)，但分离center/scale/shape&lt;/td&gt;
+					&lt;td&gt;随机1D投影+排序分位数匹配（sliced Wasserstein风格）&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;vicreg&#34;&gt;VICReg&lt;/h2&gt;
+&lt;p&gt;VICReg&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;把&lt;code&gt;(V, B, D)&lt;/code&gt;的投影flatten成&lt;code&gt;N = V·B&lt;/code&gt;个样本，对每个维度施加两个约束。&lt;/p&gt;
+&lt;p&gt;方差项，用hinge loss把每维标准差推到阈值γ以上：&lt;/p&gt;
+&lt;p&gt;$$v(Z) = \frac{1}{D}\sum_{d=1}^{D} \max(0,\ \gamma - \mathrm{Std}(Z_{:,d}))^2$$&lt;/p&gt;
+&lt;p&gt;协方差项，惩罚协方差矩阵非对角元，让不同维度去相关：&lt;/p&gt;
+&lt;p&gt;$$c(Z) = \frac{1}{D}\sum_{i \neq j} \mathrm{Cov}(Z)_{i,j}^2$$&lt;/p&gt;
+&lt;p&gt;源码（连同invariance项之外的完整正则）：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch.nn &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; nn
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch.nn.functional &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; F
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;VICReg&lt;/span&gt;(nn&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Module):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;(self, var_weight&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;25.0&lt;/span&gt;, cov_weight&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;, gamma&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        super()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;var_weight &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; var_weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;cov_weight &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; cov_weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;gamma &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; gamma
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;forward&lt;/span&gt;(self, z):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        V, B, D &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;shape
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z_flat &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;reshape(V &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; B, D)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        std &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z_flat&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;std(dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1e-6&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        var_loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; F&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;relu(self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;gamma &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; std)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean()          &lt;span style=&#34;color:#75715e&#34;&gt;# hinge(γ - std)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z_centered &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z_flat &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; z_flat&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean(dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, keepdim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;True&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        cov &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (z_centered&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;T &lt;span style=&#34;color:#f92672&#34;&gt;@&lt;/span&gt; z_centered) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; (V &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; B &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)            &lt;span style=&#34;color:#75715e&#34;&gt;# D×D 协方差矩阵&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        off_diag &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; cov&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sum() &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; cov&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;diagonal()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sum()  &lt;span style=&#34;color:#75715e&#34;&gt;# 非对角元平方和&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        cov_loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; off_diag &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; D
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;var_weight &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; var_loss &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;cov_weight &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; cov_loss
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;优点是简单、无随机性、每个维度都能拿到确定性满强度的梯度。缺点同样直白——二阶矩约束不紧，方差够、协方差对角化的分布不一定是高斯（球面均匀分布也能蒙混过关）；且协方差矩阵是$O(B \cdot D^2)$，高维时昂贵。&lt;/p&gt;</description>
+      <content>&lt;p&gt;防止维度塌陷远比复活死维度简单——抗坍缩正则的λ调度艺术，建立在这种不对称性之上。&lt;/p&gt;
+&lt;p&gt;本文接续&lt;a href=&#34;https://jipeng4974.github.io/posts/music_lejepa/&#34;&gt;Music LeJEPA&lt;/a&gt;的实践，把VicReg、SigReg、VisReg三种正则项的数学原理、源码实现，以及实践中踩到的低秩局部最优陷阱一并归档。&lt;/p&gt;
+&lt;h2 id=&#34;三种正则&#34;&gt;三种正则&lt;/h2&gt;
+&lt;p&gt;三者都是JEPA式训练里的抗坍缩正则项，共用同一个框架：&lt;/p&gt;
+&lt;p&gt;$$L = \lambda \cdot L_{reg} + (1-\lambda) \cdot L_{inv}$$&lt;/p&gt;
+&lt;p&gt;proj形状&lt;code&gt;(V, B, D)&lt;/code&gt;——V个view、batch size B、embedding维度D。inv项让同一样本不同view的投影互相靠近（L2 loss），reg项防止所有样本坍缩成一个点。三种方法的区别只在reg项：把embedding分布约束成什么形状、用什么方式约束。&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;方法&lt;/th&gt;
+					&lt;th&gt;约束目标&lt;/th&gt;
+					&lt;th&gt;约束方式&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;VICReg&lt;/td&gt;
+					&lt;td&gt;每维方差≥γ，维度间去相关&lt;/td&gt;
+					&lt;td&gt;逐维统计量（二阶矩）&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;SIGReg&lt;/td&gt;
+					&lt;td&gt;embedding分布=各向同性标准高斯N(0,I)&lt;/td&gt;
+					&lt;td&gt;随机1D投影+特征函数匹配（Epps-Pulley检验）&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;VISReg&lt;/td&gt;
+					&lt;td&gt;同为N(0,I)，但分离center/scale/shape&lt;/td&gt;
+					&lt;td&gt;随机1D投影+排序分位数匹配（sliced Wasserstein风格）&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;vicreg&#34;&gt;VICReg&lt;/h2&gt;
+&lt;p&gt;VICReg&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;把&lt;code&gt;(V, B, D)&lt;/code&gt;的投影flatten成&lt;code&gt;N = V·B&lt;/code&gt;个样本，对每个维度施加两个约束。&lt;/p&gt;
+&lt;p&gt;方差项，用hinge loss把每维标准差推到阈值γ以上：&lt;/p&gt;
+&lt;p&gt;$$v(Z) = \frac{1}{D}\sum_{d=1}^{D} \max(0,\ \gamma - \mathrm{Std}(Z_{:,d}))^2$$&lt;/p&gt;
+&lt;p&gt;协方差项，惩罚协方差矩阵非对角元，让不同维度去相关：&lt;/p&gt;
+&lt;p&gt;$$c(Z) = \frac{1}{D}\sum_{i \neq j} \mathrm{Cov}(Z)_{i,j}^2$$&lt;/p&gt;
+&lt;p&gt;源码（连同invariance项之外的完整正则）：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch.nn &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; nn
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch.nn.functional &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; F
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;VICReg&lt;/span&gt;(nn&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Module):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;(self, var_weight&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;25.0&lt;/span&gt;, cov_weight&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;, gamma&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        super()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;var_weight &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; var_weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;cov_weight &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; cov_weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;gamma &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; gamma
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;forward&lt;/span&gt;(self, z):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        V, B, D &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;shape
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z_flat &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;reshape(V &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; B, D)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        std &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z_flat&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;std(dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1e-6&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        var_loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; F&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;relu(self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;gamma &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; std)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean()          &lt;span style=&#34;color:#75715e&#34;&gt;# hinge(γ - std)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z_centered &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z_flat &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; z_flat&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean(dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, keepdim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;True&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        cov &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (z_centered&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;T &lt;span style=&#34;color:#f92672&#34;&gt;@&lt;/span&gt; z_centered) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; (V &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; B &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)            &lt;span style=&#34;color:#75715e&#34;&gt;# D×D 协方差矩阵&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        off_diag &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; cov&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sum() &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; cov&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;diagonal()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sum()  &lt;span style=&#34;color:#75715e&#34;&gt;# 非对角元平方和&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        cov_loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; off_diag &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; D
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;var_weight &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; var_loss &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;cov_weight &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; cov_loss
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;优点是简单、无随机性、每个维度都能拿到确定性满强度的梯度。缺点同样直白——二阶矩约束不紧，方差够、协方差对角化的分布不一定是高斯（球面均匀分布也能蒙混过关）；且协方差矩阵是$O(B \cdot D^2)$，高维时昂贵。&lt;/p&gt;
+&lt;h2 id=&#34;sigreg&#34;&gt;SIGReg&lt;/h2&gt;
+&lt;p&gt;SIGReg出自LeJEPA&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;，数学上依赖两个统计学结果。&lt;/p&gt;
+&lt;p&gt;一是Cramér–Wold定理：D维分布由它所有1D投影唯一确定。随机采K个单位方向$a_1..a_K$，让每个投影$z \cdot a_k$都是N(0,1)，即逼近&amp;quot;整个分布是各向同性高斯&amp;quot;。&lt;/p&gt;
+&lt;p&gt;二是Epps–Pulley检验&lt;sup id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;：1983年的经典正态性拟合优度检验。依据是分布由其特征函数唯一确定（Bochner定理）。标准正态的特征函数是$\varphi(t) = e^{-t^2/2}$（纯实数），于是比较经验特征函数$\hat\varphi(t) = \frac{1}{N}\sum_j e^{itx_j}$与它的加权L2距离：&lt;/p&gt;
+&lt;p&gt;$$T = N \int_{-\infty}^{\infty} \left|\hat\varphi(t) - e^{-t^2/2}\right|^2 e^{-t^2/2}, dt$$&lt;/p&gt;
+&lt;p&gt;把模方展开成cos/sin实虚部，在$t \in [0, t_{max}]$上取knots个点做梯形数值积分（利用对称性，t&amp;lt;0部分权重翻倍），即得可微loss。关键在于这个统计量对样本完全可微——假设检验摇身一变成为正则项，这是LeJEPA的核心observation。&lt;/p&gt;
+&lt;p&gt;源码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch.nn &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; nn
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;SIGReg&lt;/span&gt;(nn&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Module):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;(self, &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;, knots: int &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;17&lt;/span&gt;, t_max: float &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;3.0&lt;/span&gt;, num_projections: int &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        super()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;num_projections &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; int(num_projections)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        t &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;linspace(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, float(t_max), int(knots), dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;float32)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        dt &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; float(t_max) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; (int(knots) &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        weights &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;full((int(knots),), &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; dt, dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;float32)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        weights[[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;]] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; dt                       &lt;span style=&#34;color:#75715e&#34;&gt;# 梯形规则：端点半权重&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        window &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;exp(&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;t&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;square() &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2.0&lt;/span&gt;)       &lt;span style=&#34;color:#75715e&#34;&gt;# 权重函数 = 目标特征函数&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;register_buffer(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;t&amp;#34;&lt;/span&gt;, t)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;register_buffer(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;phi&amp;#34;&lt;/span&gt;, window)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;register_buffer(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;weights&amp;#34;&lt;/span&gt;, weights &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; window)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;forward&lt;/span&gt;(self, proj: torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Tensor) &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Tensor:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        _, B, D &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;shape
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;randn(D, self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;num_projections, device&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;device, dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;dtype)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        A &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; A&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;div_(A&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;norm(p&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;, dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, keepdim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;True&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1e-12&lt;/span&gt;)   &lt;span style=&#34;color:#75715e&#34;&gt;# 随机单位投影方向&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        t &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;t&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;to(device&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;device, dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;dtype)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        phi &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;phi&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;to(device&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;device, dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;dtype)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        weights &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;weights&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;to(device&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;device, dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;proj&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;dtype)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        x_t &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (proj &lt;span style=&#34;color:#f92672&#34;&gt;@&lt;/span&gt; A)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;unsqueeze(&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; t                        &lt;span style=&#34;color:#75715e&#34;&gt;# (V,B,K,knots)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        err &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (x_t&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;cos()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean(&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; phi)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;square() &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; x_t&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sin()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean(&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;square()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        statistic &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (err &lt;span style=&#34;color:#f92672&#34;&gt;@&lt;/span&gt; weights) &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; B                           &lt;span style=&#34;color:#75715e&#34;&gt;# 每个投影的 EP 统计量&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; statistic&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; loss
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;逐行对应数学：&lt;code&gt;proj @ A&lt;/code&gt;是Cramér–Wold slicing，把embedding投到K=256个随机方向；&lt;code&gt;x_t.cos().mean(-3)&lt;/code&gt;和&lt;code&gt;x_t.sin().mean(-3)&lt;/code&gt;是经验特征函数的实虚部（对batch取均值）；误差项里虚部直接平方，因为标准正态特征函数是纯实数；&lt;code&gt;err @ weights&lt;/code&gt;是以$e^{-t^2/2}$为权重的梯形积分，×B是EP统计量的N倍缩放。&lt;/p&gt;
+&lt;p&gt;SIGReg约束的是完整分布而非二阶矩，理论上严格防坍缩，计算量$O(B \cdot D \cdot K)$，通常远小于VICReg的$O(B \cdot D^2)$。缺点是随机投影带来Monte Carlo噪声，且均值偏移、整体尺度、分布形状的惩罚混在一个统计量里，梯度信噪比一般。&lt;/p&gt;
+&lt;h2 id=&#34;visreg&#34;&gt;VisReg&lt;/h2&gt;
+&lt;p&gt;VisReg目标同为N(0,I)，但把约束确定性地拆成center/scale/shape三部分，替代SIGReg&amp;quot;什么都靠随机投影+特征函数&amp;quot;的做法。&lt;/p&gt;
+&lt;p&gt;Center，均值归零：&lt;/p&gt;
+&lt;p&gt;$$L_{center} = |\bar{z}|^2$$&lt;/p&gt;
+&lt;p&gt;Scale，到均值的RMS半径为1：&lt;/p&gt;
+&lt;p&gt;$$L_{scale} = \left(\frac{|z - \bar z|_2}{\sqrt{B}} - 1\right)^2$$&lt;/p&gt;
+&lt;p&gt;Shape，中心化归一化后在K个随机方向上投影，把排序后的样本值与标准正态的理论分位数对齐。标准正态的B个均匀分位点由逆误差函数给出：&lt;/p&gt;
+&lt;p&gt;$$q_i = \sqrt{2},\mathrm{erf}^{-1}!\left(\frac{2i}{B+1} - 1\right),\quad i = 1..B$$&lt;/p&gt;
+&lt;p&gt;$$L_{shape} = \frac{1}{K}\sum_{k}\frac{1}{B}\sum_{i}\left(\mathrm{sort}(z_{norm} \cdot a_k)_i - q_i\right)^2$$&lt;/p&gt;
+&lt;p&gt;这本质上是sliced 1D Wasserstein-2距离的平方——1D时W₂的最优传输就是排序对齐，方向随机化对应isotropic Gaussian的sketching。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; math
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch.nn &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; nn
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; torch.nn.functional &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; F
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;VISReg&lt;/span&gt;(nn&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Module):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;(self, num_projections: int &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt;, scale_weight: float &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                 shape_weight: float &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;, center_weight: float &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        super()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;__init__&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;K &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; num_projections
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;_cached_B &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;_cached_target &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;scale_weight &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; scale_weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;shape_weight &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; shape_weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;center_weight &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; center_weight
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;_get_target&lt;/span&gt;(self, B: int, device) &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Tensor:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;_cached_B &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; B:                      &lt;span style=&#34;color:#75715e&#34;&gt;# 目标分位数只依赖 B，缓存复用&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            q &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;linspace(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, B, B, device&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;device, dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;float32) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; (B &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;_cached_target &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;erfinv(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; q &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mul_(math&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sqrt(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;_cached_B &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; B
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;_cached_target&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;to(device&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;device)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;forward&lt;/span&gt;(self, z: torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Tensor) &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt; torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;Tensor:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        _, B, D &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;shape
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        mu &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean(dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, keepdim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;True&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        center_loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; mu&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean()                               &lt;span style=&#34;color:#75715e&#34;&gt;# center&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z_centered &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; mu
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        std &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z_centered&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;norm(dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;div(math&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sqrt(B))&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;clamp_min(&lt;span style=&#34;color:#ae81ff&#34;&gt;1e-6&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        scale_loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (std &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1.0&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean()                       &lt;span style=&#34;color:#75715e&#34;&gt;# scale&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        z_norm &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; z_centered &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; std&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;detach()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;unsqueeze(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)              &lt;span style=&#34;color:#75715e&#34;&gt;# detach: 形状与尺度解耦&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        W &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; F&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;normalize(torch&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;randn(D, self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;K, device&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;device, dtype&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;dtype), dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        p_sorted &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (z_norm &lt;span style=&#34;color:#f92672&#34;&gt;@&lt;/span&gt; W)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sort(dim&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;values                   &lt;span style=&#34;color:#75715e&#34;&gt;# K 个随机投影, 每个排序&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        target &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;_get_target(B, z&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;device)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;view(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, B, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)         &lt;span style=&#34;color:#75715e&#34;&gt;# N(0,1) 理论分位数&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        shape_loss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (p_sorted &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; target)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;pow(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;mean()               &lt;span style=&#34;color:#75715e&#34;&gt;# 排序对齐 = 1D W2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;scale_weight &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; scale_loss &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;shape_weight &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; shape_loss \
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;             &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;center_weight &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; center_loss
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;注意&lt;code&gt;std.detach()&lt;/code&gt;这一行——尺度学习完全交给scale_loss，shape_loss只负责&amp;quot;形状像不像正态&amp;quot;，两者梯度互不干扰。这是VisReg相对SIGReg梯度更干净的原因，也是后文陷阱的伏笔。center/scale用确定性闭式约束（无Monte Carlo噪声），只有shape用随机投影；t网格、knots这类超参也都省掉了。&lt;/p&gt;
+&lt;h2 id=&#34;实践观察erank先崩后升然后停滞&#34;&gt;实践观察：erank先崩后升，然后停滞&lt;/h2&gt;
+&lt;p&gt;我的设定：anchor music clip与degraded music clip做invariance对齐，同时施加正则项，用effective rank（embedding协方差谱的熵有效维度）监控坍缩。随机初始化时音乐频谱输入模型得到的embeds的erank约20~30，训练曲线呈现三阶段：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;早期迅速崩到~6——可以称之为维度塌陷；&lt;/li&gt;
+&lt;li&gt;缓慢回升到~100；&lt;/li&gt;
+&lt;li&gt;增速几乎归零，停滞。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;SigReg如此；VisReg稍好&lt;sup id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;4&lt;/a&gt;&lt;/sup&gt;；VICReg未试。&lt;/p&gt;
+&lt;p&gt;如果训练早期λ不调得比较大，inv loss迅速收敛，坍缩直接压倒正则。&lt;/p&gt;
+&lt;p&gt;另一个反常实验：VisReg + λ=0.99维持前3000步，erank早期不升反降，阴跌——而VisReg loss在同步下降。表面上embedding更接近isotropic Gaussian，dead dims却变多了。实践中我没见谁真的用0.99的λ，试了一下出乎意料，但数学上解释得通。&lt;/p&gt;
+&lt;h2 id=&#34;低秩局部最优陷阱&#34;&gt;低秩局部最优陷阱&lt;/h2&gt;
+&lt;p&gt;先说结论：VisReg的全局最优确实是N(0,I)，问题不在目标，在优化路径的梯度结构。loss度量边际分布形状，erank度量协方差谱，两者在优化路径上可以反向走。具体四个机制。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;(a) 恢复梯度是稀释且随机的。&lt;/strong&gt; shape项对高斯云N(0,Σ)在随机方向a上度量的领头项等价于W₂²，即$(a^\top\Sigma a - 1)^2$。对随机单位方向取期望：&lt;/p&gt;
+&lt;p&gt;$$\mathbb{E}_a\big[(a^\top\Sigma a - 1)^2\big] \propto \frac{|\Sigma - I|_F^2}{D}$$&lt;/p&gt;
+&lt;p&gt;Σ=I确实是全局最优，但单个濒死特征值对期望loss的贡献只有O(1/D)，而每步只用K=256个方向Monte Carlo估计，单步噪声~1/√K。相比之下invariance的坍缩压力是确定性的、每步满强度的——凡是对degradation敏感的维度都是inv loss的来源，梯度直接掐掉它。确定性坍缩对上随机稀释恢复，早期谁赢一目了然。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;(b) 自抑制：恢复力∝缺陷大小。&lt;/strong&gt; 特征值λ_j越小，它在sketch里留下的残差越小，恢复梯度越弱。且深度坍缩时B个样本在投影上几乎重合，排序匹配的相对顺序近乎随机，梯度被排列噪声主导。erank回升到~100后停滞不是&amp;quot;失去动力&amp;quot;，是恢复力衰减到与inv坍缩压力平衡的不动点。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;(c) 因子丢失逃逸路径。&lt;/strong&gt; &lt;code&gt;std.detach()&lt;/code&gt;的白化让shape项对逐维方差免疫，检测死维只剩scale_loss的$(std_d - 1)^2$——而它只问&amp;quot;方差是不是1&amp;quot;，不问&amp;quot;方差从哪来&amp;quot;。不妨设想embedding各维度是k个潜在因子的线性混合：网络丢掉一个因子后，把剩余k−1个因子重新混合，让每个坐标维仍保持std=1、均值0、边际钟形。此时center、scale、shape三项全绿，VisReg loss继续下降，erank掉一格。λ=0.99实验中&amp;quot;loss降、dead dims变多&amp;quot;正是这个机制。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;(d) λ=0.99主动走进陷阱。&lt;/strong&gt; rank的有用扩张只能由invariance任务驱动——reg只要云像高斯，不在乎样本在云里的排布（排序匹配在投影内置换不变）。0.99把inv锚定砍到0.01：样本相对几何失去维护，判别性因子被weight decay和噪声梯度慢慢侵蚀；reg主导时，从当前云出发最近的类高斯配置是&amp;quot;压缩、重排现有结构&amp;quot;而非&amp;quot;扩张新方向&amp;quot;——扩张需要编码新的输入信息，没有inv信号组织它。正则太纯，就是在优化一个与信息量正交的目标，低秩局域解成了最速下降方向。&lt;/p&gt;
+&lt;h2 id=&#34;λ调度防优先于救&#34;&gt;λ调度：防优先于救&lt;/h2&gt;
+&lt;p&gt;坍缩的下坡是确定性、满强度、逐维直接的；复活的上坡是O(1/D)稀释、1/√K带噪、且恢复力∝缺陷大小的——维度死得越深越难救，λ_j→0时梯度信噪比趋于零。不对称性极其悬殊。因此λ调度的首要目标不是&amp;quot;坍缩后把erank拉回来&amp;quot;，而是&amp;quot;根本不让坍缩发生&amp;quot;。一旦erank崩到个位数，后续训练大部分时间在还早期的债，且只能还到不动点为止。&lt;/p&gt;
+&lt;p&gt;具体策略：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;不用极端λ。0.99切断inv锚定，主动走进陷阱；太小则inv秒收敛直接坍缩。取中间偏大（0.5~0.8区间，按erank监控微调）。&lt;/li&gt;
+&lt;li&gt;λ从第0步就设在目标值附近（或只经数百步短warmup到位）。等看到erank下跌再调大λ已经晚了——死维恢复又慢又不完全，让inv从不在无监管状态下运行。&lt;/li&gt;
+&lt;li&gt;以erank为调度信号，而不是以loss为信号。VisReg loss下降不能说明分布健康（因子丢失路径），erank才是谱的直接度量。设一个下限报警线（如初始值的70%），跌破即升λ或降lr。&lt;/li&gt;
+&lt;li&gt;erank算在哪个空间要确认。VisReg作用在proj上，若监控的是emb，还有projector hiding的问题——projector可以把一个正在坍缩的emb白化成高斯proj。emb和proj的erank都监控。&lt;/li&gt;
+&lt;li&gt;逐维std直方图辅助诊断：std全≈1而erank掉，确认是因子丢失（相关性坍缩）；部分维std→0，是scale项被inv压制，说明λ不够。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;监控指标erank之外还需要什么&#34;&gt;监控指标：erank之外还需要什么&lt;/h2&gt;
+&lt;p&gt;erank只看谱的熵，VisReg loss只看K个随机sketch上的边际——各自有盲区。分布趋近isotropic Gaussian有三个正交的失效模式：各向异性（Σ≠I，二阶）、非高斯性（形状，高阶）、维度间依赖（联合结构），单一标量覆盖不了，用分层套件。&lt;/p&gt;
+&lt;p&gt;首先应该增加per-dim std以便诊断死维。std=0是完全死维——该维度在整个batch上是常数，不携带任何区分样本的信息。std=1只是达到scale项的目标值——只说明&amp;quot;非死&amp;quot;，不说明&amp;quot;有用&amp;quot;：方差来源可以是真实信息，可以是噪声，也可以是其他因子的重混合。&lt;/p&gt;
+&lt;p&gt;第二步、第三步是引入相关矩阵和kurtosis，用于判断方差是否&amp;quot;独立且高斯&amp;quot;。&lt;/p&gt;
+&lt;p&gt;最终如果为了追求完美，还可以算Epps-Pulley检验的多元闭式版本，于是整体就形成了不同时间尺度上的分层监控：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;每step 轻量metrics（O(D³)特征分解）：
+&lt;ul&gt;
+&lt;li&gt;逐维std直方图+erank。&lt;/li&gt;
+&lt;li&gt;log det Σ&lt;sup id=&#34;fnref:5&#34;&gt;&lt;a href=&#34;#fn:5&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;5&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;li&gt;−log det R&lt;sup id=&#34;fnref:6&#34;&gt;&lt;a href=&#34;#fn:6&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;6&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;每3k steps 中量metrics（O(B·D²)）：
+&lt;ul&gt;
+&lt;li&gt;逐维excess kurtosis与skew的均值/最大值——谱全平但每维尖峰厚尾时，谱指标完全无感，kurtosis立刻暴露。逐维边际都正态不等于联合正态（copula反例），所以这一层只查必要条件。&lt;/li&gt;
+&lt;li&gt;Mahalanobis χ²检验：若z~N(μ,Σ)，马氏距离平方d²=(z−μ)ᵀΣ⁻¹(z−μ)服从χ²_D。对batch算d²的经验分布，与χ²_D分位数做QQ图，或用KS距离压成单标量——同时检验径向轮廓（高斯的壳层结构）和椭球性，对&amp;quot;谱接近I但形状是球面均匀分布&amp;quot;这类二阶矩漏网之鱼很敏感。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;每10k steps 重量metrics（O(B²·D)）：
+&lt;ul&gt;
+&lt;li&gt;BHEP统计量——Epps-Pulley检验的多元闭式版本。权重取高斯核后积分有解析解，完全不需要数值积分和随机方向：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;$$T_\beta = \frac{1}{B^2}\sum_{j,k} e^{-\frac{\beta^2}{2}|Y_j - Y_k|^2} - \frac{2}{B}(1+\beta^2)^{-D/2}\sum_j e^{-\frac{\beta^2|Y_j|^2}{2(1+\beta^2)}} + (1+2\beta^2)^{-D/2}$$
+其中Y_j=Σ^{-1/2}(z_j−z̄)是studentized样本，β≈1即可。特征函数唯一确定分布，所以它对任何偏离多元正态的方向都非零——不会被因子重混合骗过，也没有sketch噪声。&lt;/p&gt;
+&lt;h2 id=&#34;vicregvisreg接力待验证&#34;&gt;VICReg→VisReg接力（待验证）&lt;/h2&gt;
+&lt;p&gt;一个待验证的想法：训练早期用VICReg的确定性约束迅速把erank撑起来，中后期切换成VisReg，让embedding分布收敛到isotropic高斯。&lt;/p&gt;
+&lt;p&gt;支持可行性的论据：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;VICReg的方差hinge对每个维度给确定性、满强度、不稀释的梯度，协方差项是确定性的去相关——恰好补上VisReg唯一的反坍缩通道（shape sketch）最弱的地方。早期坍缩压力最强时用硬约束顶住，符合防优先原则。&lt;/li&gt;
+&lt;li&gt;切换后VisReg只需在已撑开的谱上把形状修成高斯，回避它&amp;quot;从低秩恢复&amp;quot;的最弱项，发挥它&amp;quot;分布形状精修&amp;quot;的强项。&lt;/li&gt;
+&lt;li&gt;目标兼容：VICReg的约束（逐维std≥γ、去相关）是Σ=I的松版本，切换时没有目标冲突。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;风险与注意事项：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;VICReg只约束二阶矩，撑起来的&amp;quot;秩&amp;quot;可能是非高斯的怪形状，切换后VisReg需要额外预算修形状。&lt;/li&gt;
+&lt;li&gt;切换点由erank曲线决定（回升进入平台期即切），而非固定step；切换时λ保持连续，避免loss尺度跳变冲击优化。&lt;/li&gt;
+&lt;li&gt;更平滑的替代方案：不做硬切换，全程VisReg外加一个小的方差hinge项（或per-dim variance floor），用极低成本补上逐维确定性下限。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;验证方案：纯VisReg、VICReg→VisReg硬切换、VisReg+方差hinge混合，三组对照用同一λ调度，跟踪emb和proj两处erank曲线、逐维std直方图、下游音乐任务指标。预期后两组的早期erank不跌破报警线，且中后期收敛到不低于纯VisReg的水平。&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;
+&lt;p&gt;Bardes, Ponce, LeCun. VICReg: Variance-Invariance-Covariance Regularization for Self-Supervised Learning. ICLR 2022. &lt;a href=&#34;https://arxiv.org/abs/2105.04906&#34;&gt;[arxiv]&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;
+&lt;p&gt;Balestriero, LeCun. LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics. 2025. &lt;a href=&#34;https://arxiv.org/abs/2511.08544&#34;&gt;[arxiv]&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:2&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;
+&lt;p&gt;Epps, Pulley. A test for normality based on the empirical characteristic function. Biometrika 70(3), 1983.&amp;#160;&lt;a href=&#34;#fnref:3&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:4&#34;&gt;
+&lt;p&gt;不严谨的猜测：&amp;ldquo;稍好&amp;quot;可能只是因为排序匹配对低方差方向的恢复力强于被$e^{-t^2/2}$窗口钝化的特征函数匹配——两者梯度几何不同，需要更长的训练曲线验证。&amp;#160;&lt;a href=&#34;#fnref:4&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:5&#34;&gt;
+&lt;p&gt;log det Σ = Σᵢ log λᵢ，λᵢ为协方差特征值。几何上是高维椭球体积的对数——每个维度贡献一个log λ，死一个维度体积归零、log det→−∞，因此对濒死维度比erank敏感得多。scale项把trace锁定为D后，它在Σ=I取最大值；它还正比于高斯微分熵h = ½·log det(2πe·Σ)。&amp;#160;&lt;a href=&#34;#fnref:5&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:6&#34;&gt;
+&lt;p&gt;R是相关矩阵（Σ归一化到对角线全1）。−log det R度量维度间的整体相关性：R=I时为0，相关性越强行列式越小。对高斯分布，−½·log det R恰好等于total correlation，即各维互信息之和——因子丢失/重混合时它确定性升高，不经过任何sketch。&amp;#160;&lt;a href=&#34;#fnref:6&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content>
+    </item>
+    
     <item>
       <title>DSpark</title>
       <link>https://jipeng4974.github.io/posts/dspark/</link>
@@ -416,6 +733,199 @@
 &lt;ol&gt;
 &lt;li&gt;&lt;a href=&#34;https://github.com/MoonshotAI/Kimi-K3&#34;&gt;GitHub - MoonshotAI/Kimi-K3: Open Frontier Intelligence · GitHub&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>Recommender Systems</title>
+      <link>https://jipeng4974.github.io/posts/recomendation-systems/</link>
+      <pubDate>Wed, 22 Jan 2025 00:00:00 +0000</pubDate>
+      <guid>https://jipeng4974.github.io/posts/recomendation-systems/</guid>
+      <description>&lt;h2 id=&#34;搜推架构概述&#34;&gt;搜推架构概述&lt;/h2&gt;
+&lt;p&gt;传统搜推采用三层漏斗结构(matching召回/preranking粗排/ranking精排)。&lt;/p&gt;
+&lt;p&gt;召回阶段兼顾相关性和一定的排序能力，往往多路召回。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;传统三层结构中，召回和排序的分离导致商业回报较低，因此召回时可通过相关性模型做训练样本增强&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;，或将相关性badcase作为负反馈建模&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;li&gt;样本空间设计需考虑SSB问题&lt;sup id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;：
+&lt;ul&gt;
+&lt;li&gt;做in-batch负采样&lt;sup id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;4&lt;/a&gt;&lt;/sup&gt;和logQ流行度纠偏&lt;sup id=&#34;fnref:5&#34;&gt;&lt;a href=&#34;#fn:5&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;5&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;li&gt;构建中等难度负样本&lt;sup id=&#34;fnref:6&#34;&gt;&lt;a href=&#34;#fn:6&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;6&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;li&gt;可参考Pinterest广告检索的MUDA（Modified Unsupervised Domain Adaption）方法&lt;sup id=&#34;fnref:7&#34;&gt;&lt;a href=&#34;#fn:7&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;7&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;模型结构：朴素双塔、MVKE&lt;sup id=&#34;fnref:8&#34;&gt;&lt;a href=&#34;#fn:8&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;8&lt;/a&gt;&lt;/sup&gt;、QARM&lt;sup id=&#34;fnref:9&#34;&gt;&lt;a href=&#34;#fn:9&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;9&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;粗排阶段在相关性有保障的前提下，主要考虑排序能力，筛选出优质结果。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;粗排同样需要应对SSB。&lt;sup id=&#34;fnref:10&#34;&gt;&lt;a href=&#34;#fn:10&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;10&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;li&gt;除了传统粗排模型外，还可以考虑和精排对齐的方法：COPR&lt;sup id=&#34;fnref:11&#34;&gt;&lt;a href=&#34;#fn:11&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;11&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;精排阶段的目标是通过精细化建模与多维度优化，从候选集中选出最优内容，精准预测用户行为，最大化某种商业目标。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;精排：精细化打分百级候选（DeepFM、DIN、MMOE），侧重精准预测（CTR/CVR）和特征交互。&lt;/li&gt;
+&lt;li&gt;重排序：调优Top结果（PRM、DPP、MMR），侧重列表级优化（多样性、上下文）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;mobius&#34;&gt;Mobius&lt;/h2&gt;
+&lt;p&gt;Mobius项目旨在通过将CPM&lt;sup id=&#34;fnref:12&#34;&gt;&lt;a href=&#34;#fn:12&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;12&lt;/a&gt;&lt;/sup&gt;、CTR&lt;sup id=&#34;fnref:13&#34;&gt;&lt;a href=&#34;#fn:13&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;13&lt;/a&gt;&lt;/sup&gt;、CPA&lt;sup id=&#34;fnref:14&#34;&gt;&lt;a href=&#34;#fn:14&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;14&lt;/a&gt;&lt;/sup&gt;、ROI&lt;sup id=&#34;fnref:15&#34;&gt;&lt;a href=&#34;#fn:15&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;15&lt;/a&gt;&lt;/sup&gt;等商业指标整合到匹配层，同时保持低延迟和计算资源限制，从而提升效果。&lt;/p&gt;
+&lt;p&gt;Mobius有两项关键技术：主动学习的CTR模型和快速广告检索。前者通过教师-学生框架，利用已有相关性模型生成合成数据，增强CTR模型对长尾查询和广告的泛化能力。后者就是我们做内容检索方向非常熟悉的ANNS/MIPS和OPQ向量压缩等检索技术。&lt;/p&gt;
+&lt;p&gt;Mobius中，CTR模型是直接集成到了召回阶段（传统搜推的CTR往往在排序阶段，和召回割裂）的双塔DNN（query塔+ad塔），在召回时就同时考虑相关性和商业价值，对数十亿的广告候选也能做出高效筛选。&lt;/p&gt;
+&lt;p&gt;ANNS不必赘述，OPQ（Optimized Product Quantization）是一个新颖的高维向量低损压缩机制，对PQ稍作升级，对原始向量施加了正交矩阵R，使变换后的向量在子空间中分布更均匀，减少子向量之间的相关性，从而减少了PQ量化误差（PQ将向量分割成多个子向量，这些子向量之间可能存在相关性）。&lt;/p&gt;
+&lt;h2 id=&#34;not-to-recommend-loss&#34;&gt;&amp;ldquo;Not-to-Recommend&amp;rdquo; Loss&lt;/h2&gt;
+&lt;p&gt;Google在&lt;sup id=&#34;fnref1:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;中提出一个利用用户负反馈进行训练的&amp;quot;Not-to-Recommend&amp;quot; loss，显式地利用负反馈信号优化不推荐该项目的log-likelihood。这个loss和标准的正反馈交互交叉熵loss合并，形成一个兼顾正、负反馈的联合学习机制。&lt;/p&gt;
+&lt;p&gt;此前大多数利用负反馈的工作往往是ad-hoc的特征工程。&lt;/p&gt;
+&lt;h2 id=&#34;simans&#34;&gt;SimANS&lt;/h2&gt;
+&lt;p&gt;SimANS是针对密集文本检索任务剔除的负样本采样方法，旨在解决现有方法中存在的非信息性负样本（过于简单）和错误负样本（过于困难）问题。其核心思路是通过选择模糊负样本（ambiguous negatives）——即与正样本相关性分数接近的负样本，平衡样本的难度与信息量，从而提升模型训练效果。&lt;/p&gt;
+&lt;p&gt;其创新点在于首次明确将中等难度负样本（ambiguous negatives）作为核心采样目标，提出其梯度特性（均值大、方差小）的理论依据，并通过实验验证其对模型训练的重要性。&lt;/p&gt;
+&lt;p&gt;此外，SimANS引入了基于指数函数的概率分布，通过分数差异动态调整采样权重，避免固定策略（如随机或Top-k）的缺陷，同时兼顾计算效率。&lt;/p&gt;
+&lt;h2 id=&#34;muda&#34;&gt;MUDA&lt;/h2&gt;
+&lt;p&gt;传统推荐系统在训练数据中存在选择偏差，训练数据分布往往和实际推理时的数据分布不一致。广告检索领域，训练数据主要来自后续阶段（拍卖胜出者），这些数据是多轮筛选后的结果，和真实全量候选广告集有很大分布差异。&lt;/p&gt;
+&lt;p&gt;传统的基于用户行为的建模忽视了大量未被选中广告的信息，MUDA&lt;sup id=&#34;fnref1:7&#34;&gt;&lt;a href=&#34;#fn:7&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;7&lt;/a&gt;&lt;/sup&gt;将精排结果（即伪标签）转化为二元标签（正负例），用二元交叉熵loss替代回归损失，避免过拟合低置信度的伪标签，从而在训练中间接利用到哪些未被标记却与真实推理时数据分布更接近的数据。&lt;/p&gt;
+&lt;h2 id=&#34;mvke&#34;&gt;MVKE&lt;/h2&gt;
+&lt;p&gt;此前用户画像建模普遍使用多个独立双塔模型预测CTR和CVR&lt;sup id=&#34;fnref:16&#34;&gt;&lt;a href=&#34;#fn:16&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;16&lt;/a&gt;&lt;/sup&gt;，但存在数据稀疏（单一动作模型，比如仅点击、仅转化无法互补学习，导致数据稀疏动作的建模效果差）、特征交互不足（双塔模型两塔分离，用户和标签的交互不足，难以捕捉多主题偏好）的问题。&lt;/p&gt;
+&lt;p&gt;MVKE模型中设置了虚拟内核专家（VKE）和虚拟内核们（VKG门控结构）联合学习用户在不同动作（点击、付费）和主题（体育、汽车）上的偏好，提升用户画像多样性和准确性。MKVE中一个用户塔包含多个VKE，每个VKE负责用户偏好的一个特定领域，并通过所谓虚拟内核（某种可学习参数）指导特征交互。VKG根据标签embedding和虚拟内核动态融合不同VKE的输出。&lt;/p&gt;
+&lt;p&gt;在“点击-&amp;gt;转化”序列中，点击作为浅层任务，可以为转化这一深层任务提供基础信息。&lt;/p&gt;
+&lt;h2 id=&#34;qarm&#34;&gt;QARM&lt;/h2&gt;
+&lt;p&gt;QARM是基于MLLM（多模态大语言模型）的推荐架构。论文指出工业界推荐系统的MLLM有两个问题，一个是表示不匹配，一个是表示无法学习。前者指的是预训练的多模态模型与下游推荐任务的目标不一致（比如说图片表征本来是用来做image-text匹配的），后者指的是多模态表示在推荐模型中无法通过梯度更新进行优化（往往MLLM生成的表征只用做推荐模型的额外输入）。&lt;/p&gt;
+&lt;p&gt;QARM框架提出了Item Alignment（项目对齐机制）和Quantitative Code（量化编码机制）。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;对齐：通过业务特定的用户-项目交互数据（如高质量Item2Item对），微调预训练多模态模型，使表征与下游任务对齐。例如，针对电商场景调整因果商品关系，而非通用语义对齐。&lt;/li&gt;
+&lt;li&gt;量化：将对齐后的多模态表征转换为可学习的离散编码ID（如VQ向量量化与RQ残差量化），支持端到端训练。编码ID作为推荐模型的输入特征（如用户兴趣序列、物品属性），替代静态表征。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;ash--asmol&#34;&gt;ASH &amp;amp; ASMOL&lt;/h2&gt;
+&lt;p&gt;传统粗排往往被视为迷你精排，用轻量模型，依赖AUC等有序列表评估指标，但这种方法的离线评估和在线A/B测试结果不一致。而且粗排的目标其实不是生成有序列表，而应该是高质量无序候选集。&lt;/p&gt;
+&lt;p&gt;论文&lt;sup id=&#34;fnref1:10&#34;&gt;&lt;a href=&#34;#fn:10&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;10&lt;/a&gt;&lt;/sup&gt;认为盲目模仿精排模型会限制粗排潜力，需专注集合质量而非单纯一致性。&lt;/p&gt;
+&lt;p&gt;论文引入ASH(All-Scenario Hitrate)指标，将推荐、购物车等不同场景的购买正样本都放在一起，缓解单一场景样本偏差，更全面地衡量粗排候选集质量。实验证明ASH与在线GMV强相关，优于传统指标AUC(Area Under the ROC Curve)&lt;sup id=&#34;fnref:17&#34;&gt;&lt;a href=&#34;#fn:17&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;17&lt;/a&gt;&lt;/sup&gt;、ISPH(In-Scenario Purchase Hitrate)。&lt;/p&gt;
+&lt;p&gt;论文还提出来多目标学习框架ASMOL：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;全空间训练样本：整合曝光样本、排序候选样本、预排序候选样本，覆盖更全面的数据分布。&lt;/li&gt;
+&lt;li&gt;多目标损失：联合优化曝光、点击、购买任务，学习优先级（购买 &amp;gt; 点击 &amp;gt; 曝光）。&lt;/li&gt;
+&lt;li&gt;知识蒸馏：从排序模型蒸馏知识，但仅针对曝光样本（避免噪声干扰）。&lt;/li&gt;
+&lt;li&gt;单模型架构：统一模型处理多任务，优于传统多模型策略。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;copr&#34;&gt;COPR&lt;/h2&gt;
+&lt;p&gt;COPR&lt;sup id=&#34;fnref1:11&#34;&gt;&lt;a href=&#34;#fn:11&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;11&lt;/a&gt;&lt;/sup&gt;察觉到相对轻量的粗排模型的能力不如复杂精排模型，因此以对齐精排结果为目标建模，通过分块采样和排序对齐，将目标从分数对齐放宽为排序对齐，有效缓解了模型容量差异与投标误差放大的问题。其即插即用设计可适配多种预排序模型，并在淘宝广告系统中成功落地，显著提升了广告效果与平台收益。该研究为级联架构中的模型协同优化提供了新思路。&lt;/p&gt;</description>
+      <content>&lt;h2 id=&#34;搜推架构概述&#34;&gt;搜推架构概述&lt;/h2&gt;
+&lt;p&gt;传统搜推采用三层漏斗结构(matching召回/preranking粗排/ranking精排)。&lt;/p&gt;
+&lt;p&gt;召回阶段兼顾相关性和一定的排序能力，往往多路召回。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;传统三层结构中，召回和排序的分离导致商业回报较低，因此召回时可通过相关性模型做训练样本增强&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;，或将相关性badcase作为负反馈建模&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;li&gt;样本空间设计需考虑SSB问题&lt;sup id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;：
+&lt;ul&gt;
+&lt;li&gt;做in-batch负采样&lt;sup id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;4&lt;/a&gt;&lt;/sup&gt;和logQ流行度纠偏&lt;sup id=&#34;fnref:5&#34;&gt;&lt;a href=&#34;#fn:5&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;5&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;li&gt;构建中等难度负样本&lt;sup id=&#34;fnref:6&#34;&gt;&lt;a href=&#34;#fn:6&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;6&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;li&gt;可参考Pinterest广告检索的MUDA（Modified Unsupervised Domain Adaption）方法&lt;sup id=&#34;fnref:7&#34;&gt;&lt;a href=&#34;#fn:7&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;7&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;模型结构：朴素双塔、MVKE&lt;sup id=&#34;fnref:8&#34;&gt;&lt;a href=&#34;#fn:8&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;8&lt;/a&gt;&lt;/sup&gt;、QARM&lt;sup id=&#34;fnref:9&#34;&gt;&lt;a href=&#34;#fn:9&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;9&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;粗排阶段在相关性有保障的前提下，主要考虑排序能力，筛选出优质结果。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;粗排同样需要应对SSB。&lt;sup id=&#34;fnref:10&#34;&gt;&lt;a href=&#34;#fn:10&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;10&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;li&gt;除了传统粗排模型外，还可以考虑和精排对齐的方法：COPR&lt;sup id=&#34;fnref:11&#34;&gt;&lt;a href=&#34;#fn:11&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;11&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;精排阶段的目标是通过精细化建模与多维度优化，从候选集中选出最优内容，精准预测用户行为，最大化某种商业目标。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;精排：精细化打分百级候选（DeepFM、DIN、MMOE），侧重精准预测（CTR/CVR）和特征交互。&lt;/li&gt;
+&lt;li&gt;重排序：调优Top结果（PRM、DPP、MMR），侧重列表级优化（多样性、上下文）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;mobius&#34;&gt;Mobius&lt;/h2&gt;
+&lt;p&gt;Mobius项目旨在通过将CPM&lt;sup id=&#34;fnref:12&#34;&gt;&lt;a href=&#34;#fn:12&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;12&lt;/a&gt;&lt;/sup&gt;、CTR&lt;sup id=&#34;fnref:13&#34;&gt;&lt;a href=&#34;#fn:13&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;13&lt;/a&gt;&lt;/sup&gt;、CPA&lt;sup id=&#34;fnref:14&#34;&gt;&lt;a href=&#34;#fn:14&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;14&lt;/a&gt;&lt;/sup&gt;、ROI&lt;sup id=&#34;fnref:15&#34;&gt;&lt;a href=&#34;#fn:15&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;15&lt;/a&gt;&lt;/sup&gt;等商业指标整合到匹配层，同时保持低延迟和计算资源限制，从而提升效果。&lt;/p&gt;
+&lt;p&gt;Mobius有两项关键技术：主动学习的CTR模型和快速广告检索。前者通过教师-学生框架，利用已有相关性模型生成合成数据，增强CTR模型对长尾查询和广告的泛化能力。后者就是我们做内容检索方向非常熟悉的ANNS/MIPS和OPQ向量压缩等检索技术。&lt;/p&gt;
+&lt;p&gt;Mobius中，CTR模型是直接集成到了召回阶段（传统搜推的CTR往往在排序阶段，和召回割裂）的双塔DNN（query塔+ad塔），在召回时就同时考虑相关性和商业价值，对数十亿的广告候选也能做出高效筛选。&lt;/p&gt;
+&lt;p&gt;ANNS不必赘述，OPQ（Optimized Product Quantization）是一个新颖的高维向量低损压缩机制，对PQ稍作升级，对原始向量施加了正交矩阵R，使变换后的向量在子空间中分布更均匀，减少子向量之间的相关性，从而减少了PQ量化误差（PQ将向量分割成多个子向量，这些子向量之间可能存在相关性）。&lt;/p&gt;
+&lt;h2 id=&#34;not-to-recommend-loss&#34;&gt;&amp;ldquo;Not-to-Recommend&amp;rdquo; Loss&lt;/h2&gt;
+&lt;p&gt;Google在&lt;sup id=&#34;fnref1:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;中提出一个利用用户负反馈进行训练的&amp;quot;Not-to-Recommend&amp;quot; loss，显式地利用负反馈信号优化不推荐该项目的log-likelihood。这个loss和标准的正反馈交互交叉熵loss合并，形成一个兼顾正、负反馈的联合学习机制。&lt;/p&gt;
+&lt;p&gt;此前大多数利用负反馈的工作往往是ad-hoc的特征工程。&lt;/p&gt;
+&lt;h2 id=&#34;simans&#34;&gt;SimANS&lt;/h2&gt;
+&lt;p&gt;SimANS是针对密集文本检索任务剔除的负样本采样方法，旨在解决现有方法中存在的非信息性负样本（过于简单）和错误负样本（过于困难）问题。其核心思路是通过选择模糊负样本（ambiguous negatives）——即与正样本相关性分数接近的负样本，平衡样本的难度与信息量，从而提升模型训练效果。&lt;/p&gt;
+&lt;p&gt;其创新点在于首次明确将中等难度负样本（ambiguous negatives）作为核心采样目标，提出其梯度特性（均值大、方差小）的理论依据，并通过实验验证其对模型训练的重要性。&lt;/p&gt;
+&lt;p&gt;此外，SimANS引入了基于指数函数的概率分布，通过分数差异动态调整采样权重，避免固定策略（如随机或Top-k）的缺陷，同时兼顾计算效率。&lt;/p&gt;
+&lt;h2 id=&#34;muda&#34;&gt;MUDA&lt;/h2&gt;
+&lt;p&gt;传统推荐系统在训练数据中存在选择偏差，训练数据分布往往和实际推理时的数据分布不一致。广告检索领域，训练数据主要来自后续阶段（拍卖胜出者），这些数据是多轮筛选后的结果，和真实全量候选广告集有很大分布差异。&lt;/p&gt;
+&lt;p&gt;传统的基于用户行为的建模忽视了大量未被选中广告的信息，MUDA&lt;sup id=&#34;fnref1:7&#34;&gt;&lt;a href=&#34;#fn:7&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;7&lt;/a&gt;&lt;/sup&gt;将精排结果（即伪标签）转化为二元标签（正负例），用二元交叉熵loss替代回归损失，避免过拟合低置信度的伪标签，从而在训练中间接利用到哪些未被标记却与真实推理时数据分布更接近的数据。&lt;/p&gt;
+&lt;h2 id=&#34;mvke&#34;&gt;MVKE&lt;/h2&gt;
+&lt;p&gt;此前用户画像建模普遍使用多个独立双塔模型预测CTR和CVR&lt;sup id=&#34;fnref:16&#34;&gt;&lt;a href=&#34;#fn:16&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;16&lt;/a&gt;&lt;/sup&gt;，但存在数据稀疏（单一动作模型，比如仅点击、仅转化无法互补学习，导致数据稀疏动作的建模效果差）、特征交互不足（双塔模型两塔分离，用户和标签的交互不足，难以捕捉多主题偏好）的问题。&lt;/p&gt;
+&lt;p&gt;MVKE模型中设置了虚拟内核专家（VKE）和虚拟内核们（VKG门控结构）联合学习用户在不同动作（点击、付费）和主题（体育、汽车）上的偏好，提升用户画像多样性和准确性。MKVE中一个用户塔包含多个VKE，每个VKE负责用户偏好的一个特定领域，并通过所谓虚拟内核（某种可学习参数）指导特征交互。VKG根据标签embedding和虚拟内核动态融合不同VKE的输出。&lt;/p&gt;
+&lt;p&gt;在“点击-&amp;gt;转化”序列中，点击作为浅层任务，可以为转化这一深层任务提供基础信息。&lt;/p&gt;
+&lt;h2 id=&#34;qarm&#34;&gt;QARM&lt;/h2&gt;
+&lt;p&gt;QARM是基于MLLM（多模态大语言模型）的推荐架构。论文指出工业界推荐系统的MLLM有两个问题，一个是表示不匹配，一个是表示无法学习。前者指的是预训练的多模态模型与下游推荐任务的目标不一致（比如说图片表征本来是用来做image-text匹配的），后者指的是多模态表示在推荐模型中无法通过梯度更新进行优化（往往MLLM生成的表征只用做推荐模型的额外输入）。&lt;/p&gt;
+&lt;p&gt;QARM框架提出了Item Alignment（项目对齐机制）和Quantitative Code（量化编码机制）。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;对齐：通过业务特定的用户-项目交互数据（如高质量Item2Item对），微调预训练多模态模型，使表征与下游任务对齐。例如，针对电商场景调整因果商品关系，而非通用语义对齐。&lt;/li&gt;
+&lt;li&gt;量化：将对齐后的多模态表征转换为可学习的离散编码ID（如VQ向量量化与RQ残差量化），支持端到端训练。编码ID作为推荐模型的输入特征（如用户兴趣序列、物品属性），替代静态表征。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;ash--asmol&#34;&gt;ASH &amp;amp; ASMOL&lt;/h2&gt;
+&lt;p&gt;传统粗排往往被视为迷你精排，用轻量模型，依赖AUC等有序列表评估指标，但这种方法的离线评估和在线A/B测试结果不一致。而且粗排的目标其实不是生成有序列表，而应该是高质量无序候选集。&lt;/p&gt;
+&lt;p&gt;论文&lt;sup id=&#34;fnref1:10&#34;&gt;&lt;a href=&#34;#fn:10&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;10&lt;/a&gt;&lt;/sup&gt;认为盲目模仿精排模型会限制粗排潜力，需专注集合质量而非单纯一致性。&lt;/p&gt;
+&lt;p&gt;论文引入ASH(All-Scenario Hitrate)指标，将推荐、购物车等不同场景的购买正样本都放在一起，缓解单一场景样本偏差，更全面地衡量粗排候选集质量。实验证明ASH与在线GMV强相关，优于传统指标AUC(Area Under the ROC Curve)&lt;sup id=&#34;fnref:17&#34;&gt;&lt;a href=&#34;#fn:17&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;17&lt;/a&gt;&lt;/sup&gt;、ISPH(In-Scenario Purchase Hitrate)。&lt;/p&gt;
+&lt;p&gt;论文还提出来多目标学习框架ASMOL：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;全空间训练样本：整合曝光样本、排序候选样本、预排序候选样本，覆盖更全面的数据分布。&lt;/li&gt;
+&lt;li&gt;多目标损失：联合优化曝光、点击、购买任务，学习优先级（购买 &amp;gt; 点击 &amp;gt; 曝光）。&lt;/li&gt;
+&lt;li&gt;知识蒸馏：从排序模型蒸馏知识，但仅针对曝光样本（避免噪声干扰）。&lt;/li&gt;
+&lt;li&gt;单模型架构：统一模型处理多任务，优于传统多模型策略。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;copr&#34;&gt;COPR&lt;/h2&gt;
+&lt;p&gt;COPR&lt;sup id=&#34;fnref1:11&#34;&gt;&lt;a href=&#34;#fn:11&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;11&lt;/a&gt;&lt;/sup&gt;察觉到相对轻量的粗排模型的能力不如复杂精排模型，因此以对齐精排结果为目标建模，通过分块采样和排序对齐，将目标从分数对齐放宽为排序对齐，有效缓解了模型容量差异与投标误差放大的问题。其即插即用设计可适配多种预排序模型，并在淘宝广告系统中成功落地，显著提升了广告效果与平台收益。该研究为级联架构中的模型协同优化提供了新思路。&lt;/p&gt;
+&lt;p&gt;COPR缺乏探索策略。分块采样可能保留不同优先级的广告组，ΔNDCG加权更关注头部广告的排序正确性，这主要影响排序的准确性而非多样性。如果头部广告本身多样性不足（如重复推荐同类高CTR广告），则可能引发信息茧房。&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;
+&lt;p&gt;MOBIUS: Towards the Next Generation of Query-Ad Matching in
+Baidu’s Sponsored Search. &lt;a href=&#34;https://arxiv.org/pdf/2409.03449&#34;&gt;[pdf]&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;
+&lt;p&gt;Learning from Negative User Feedback and Measuring
+Responsiveness for Sequential Recommenders. &lt;a href=&#34;https://arxiv.org/pdf/2308.12256&#34;&gt;[pdf]&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:2&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref1:2&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;
+&lt;p&gt;SSB(Sample Selection Bias)是指训练数据中样本选择过程不随机或不符合真实数据分布，影响模型效果的问题。推荐系统中，热门项目往往占据大部分用户交互数据（数据分布highly skewed才是常态），长尾项目（冷门项目）的数据过于稀疏，若模型过度依赖热门项目的数据，则容易导致对长尾项目的推荐效果不佳。负样本（用户未交户的项目）若随机采样，很容易导致占比高的热门项目倍过度采样为负样本，又会对热门项目不公平。此外，训练数据若来自特定时间段，而测试数据又来自另一时间段，则可能导致对历史时期的过拟合，无法适应当下潮流。&amp;#160;&lt;a href=&#34;#fnref:3&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:4&#34;&gt;
+&lt;p&gt;In-batch负采样是简化负样本采样的方法，对当前训练批次中每个正样本（user-item pair）之外的其他项目都作为负样本。这样做可以直接从当前批次获取负样本，无需额外采样操作，也不必维护一个全局负样本池，降低计算开销（大规模推荐系统的项目太多，每次训练都从整个数据集随机采样负样本非常耗时，也容易导致热门项目倍过度采样为负样本）。这么做也有缺点，比如负样本多样性不足。&amp;#160;&lt;a href=&#34;#fnref:4&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:5&#34;&gt;
+&lt;p&gt;估计项目的流行度（被采样的概率）并用logQ修正模型得分，减少负采样中对热门项目的过度惩罚，详见&lt;a href=&#34;https://dl.acm.org/doi/abs/10.1145/3298689.3346996&#34;&gt;Sampling-Bias-Corrected Neural Modeling for Large Corpus Item Recommendations&lt;/a&gt;。这里的logQ correction受启发自&lt;a href=&#34;https://www.iro.umontreal.ca/~lisa/pointeurs/importance_samplingIEEEtnn.pdf&#34;&gt;sampled softmax model&lt;/a&gt;。&amp;#160;&lt;a href=&#34;#fnref:5&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:6&#34;&gt;
+&lt;p&gt;简单in-batch随机负采样生成的非信息性负样本往往过于简单，更均衡的负采样方法参考：SimANS: Simple Ambiguous Negatives Sampling for Dense Text Retrieval. &lt;a href=&#34;https://arxiv.org/pdf/2210.11773&#34;&gt;[pdf]&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:6&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:7&#34;&gt;
+&lt;p&gt;An Empirical Study of Selection Bias in Pinterest Ads Retrieval. &lt;a href=&#34;https://dl.acm.org/doi/pdf/10.1145/3580305.3599771&#34;&gt;[pdf]&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:7&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref1:7&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:8&#34;&gt;
+&lt;p&gt;Mixture of Virtual-Kernel Experts for Multi-Objective User Profile Modeling. &lt;a href=&#34;https://arxiv.org/pdf/2106.07356&#34;&gt;[pdf]&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:8&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:9&#34;&gt;
+&lt;p&gt;QARM: Quantitative Alignment Multi-Modal Recommendation at Kuaishou. &lt;a href=&#34;https://arxiv.org/pdf/2411.11739&#34;&gt;[pdf]&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:9&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:10&#34;&gt;
+&lt;p&gt;Rethinking the Role of Pre-ranking in Large-scale E-Commerce Searching System. &lt;a href=&#34;https://arxiv.org/pdf/2305.13647&#34;&gt;[pdf]&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:10&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref1:10&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:11&#34;&gt;
+&lt;p&gt;COPR: Consistency-Oriented Pre-Ranking for Online Advertising. &lt;a href=&#34;https://arxiv.org/pdf/2306.03516&#34;&gt;[pdf]&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:11&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref1:11&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:12&#34;&gt;
+&lt;p&gt;CPM(Cost per Mile)为千次广告展示的成本，适用于品牌曝光。&amp;#160;&lt;a href=&#34;#fnref:12&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:13&#34;&gt;
+&lt;p&gt;CTR(Click-through Rate)为用户点击率，适用于搜索广告。&amp;#160;&lt;a href=&#34;#fnref:13&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:14&#34;&gt;
+&lt;p&gt;CPA(Cost per Action)为每次用户行为成本（入下载、购买），适用于深度目标转化。&amp;#160;&lt;a href=&#34;#fnref:14&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:15&#34;&gt;
+&lt;p&gt;ROI(Return on Investment)为投资回报率，收益和成本的比值。&amp;#160;&lt;a href=&#34;#fnref:15&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:16&#34;&gt;
+&lt;p&gt;CVR(Conversion Rate)：转化次数和点击次数的比值。&amp;#160;&lt;a href=&#34;#fnref:16&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:17&#34;&gt;
+&lt;p&gt;ROC(Receiver Operating Characteristic Curve)曲线即受试者工作特征曲线，是一种用于评估二分类模型性能的工具，以真阳率TPR为纵轴、假阳率FPR为横轴，对每一个阈值，计算对应的（FPR, TPR）坐标点，将这些点按阈值从高到低连接起来，即形成ROC曲线。AUC即ROC曲线下面积，AUC=1即为完美分类器，AUC=0.5为随机猜测。&amp;#160;&lt;a href=&#34;#fnref:17&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
 </content>
     </item>
     

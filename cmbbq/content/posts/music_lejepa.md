@@ -2,7 +2,7 @@
 title = "Music LeJEPA"
 date = "2026-07-13"
 tags = ["ai"]
-description = "初试Music LeJEPA（未完待续）。"
+description = "初试Music LeJEPA（未完待续）"
 showFullContent = false
 +++
 
