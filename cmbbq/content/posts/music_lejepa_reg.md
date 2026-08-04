@@ -254,6 +254,7 @@ $$T_\beta = \frac{1}{B^2}\sum_{j,k} e^{-\frac{\beta^2}{2}\|Y_j - Y_k\|^2} - \fra
 1. 可以考虑训练早期用VICReg的确定性约束迅速把erank撑起来，中后期切换成VisReg，让embedding分布收敛到isotropic高斯。
 2. 将VIC的协方差项加入VIS中。
 3. 对VIS的scale项进行改进，避免过度稀释，通过更强力的scale项保证下限，硬抬eranks。
+4. 考虑curriculum learning，一开始先不要让invariance的强度太高，把degradation合成做难度分级，先从最简单的开始（比如轻微的变速变调，轻微加噪），再逐步增加难度。过于困难的对齐，也容易逼迫模型找到正则项漏洞进行hacking——当然这种hacking也不是全然无用，至少有指明更好的正则项设计的作用。
 
 ```
 # 现状：1/D 平均，死维的求救信号被 512 分母稀释
