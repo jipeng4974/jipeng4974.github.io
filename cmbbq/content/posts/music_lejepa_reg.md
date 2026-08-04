@@ -6,9 +6,7 @@ description = "再试Music LeJEPA之抗坍缩正则"
 showFullContent = false
 +++
 
-防止维度塌陷远比复活死维度简单——抗坍缩正则的λ调度艺术，建立在这种不对称性之上。
-
-本文接续[Music LeJEPA](https://jipeng4974.github.io/posts/music_lejepa/)的实践，把VicReg、SigReg、VisReg三种正则项的数学原理、源码实现，以及实践中踩到的低秩局部最优陷阱一并归档。
+本文接续[Music LeJEPA](https://jipeng4974.github.io/posts/music_lejepa/)的实践，梳理VicReg、SigReg、VisReg三种正则项的数学原理、源码实现，以及实践中踩到的低秩局部最优陷阱，并基于“防止维度塌陷远比复活死维度简单”这一直觉，提出抗坍缩正则的λ调度策略。
 
 ## 三种正则
 
@@ -186,7 +184,7 @@ class VISReg(nn.Module):
 
 ## 实践观察：erank先崩后升，然后停滞
 
-我的设定：anchor music clip与degraded music clip做invariance对齐，同时施加正则项，用effective rank（embedding协方差谱的熵有效维度）监控坍缩。随机初始化时音乐频谱输入模型得到的embeds的erank约20~30，训练曲线呈现三阶段：
+我的设定：anchor music clip与degraded music clip做invariance对齐，同时施加常规λ正则项，用effective rank（embedding协方差谱的熵有效维度）监控坍缩。随机初始化时音乐频谱输入模型得到的embeds的erank约20~30，训练曲线呈现三阶段：
 
 - 早期迅速崩到~6——可以称之为维度塌陷；
 - 缓慢回升到~100；
@@ -194,7 +192,7 @@ class VISReg(nn.Module):
 
 SigReg如此；VisReg稍好[^4]；VICReg未试。
 
-如果训练早期λ不调得比较大，inv loss迅速收敛，坍缩直接压倒正则。
+如果训练早期λ不调得比较大（超过自然图像训练中的常见设定），inv loss迅速收敛，坍缩直接压倒正则。
 
 另一个反常实验：VisReg + λ=0.99维持前3000步，erank早期不升反降，阴跌——而VisReg loss在同步下降。表面上embedding更接近isotropic Gaussian，dead dims却变多了。实践中我没见谁真的用0.99的λ，试了一下出乎意料，但数学上解释得通。
 

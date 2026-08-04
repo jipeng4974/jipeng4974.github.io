@@ -132,8 +132,7 @@
   
 
   <div class="post-content"><div>
-        <p>防止维度塌陷远比复活死维度简单——抗坍缩正则的λ调度艺术，建立在这种不对称性之上。</p>
-<p>本文接续<a href="https://jipeng4974.github.io/posts/music_lejepa/">Music LeJEPA</a>的实践，把VicReg、SigReg、VisReg三种正则项的数学原理、源码实现，以及实践中踩到的低秩局部最优陷阱一并归档。</p>
+        <p>本文接续<a href="https://jipeng4974.github.io/posts/music_lejepa/">Music LeJEPA</a>的实践，梳理VicReg、SigReg、VisReg三种正则项的数学原理、源码实现，以及实践中踩到的低秩局部最优陷阱，并基于“防止维度塌陷远比复活死维度简单”这一直觉，提出抗坍缩正则的λ调度策略。</p>
 <h2 id="三种正则">三种正则<a href="#三种正则" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p>三者都是JEPA式训练里的抗坍缩正则项，共用同一个框架：</p>
 <p>$$L = \lambda \cdot L_{reg} + (1-\lambda) \cdot L_{inv}$$</p>
@@ -288,14 +287,14 @@
 </span></span><span style="display:flex;"><span>             <span style="color:#f92672">+</span> self<span style="color:#f92672">.</span>center_weight <span style="color:#f92672">*</span> center_loss
 </span></span></code></pre></div><p>注意<code>std.detach()</code>这一行——尺度学习完全交给scale_loss，shape_loss只负责&quot;形状像不像正态&quot;，两者梯度互不干扰。这是VisReg相对SIGReg梯度更干净的原因，也是后文陷阱的伏笔。center/scale用确定性闭式约束（无Monte Carlo噪声），只有shape用随机投影；t网格、knots这类超参也都省掉了。</p>
 <h2 id="实践观察erank先崩后升然后停滞">实践观察：erank先崩后升，然后停滞<a href="#实践观察erank先崩后升然后停滞" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
-<p>我的设定：anchor music clip与degraded music clip做invariance对齐，同时施加正则项，用effective rank（embedding协方差谱的熵有效维度）监控坍缩。随机初始化时音乐频谱输入模型得到的embeds的erank约20~30，训练曲线呈现三阶段：</p>
+<p>我的设定：anchor music clip与degraded music clip做invariance对齐，同时施加常规λ正则项，用effective rank（embedding协方差谱的熵有效维度）监控坍缩。随机初始化时音乐频谱输入模型得到的embeds的erank约20~30，训练曲线呈现三阶段：</p>
 <ul>
 <li>早期迅速崩到~6——可以称之为维度塌陷；</li>
 <li>缓慢回升到~100；</li>
 <li>增速几乎归零，停滞。</li>
 </ul>
 <p>SigReg如此；VisReg稍好<sup id="fnref:4"><a href="#fn:4" class="footnote-ref" role="doc-noteref">4</a></sup>；VICReg未试。</p>
-<p>如果训练早期λ不调得比较大，inv loss迅速收敛，坍缩直接压倒正则。</p>
+<p>如果训练早期λ不调得比较大（超过自然图像训练中的常见设定），inv loss迅速收敛，坍缩直接压倒正则。</p>
 <p>另一个反常实验：VisReg + λ=0.99维持前3000步，erank早期不升反降，阴跌——而VisReg loss在同步下降。表面上embedding更接近isotropic Gaussian，dead dims却变多了。实践中我没见谁真的用0.99的λ，试了一下出乎意料，但数学上解释得通。</p>
 <h2 id="低秩局部最优陷阱">低秩局部最优陷阱<a href="#低秩局部最优陷阱" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p>先说结论：VisReg的全局最优确实是N(0,I)，问题不在目标，在优化路径的梯度结构。loss度量边际分布形状，erank度量协方差谱，两者在优化路径上可以反向走。具体四个机制。</p>
