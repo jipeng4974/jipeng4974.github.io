@@ -221,11 +221,11 @@
 <p>类似地，在Music JEPA自监督表征学习中，真正残酷的是目标1 invariance learning。过分激进的invariance loss会导致模型进行痛苦的低维逃逸，通过对表征流形进行信息删除，削足适履地满足invariance对齐，这意味着更严重的内禀维度坍塌，远比contrastive loss难以避免的false negative样本对geometry的局部扭曲更严重。</p>
 <p>所以<strong>不要设定太夸张的invariance目标</strong>，此前我在一次实验中强制要求15s anchor裁切出来的1.5s～15s子集在强变速变调加噪失真下仍然能和anchor对齐，于是出现了壮观的低维逃逸，表征流形内禀维度的损失靠超高$λ_{reg}$也救不回来——eranks上升曲线放缓并不是正则项设计缺陷，后续的白化实验证明了实则已经触及这个invariance规则下对应的维度上限了。</p>
 <p>秦律，失期法皆斩，过于残酷的律法不但没有带来更坚固的秩序，反而会招至沸反盈天。</p>
-<p>因此JEPA语境下Curriculum Learning的真正意义，不在于让learner从简单到难，逐步攀登，学会更神奇的对齐任务[^1]。而在于当发现learner在双重约束下，不得不痛苦自残、向低维逃逸时，适时地放弃后续的课程，从而规避灾难性的坍塌。</p>
+<p>因此JEPA语境下Curriculum Learning的真正意义，不在于让learner从简单到难，逐步攀登，学会更神奇的对齐任务<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>。而在于当发现learner在双重约束下，不得不痛苦自残、向低维逃逸时，适时地放弃后续的课程，从而规避灾难性的坍塌。</p>
 <h2 id="追逐isotropic-gaussian和田园时代而避免陷入低秩盲区">追逐Isotropic Gaussian和“田园时代”，而避免陷入低秩盲区<a href="#追逐isotropic-gaussian和田园时代而避免陷入低秩盲区" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p>早期高维三体宇宙拥有充沛而均匀的自由度，没有黑域，没有维度战争，没有过分拥挤后的黑暗森林战争，没有偏安一隅的小宇宙，文明有充裕的生存空间，因此被称作“田园时代”。三体宇宙中的归零主义的目的是归还维度，修复大宇宙，回归“田园时代”。</p>
 <p>Music JEPA的目标2即回归isotropic Gaussian的“田园时代”。为何isotropic Gaussian是理想分布？因为数学上它已被证明是是最适合所有下游任务的理想分布。Embedding space接近isotropic Gaussian方可自称是通用foundation model。以检索任务为例，哪怕不做任何negative mining，不做任何对比学习，isotropic Gaussian也能天然保证negative cosine p99999足够低——表征自然而然就胜任大规模向量库的检索。</p>
-<p>前文中介绍的3种正则项中，SIGReg和VISReg都直接以isotropic Gaussian为目标，VICReg有更强的复活死维，撑erank下限的能力，只是不保证形状。因此将VICReg和VISReg结合起来使用，或在VISReg中引入VICReg的协方差项（完全不影响isotropic Gaussian目标），有助于避免JEPA学习过程中陷入“低秩盲区”<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>。</p>
+<p>前文中介绍的3种正则项中，SIGReg和VISReg都直接以isotropic Gaussian为目标，VICReg有更强的复活死维，撑erank下限的能力，只是不保证形状。因此将VICReg和VISReg结合起来使用，或在VISReg中引入VICReg的协方差项（完全不影响isotropic Gaussian目标），有助于避免JEPA学习过程中陷入“低秩盲区”<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup>。</p>
 <p>所谓“低秩局部最优/低秩盲区”是一种幸存子空间的虚假高斯繁荣的幻像。在激进invariance 目标和强力$λ_{reg}$的双重约束下，SIGReg和VISReg均有几率陷入这种局部最优——看起来正则项loss的确在降，但erank增长乏力，甚至缓慢阴跌。看着监控里embedding space上的维度一个一个死掉，活着的维度却更拥挤更热闹，昂然有序地朝着伊甸园形态逼近——这一幕让人不经想起三体宇宙中主动将自身降维，向低维度逃逸的文明：低维度小宇宙中秩序在新生，文明熙熙攘攘，低维生物视角下俨然是毫无破绽的伊甸园，但高维大宇宙遗民视角下，一切旧世代文明痕迹都在灰飞烟灭。</p>
 <h2 id="引入对比学习项三重张力的微妙平衡">引入对比学习项——三重张力的微妙平衡<a href="#引入对比学习项三重张力的微妙平衡" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p>Music JEPA 实践中的目标3不够JEPA，但行之有效，负面效果可控，因此是可选项。</p>
@@ -241,12 +241,14 @@
 <li>从 Music JEPA 的角度说，理想结局是模型学会了难度适中的 degraded crop invariance 对齐，同时让 embedding 分布大致接近 isotropic Gaussian，证得“基础模型”。</li>
 <li>从三体宇宙文明的角度说，理想结局是文明适应光速不变，熵增热寂，黑暗森林等宇宙规则和推论，同时齐心协力执行归零行动，复活大宇宙死维度，回归“田园时代”。</li>
 </ul>
-<p>[^1]：在苛刻的invariance目标下，ViT的确能学到无中生有的超短时长和长程旋律的对齐，甚至同一首歌的无关片段的对齐。</p>
 <div class="footnotes" role="doc-endnotes">
 <hr>
 <ol>
 <li id="fn:1">
-<p>当然可能存在更数学、更严谨、更完备的正则方法克服这种低秩盲区，只是我当下缺乏足够的数学功底和时间去探索。&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+<p>在苛刻的invariance目标下，ViT的确能学到无中生有的超短时长和长程旋律的对齐，甚至同一首歌的无关片段的对齐。&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>当然可能存在更数学、更严谨、更完备的正则方法克服这种低秩盲区，只是我当下缺乏足够的数学功底和时间去探索。&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
 </li>
 </ol>
 </div>
