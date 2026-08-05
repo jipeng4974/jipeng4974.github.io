@@ -8,10 +8,10 @@
     <language>en-us</language>
     <lastBuildDate>Tue, 04 Aug 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/tags/ai-assisted/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Music LeJEPA Regularizers</title>
-      <link>https://jipeng4974.github.io/posts/music_lejepa_reg/</link>
+      <title>Music JEPA Regularizers</title>
+      <link>https://jipeng4974.github.io/posts/music_jepa_reg/</link>
       <pubDate>Tue, 04 Aug 2026 00:00:00 +0000</pubDate>
-      <guid>https://jipeng4974.github.io/posts/music_lejepa_reg/</guid>
+      <guid>https://jipeng4974.github.io/posts/music_jepa_reg/</guid>
       <description>&lt;p&gt;本文接续&lt;a href=&#34;https://jipeng4974.github.io/posts/music_lejepa/&#34;&gt;Music LeJEPA&lt;/a&gt;的实践，梳理VicReg、SigReg、VisReg三种正则项的数学原理、源码实现，以及实践中踩到的低秩局部最优陷阱，并基于“防止维度塌陷远比复活死维度简单”这一直觉，提出抗坍缩正则的λ调度策略。&lt;/p&gt;
 &lt;h2 id=&#34;三种正则&#34;&gt;三种正则&lt;/h2&gt;
 &lt;p&gt;三者都是JEPA式训练里的抗坍缩正则项，共用同一个框架：&lt;/p&gt;

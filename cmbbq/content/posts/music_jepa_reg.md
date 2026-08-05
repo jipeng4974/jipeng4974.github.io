@@ -1,5 +1,5 @@
 +++
-title = "Music LeJEPA Regularizers"
+title = "Music JEPA Regularizers"
 date = "2026-08-04"
 tags = ["ai", "ai-assisted"]
 description = "再试Music LeJEPA之抗坍缩正则"
