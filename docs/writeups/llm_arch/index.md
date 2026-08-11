@@ -1,6 +1,6 @@
 # Kimi K3: Scaling LLMs Across Sequence, Depth, and Width
 
-> LLM架构演化，从dense transformer到Kimi K3。
+> LLM Arch: From dense transformer to Kimi K3。
 
 ---
 

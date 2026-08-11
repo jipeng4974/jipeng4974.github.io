@@ -14,7 +14,7 @@ Section pages:
 - [Music JEPA Regularizers](/writeups/music_jepa_reg/): Revisiting anti-collapse regularizers for Music LeJEPA
 - [DSpark](/writeups/dspark/): DSpark: a low-rank bigram table buys back intra-block dependencies, and a confidence head applies admission control to verification length.
 - [A Measurable Metric of Free Will](/writeups/free_will/): Self-origination = internal sensitivity - external sensitivity.
-- [Kimi K3: Scaling LLMs Across Sequence, Depth, and Width](/writeups/llm_arch/): LLM架构演化，从dense transformer到Kimi K3。
+- [Kimi K3: Scaling LLMs Across Sequence, Depth, and Width](/writeups/llm_arch/): LLM Arch: From dense transformer to Kimi K3。
 - [Music LeJEPA](/writeups/music_lejepa/): First attempt at Music LeJEPA (to be continued)
 - [The Isomorphism Between Lenses and Encoders](/writeups/lens_encoder/): Camera lenses and encoders exhibit a striking isomorphism.
 - [Beyond Representation Learning: Prediction-Driven Encoders + Learnable Sensors](/writeups/beyond_representation_learning/): Existing multimodal representation learning is primitive, isolated, and incomplete — it still needs prediction-driven encoders and learnable sensors.
