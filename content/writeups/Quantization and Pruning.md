@@ -1,7 +1,7 @@
 +++
 title = "Quantization and Pruning"
 date = "2024-09-02"
-tags = ["sys", "ai"]
+tags = ["Sys", "AI"]
 description = "A summary of two model compression techniques that matter a lot for inference optimization: quantization and pruning."
 showFullContent = false
 +++

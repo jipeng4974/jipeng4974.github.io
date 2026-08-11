@@ -1,7 +1,7 @@
 +++
 title = "DSpark"
 date = "2026-08-01"
-tags = ["sys", "ai", "llm", "ai-assisted"]
+tags = ["Sys", "AI", "LLM", "AI-Assisted"]
 description = "DSpark：低秩bigram赎回块内依赖，置信度head给验证长度做admission control。"
 showFullContent = false
 +++

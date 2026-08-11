@@ -1,7 +1,7 @@
 +++
 title = "On Transparency"
 date = "2023-05-15"
-tags = ["se"]
+tags = ["SE"]
 description = "Transparency — the white-box index of a program — is an ideal property long neglected in the software engineering practice of the internet industry."
 showFullContent = false
 +++

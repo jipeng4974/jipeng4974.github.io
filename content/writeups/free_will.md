@@ -2,7 +2,7 @@
 +++
 title = "A Measurable Metric of Free Will"
 date = "2026-07-29"
-tags = ["philosophy"]
+tags = ["Philosophy"]
 description = "Self-origination = internal sensitivity - external sensitivity."
 showFullContent = false
 +++

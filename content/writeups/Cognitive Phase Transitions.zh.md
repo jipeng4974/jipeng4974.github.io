@@ -1,7 +1,7 @@
 +++
 title = "认知相变"
 date = "2026-06-05"
-tags = ["ai", "philosophy", "humanity"]
+tags = ["AI", "Philosophy", "Humanity"]
 description = "人类智能价值穿越周期的不变量，是认知相变能力。"
 showFullContent = false
 +++

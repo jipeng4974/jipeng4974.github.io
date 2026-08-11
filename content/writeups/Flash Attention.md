@@ -1,7 +1,7 @@
 +++
 title = "Flash Attention"
 date = "2024-07-22"
-tags = ["sys", "ai", "llm"]
+tags = ["Sys", "AI", "LLM"]
 description = "Flash Attention in a nutshell: tiling + selective gradient checkpointing."
 showFullContent = false
 +++

@@ -1,7 +1,7 @@
 +++
 title = "Revisiting Recommender Systems"
 date = "2024-06-03"
-tags = ["ai"]
+tags = ["AI"]
 description = "Notes on Professor Aixin Sun's talk, \"Understanding the Current State of Recommender Systems Research\" — a summary of the main content with links to the papers mentioned. A glimpse into the current state of academic research on recommender systems: incisive, interesting, and startling."
 showFullContent = false
 +++

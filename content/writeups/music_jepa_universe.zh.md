@@ -1,7 +1,7 @@
 +++
 title = "Music JEPA 和三体宇宙"
 date = "2026-08-05"
-tags = ["ai"]
+tags = ["AI"]
 description = "生存维数，维度坍塌，死维复活，宇宙规律，田园宇宙，幸存子空间，威慑项λ。"
 showFullContent = false
 +++

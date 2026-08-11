@@ -1,7 +1,7 @@
 +++
 title = "Cognitive Phase Transitions"
 date = "2026-06-05"
-tags = ["ai", "philosophy", "humanity"]
+tags = ["AI", "Philosophy", "Humanity"]
 description = "The invariant of human intelligence's value across cycles is the capacity for cognitive phase transitions."
 showFullContent = false
 +++

@@ -1,7 +1,7 @@
 +++
 title = "The Isomorphism Between Lenses and Encoders"
 date = "2026-07-01"
-tags = ["optics", "ai"]
+tags = ["Optics", "AI"]
 description = "Camera lenses and encoders exhibit a striking isomorphism."
 showFullContent = false
 +++

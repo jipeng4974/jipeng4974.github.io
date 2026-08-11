@@ -1,7 +1,7 @@
 +++
 title = "Semantic Depth & Music Re-ID"
 date = "2026-03-14"
-tags = ["sys", "ai"]
+tags = ["Sys", "AI"]
 description = "This post proposes a semantic depth metric and discusses Music Re-ID from the angles of inductive bias, data-driven methods, performance engineering, and cascaded ranking."
 showFullContent = false
 +++

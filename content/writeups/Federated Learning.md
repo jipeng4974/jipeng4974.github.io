@@ -1,7 +1,7 @@
 +++
 title = "Federated Learning"
 date = "2023-06-01"
-tags = ["sys"]
+tags = ["Sys"]
 description = "Federated Learning is a machine learning paradigm in which many mobile devices collaboratively train a model under the orchestration of a central server. Training data stays decentralized, user data is never collected, and only client model updates are uploaded to the central server, where they are aggregated into a new global model. Compared with in-center distributed training, it has unique advantages and challenges."
 showFullContent = false
 +++

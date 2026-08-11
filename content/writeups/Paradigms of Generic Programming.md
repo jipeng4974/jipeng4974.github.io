@@ -2,7 +2,7 @@
 +++
 title = "Paradigms of Generic Programming: Archetype, Ducktype, Subtype"
 date = "2022-11-10"
-tags = ["pl", "se"]
+tags = ["PL", "SE"]
 description = "This post summarizes the three paradigms of generic programming: Archetype, Ducktype, and Subtype. All three names end in \"type\" — partly because it looks cool, with a sense of regularity and the architectural beauty of logic, and partly because systems language programming is itself about building types, while generic programming is about building type specifications plus the types that conform to them."
 showFullContent = false
 +++

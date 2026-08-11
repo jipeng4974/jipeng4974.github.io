@@ -1,7 +1,7 @@
 +++
 title = "Knowledge is Embeddings of Reality"
 date = "2023-06-07"
-tags = ["ai"]
+tags = ["AI"]
 description = "Reality is infinitely vast and infinitely deep; once embedded into our limited cognitive space, it becomes knowledge."
 showFullContent = false
 +++

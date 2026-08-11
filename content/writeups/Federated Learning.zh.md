@@ -1,7 +1,7 @@
 +++
 title = "联邦学习"
 date = "2023-06-01"
-tags = ["sys"]
+tags = ["Sys"]
 description = "联邦学习(Federated Learning)是指许多移动设备在一个中央服务器的编排下协作训练模型，保持训练数据离散，避免对用户数据进行收集，仅将客户端模型更新上传中央服务器汇总成新的全局模型的机器学习模式。与in-center的分布式训练相比，有其独特的优势和挑战。"
 showFullContent = false
 +++

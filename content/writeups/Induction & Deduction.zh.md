@@ -1,7 +1,7 @@
 +++
 title = "归纳和演绎"
 date = "2023-06-28"
-tags = ["ai"]
+tags = ["AI"]
 description = "人的无知，可分为神秘和问题。人的理性，也可分为归纳和演绎。"
 showFullContent = false
 +++

@@ -1,7 +1,7 @@
 +++
 title = "Artificial Intuition: Reasoning Abilities of LLMs"
 date = "2023-11-29"
-tags = ["ai"]
+tags = ["AI"]
 description = "A survey of recent research on LLMs, examining the boundaries of reasoning ability in current large language model architectures."
 showFullContent = false
 +++

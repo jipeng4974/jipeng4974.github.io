@@ -2,7 +2,7 @@
 +++
 title = "LLM Serving"
 date = "2024-12-09"
-tags = ["sys", "ai", "llm"]
+tags = ["Sys", "AI", "LLM"]
 description = "A summary of the computational characteristics of LLM serving and its optimization opportunities."
 showFullContent = false
 +++

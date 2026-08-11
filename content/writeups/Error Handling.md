@@ -1,7 +1,7 @@
 +++
 title = "Error Handling"
 date = "2024-04-09"
-tags = ["se"]
+tags = ["SE"]
 description = "This post discusses error handling in modern C++."
 showFullContent = false
 +++

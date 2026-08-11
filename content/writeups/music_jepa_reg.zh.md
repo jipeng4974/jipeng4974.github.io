@@ -1,7 +1,7 @@
 +++
 title = "Music JEPA Regularizers"
 date = "2026-08-04"
-tags = ["ai", "ai-assisted"]
+tags = ["AI", "AI-Assisted"]
 description = "再试Music LeJEPA之抗坍缩正则"
 showFullContent = false
 +++

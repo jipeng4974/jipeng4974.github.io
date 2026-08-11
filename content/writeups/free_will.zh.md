@@ -2,7 +2,7 @@
 +++
 title = "自由意志的可度量指标"
 date = "2026-07-29"
-tags = ["philosophy"]
+tags = ["Philosophy"]
 description = "由己度 = 内敏性 - 外敏性。"
 showFullContent = false
 +++

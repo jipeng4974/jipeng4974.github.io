@@ -1,7 +1,7 @@
 +++
 title = "Music JEPA and the Three-Body Universe"
 date = "2026-08-05"
-tags = ["ai"]
+tags = ["AI"]
 description = "Dimensions of survival, dimensional collapse, resurrecting dead dimensions, the laws of the universe, the Edenic universe, surviving subspaces, and the deterrence term λ."
 showFullContent = false
 +++

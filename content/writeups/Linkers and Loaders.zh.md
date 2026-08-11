@@ -1,7 +1,7 @@
 +++
 title = "Linkers & Loaders"
 date = "2024-03-04"
-tags = ["sys"]
+tags = ["Sys"]
 description = "《Linkers & Loaders》填补了一个niche知识域——链接和加载。"
 showFullContent = false
 +++

@@ -1,7 +1,7 @@
 +++
 title = "非凸优化"
 date = "2022-10-12"
-tags = ["ai"]
+tags = ["AI"]
 description = "非凸优化(non-convex optimization)，more like art"
 showFullContent = false
 +++

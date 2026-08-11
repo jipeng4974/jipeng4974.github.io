@@ -1,7 +1,7 @@
 +++
 title = "Efficient ANNS at Scale"
 date = "2023-09-12"
-tags = ["ai", "sys", "perf"]
+tags = ["AI", "Sys", "Perf"]
 description = "How to perform efficient vector search over feature stores with billions or tens of billions of vectors"
 showFullContent = false
 +++

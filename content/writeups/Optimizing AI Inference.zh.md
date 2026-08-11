@@ -1,7 +1,7 @@
 +++
 title = "AI推理优化"
 date = "2024-08-28"
-tags = ["sys", "ai"]
+tags = ["Sys", "AI"]
 description = "总结AI工程中的推理优化问题。"
 showFullContent = false
 +++

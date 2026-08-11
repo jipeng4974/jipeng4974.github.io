@@ -1,7 +1,7 @@
 +++
 title = "Order Emerges from Self-Assembly of Dissipative Structures"
 date = "2023-11-28"
-tags = ["physics"]
+tags = ["Physics"]
 description = "Order emerges from the self-organization of dissipative structures."
 showFullContent = false
 +++

@@ -1,7 +1,7 @@
 +++
 title = "Tech Talk: Wall is Coming"
 date = "2024-02-22"
-tags = ["sys", "talk"]
+tags = ["Sys", "Talk"]
 description = "Tech Talk文稿，梳理内存墙问题的历史渊源，尝试给出对优化空间的理解，推导出相应的启发性策略，并列举一些访存优化技术。"
 showFullContent = false
 +++

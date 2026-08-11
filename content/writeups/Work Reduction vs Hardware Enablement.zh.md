@@ -2,7 +2,7 @@
 +++
 title = "工作减少 vs 硬件赋能"
 date = "2024-02-08"
-tags = ["sys", "en", "perf"]
+tags = ["Sys", "En", "Perf"]
 description = "优化可以分为两类：工作减少与硬件赋能。"
 showFullContent = false
 +++

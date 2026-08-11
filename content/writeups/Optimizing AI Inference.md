@@ -1,7 +1,7 @@
 +++
 title = "Optimizing AI Inference"
 date = "2024-08-28"
-tags = ["sys", "ai"]
+tags = ["Sys", "AI"]
 description = "A summary of inference optimization problems in AI engineering."
 showFullContent = false
 +++

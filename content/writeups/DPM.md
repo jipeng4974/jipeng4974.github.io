@@ -1,7 +1,7 @@
 +++
 title = "Diffusion Probabilistic Models"
 date = "2024-06-04"
-tags = ["ai"]
+tags = ["AI"]
 description = "This post is my notes on Professor Jun Zhu's talk — \"Diffusion Models for Generating High-Dimensional Data\". Notably, DPM practice makes clever use of analytical solutions: both the closed form $q(x_N|x_0)$ in the forward process and the analytic-form variance estimate in the reverse process greatly improve training performance — a testament to the elegance of mathematics."
 showFullContent = false
 +++

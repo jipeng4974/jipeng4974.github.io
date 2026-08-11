@@ -1,7 +1,7 @@
 +++
 title = "Idiomatic Practices in C++ Systems Engineering"
 date = "2024-12-03"
-tags = ["sys", "se"]
+tags = ["Sys", "SE"]
 description = "A summary of the C++ systems engineering paradigms I currently consider sound."
 showFullContent = false
 +++

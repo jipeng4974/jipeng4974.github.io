@@ -1,7 +1,7 @@
 +++
 title = "The Little Book Review & Internalization"
 date = "2023-12-15"
-tags = ["ai"]
+tags = ["AI"]
 description = "Just as DDIA can be regarded as the go-to introductory text for distributed systems, LBDL is the ideal deep learning 101."
 showFullContent = false
 +++

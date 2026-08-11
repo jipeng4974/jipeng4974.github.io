@@ -1,7 +1,7 @@
 +++
 title = "Diffusion Probabilistic Models"
 date = "2024-06-04"
-tags = ["ai"]
+tags = ["AI"]
 description = "本文是对朱军教授的分享——“用于生成高维数据的扩散模型”的笔记。值得注意的是DPM实践中巧妙使用了解析解，无论是前向过程的closed form $q(x_N|x_0)$，还是逆向过程中解析形式的方差估计，都大大提升了训练性能，体现了数学的精妙。"
 showFullContent = false
 +++

@@ -1,7 +1,7 @@
 +++
 title = "Kimi K3：沿序列、深度与宽度扩展 LLM"
 date = "2026-07-28"
-tags = ["ai", "llm", "ai-assisted", "en"]
+tags = ["AI", "LLM", "AI-Assisted", "En"]
 description = "LLM架构演化，从dense transformer到Kimi K3。"
 showFullContent = false
 +++

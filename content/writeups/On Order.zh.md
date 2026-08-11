@@ -1,7 +1,7 @@
 +++
 title = "论秩序"
 date = "2023-11-28"
-tags = ["physics"]
+tags = ["Physics"]
 description = "秩序，涌现自耗散结构的自组织。"
 showFullContent = false
 +++

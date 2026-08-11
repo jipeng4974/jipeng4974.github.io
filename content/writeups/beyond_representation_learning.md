@@ -1,7 +1,7 @@
 +++
 title = "Beyond Representation Learning: Prediction-Driven Encoders + Learnable Sensors"
 date = "2026-06-29"
-tags = ["research", "ai"]
+tags = ["Research", "AI"]
 description = "Existing multimodal representation learning is primitive, isolated, and incomplete — it still needs prediction-driven encoders and learnable sensors."
 showFullContent = false
 +++

@@ -1,7 +1,7 @@
 +++
 title = "CAT02: Resources"
 date = "2024-06-14"
-tags = ["en", "math"]
+tags = ["En", "Math"]
 description = "The 2nd CAT write-up is about the categorical formalism of resources, and transforming one set of resources into another. It covers monoidal preorders, wiring diagrams, monoidal monotone maps, and V-categories."
 showFullContent = false
 +++

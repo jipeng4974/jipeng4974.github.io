@@ -2,7 +2,7 @@
 +++
 title = "Work Reduction vs Hardware Enablement"
 date = "2024-02-08"
-tags = ["sys", "en", "perf"]
+tags = ["Sys", "En", "Perf"]
 description = "Optimization can be divided into work reduction and hardware enablement."
 showFullContent = false
 +++

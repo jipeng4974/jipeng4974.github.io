@@ -1,7 +1,7 @@
 +++
 title = "Computational Consciousness"
 date = "2023-11-13"
-tags = ["ai", "philosophy"]
+tags = ["AI", "Philosophy"]
 description = "Metaphysics, neuroscientific theories of consciousness, and computational consciousness."
 showFullContent = false
 +++

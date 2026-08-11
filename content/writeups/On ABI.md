@@ -1,7 +1,7 @@
 +++
 title = "On ABI"
 date = "2022-08-02"
-tags = ["sys"]
+tags = ["Sys"]
 description = "This post summarizes the abstraction layer that sits between two minimal contract layers — the ISA and the language standard — and isolates a great deal of complexity: the ABI of system languages."
 showFullContent = false
 +++

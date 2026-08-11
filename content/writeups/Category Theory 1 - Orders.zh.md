@@ -1,7 +1,7 @@
 +++
 title = "CAT01: Orders"
 date = "2024-02-26"
-tags = ["en", "math"]
+tags = ["En", "Math"]
 description = "CAT 系列第 1 篇，以序理论（order theory）为完整的范畴论做热身。内容涵盖 preorder、meet/join、monotone map 与 Galois connection。"
 showFullContent = false
 +++

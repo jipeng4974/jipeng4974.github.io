@@ -1,7 +1,7 @@
 +++
 title = "Tech Talk: Evolution of Data Center Applications"
 date = "2023-08-05"
-tags = ["sys", "ai", "talk"]
+tags = ["Sys", "AI", "Talk"]
 description = "Script of a tech talk whose theme is white-boxing algorithm theory and infrastructure, offering a subjective take on the evolution of datacenter applications, datacenter AI in particular."
 showFullContent = false
 +++

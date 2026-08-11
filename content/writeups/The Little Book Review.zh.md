@@ -1,7 +1,7 @@
 +++
 title = "The Little Book 书评"
 date = "2023-12-15"
-tags = ["ai"]
+tags = ["AI"]
 description = "正如DDIA可被视为分布式系统方向的入门教程，LBDL是理想的深度学习101。"
 showFullContent = false
 +++

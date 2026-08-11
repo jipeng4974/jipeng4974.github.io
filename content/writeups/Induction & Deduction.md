@@ -1,7 +1,7 @@
 +++
 title = "Our Rationality can be Divided into Induction & Deduction"
 date = "2023-06-28"
-tags = ["ai"]
+tags = ["AI"]
 description = "Human ignorance can be divided into mysteries and problems. Human rationality can be divided into induction and deduction."
 showFullContent = false
 +++
