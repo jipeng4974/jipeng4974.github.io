@@ -1,5 +1,5 @@
 +++
-title = "Artificial Intuition: Reasoning Abilities of LLMs"
+title = "人造直觉"
 date = "2023-11-29"
 tags = ["ai"]
 description = "对近期对LLM的调研文献进行梳理总结，讨论目前大语言模型架构的推理能力边界。"

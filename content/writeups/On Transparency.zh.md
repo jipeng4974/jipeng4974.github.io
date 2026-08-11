@@ -1,5 +1,5 @@
 +++
-title = "On Transparency"
+title = "论透明度"
 date = "2023-05-15"
 tags = ["se"]
 description = "透明度，或者说程序的白盒指数，是互联网软件工程实践中长期被忽略的一个理想属性。"

@@ -1,4 +1,4 @@
-# Distributed Computing Systems At Scale
+# 大规模分布式计算
 
 > 纷乱的分布式现象、繁琐的工程实践容易遮蔽对分布式计算系统本质的理解，遂做梳理。
 

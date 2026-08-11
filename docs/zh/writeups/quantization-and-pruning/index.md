@@ -1,4 +1,4 @@
-# Quantization and Pruning
+# 量化和剪枝
 
 > 总结推理优化问题中相当重要的模型压缩技术——量化和剪枝。
 

@@ -1,6 +1,6 @@
-# 超越表征学习：预测驱动的编码器+可学习的传感器
+# Beyond Representation Learning: Prediction-Driven Encoders + Learnable Sensors
 
-> 现有的多模态表征学习原始、孤立且残缺，还需要预测驱动的编码器+可学习的传感器。
+> Existing multimodal representation learning is primitive, isolated, and incomplete — it still needs prediction-driven encoders and learnable sensors.
 
 ---
 
@@ -8,50 +8,50 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-高维信号表征学习的核心挑战之一是输入的维度和输出的维度之间存在巨大的落差。
-- 音视频计算领域长期承受巨大的计算负担，正是因为物理世界的音视频信号的维度极高。
-- 人脑处理的视觉流带宽约80Mbps，思考的速度约800bps，相差5个数量级。
+One of the core challenges of representation learning for high-dimensional signals is the enormous gap between the dimensionality of the input and that of the output.
+- Audio and video computing has long carried a massive computational burden precisely because physical-world audio and video signals are extremely high-dimensional.
+- The human brain processes a visual stream with a bandwidth of about 80 Mbps, while the speed of thought is about 800 bps — a difference of 5 orders of magnitude.
 
-高维信号表征学习的核心挑战之二是输入的信号一定是对物理现实的某种采样和侧写。
-- 不同尺度下，听到的音乐是不同的。
-- 不同视角下，看到的场景是不同的。
-- 不同分辨率下，关注的结构是不同的。
-- 只研究”信号 -> 表征“的过程是不够的，还要考虑如何让模型学会自主设计观测信号的策略。
+The second core challenge of representation learning for high-dimensional signals is that the input signal is necessarily some kind of sampling and profiling of physical reality.
+- At different scales, the music you hear is different.
+- From different viewpoints, the scene you see is different.
+- At different resolutions, the structures worth attending to are different.
+- Studying only the "signal -> representation" process is not enough; we must also consider how to let the model learn to design its own strategies for observing signals.
 
-## 基于预测误差筛选有效信号
-我们的大脑时时刻刻在预测下一帧。有了这种预测，只需少量修正信号即可合成稳定连贯的视觉体验。因此维度极高的视觉信号作为超高带宽输入，大脑这样低功率的计算湿件却也能应付自如。
+## Filtering Effective Signals by Prediction Error
+Our brains are constantly predicting the next frame. With that prediction in place, only a small corrective signal is needed to synthesize a stable, coherent visual experience. That is how a low-power piece of computational wetware like the brain can comfortably handle an extremely high-dimensional visual signal arriving as an ultra-high-bandwidth input.
 
-当我们把没有防抖的运动相机固定在头顶时，拍出来的视频会抖得让人怀疑人生，而我们自己走路的视觉体验却稳定自然。这是视觉体验合成论的直接证据。
+Strap an action camera without stabilization to your head and the footage shakes so badly it makes you question your life choices, yet our own visual experience while walking is stable and natural. This is direct evidence for the synthesis theory of visual experience.
 
-当我们来到异国他乡，fresh off the boat，哪怕只是在寻常街头走走，也会有新鲜新奇感，同时伴随着感官过载的疲惫，这就是预测模型暂时失效带来的神经系统过载所致。
+When we arrive in a foreign country, fresh off the boat, even just walking down an ordinary street brings a sense of novelty, accompanied by the fatigue of sensory overload — this is nervous-system overload caused by the prediction model temporarily failing.
 
-类似的，小时候，车马很慢，时间也漫长，记忆密度似乎远比成年后高。正是因为小时候的世界模型尚不成熟，天天都有新鲜的预测误差出炉。
+Similarly, in childhood, life moved slowly, time felt long, and the density of memories seems far higher than in adulthood. That is precisely because a child's world model is still immature, and fresh prediction errors come out of the oven every day.
 
-BTW，声光不耐受，也往往是预测模型失效导致的over-excitabilities。对常人来说可以接受的灯光/信号闪烁，对aspergers来说会越过下丘脑直抵永恒内心对话的圣殿，引发生理上深层神经痛苦，往往遍查眼疾无果后才知晓这是神经系统上的过载。
+BTW, intolerance to sound and light is also often a case of over-excitability caused by the prediction model failing. Light or signal flicker that is perfectly acceptable to most people can, for Aspies, bypass the hypothalamus and reach straight into the sanctuary of the eternal inner dialogue, causing deep physiological neural pain — often only after an exhaustive, fruitless search for an eye disorder does one learn that this is an overload of the nervous system.
 
-当代的音视频encoder很大程度上仍然是孤立和被动的存在，缺一个积极剔除平凡信号，聚焦“惊讶信号”的**主动预测模型**来辅助编码器进行有效降维。
+Today's audio and video encoders remain, to a large extent, isolated and passive entities. They lack an **active prediction model** that proactively filters out mundane signals and focuses on the "surprising signals" to assist the encoder in effective dimensionality reduction.
 
-Gemma4 12B做了一个激进（可能也不算激进，在遵循bitter lesson的角度说反而是保守）的尝试，完全去掉了编码器，直接将音视频降维到LLM的hidden size，从而消除了编码器层面的inductive bias。Transformer理论上有能力学出"预测模型 + 编码策略"，但仅凭标准next-token objective，很难想象它有动力学出一个复杂的prediction-driven encoder。
+Gemma4 12B makes a radical attempt (or maybe not so radical — from the perspective of following the bitter lesson, it is actually conservative): it removes the encoder entirely, directly reducing audio and video to the LLM's hidden size, thereby eliminating inductive bias at the encoder level. In theory, a Transformer has the capacity to learn a "prediction model + encoding strategy", but with only the standard next-token objective, it is hard to imagine it having the dynamics to learn a complex prediction-driven encoder.
 
 
-## 将切换观察视角的权力交还模型
-视角对智能的影响巨大，哪怕复杂精妙如人类，也难以抵抗这种影响。长期用14-35mm和用85mm镜头时的心境、性格都有微妙的不同。广角赋予人镜收天地的豪迈，中长焦则使人更加安静、专注、温柔。
+## Returning the Power to Switch Viewpoints to the Model
+Viewpoint has an enormous influence on intelligence; even beings as complex and refined as humans cannot resist it. Long-term use of a 14–35mm lens versus an 85mm lens subtly shapes one's state of mind and temperament in different ways. A wide angle gives one the boldness to take in the whole world through the lens, while a medium telephoto makes one quieter, more focused, and gentler.
 
-在生物界，切换视角是廉价、高效、实时的，是学习者的必备禀赋。
+In the biological world, switching viewpoints is cheap, efficient, and real-time — an essential endowment of any learner.
 
-哪怕原始如蜥蜴，观察这个世界时，也懂得转动眼球。
+Even something as primitive as a lizard knows to move its eyeballs when observing the world.
 
-可惜目前MLLM竟然不具备这种能力，固定的patchification，固定的视角，让高维信号在抵达编码器之前就已经丧失了对世界进行全面刻画和contextualized刻画的可能。
+Unfortunately, today's MLLMs simply lack this ability. Fixed patchification and a fixed viewpoint mean that high-dimensional signals, before they even reach the encoder, have already lost the possibility of a comprehensive and contextualized portrayal of the world.
 
-今天的机器学习尚不具备自主切换视角的能力，全凭人为设计，“观察策略”被外包给了研究员。在漫长昂贵的训练后，研究员通过评估和反思，才有可能调整“观察视角”，反馈链条极长。一个12B模型的dataloader/projector/sampler调整往往需要一周时间，消耗几百万千卡。相比之下，蜥蜴转动眼球只需要20ms，消耗1微焦耳。
+Machine learning today cannot switch viewpoints on its own; everything relies on human design — the "observation strategy" is outsourced to researchers. Only after a long and expensive training run can researchers, through evaluation and reflection, possibly adjust the "observation viewpoint" — an extremely long feedback loop. Adjusting the dataloader/projector/sampler of a 12B model often takes a week and burns millions of kilocalories. By contrast, a lizard moves its eyeballs in 20 ms, consuming 1 microjoule.
 
-如今的MLLM作为learner，缺一个廉价、高频、闭环的视角控制系统——一个实时具身的变焦镜头和掌控这支变焦镜头的大脑。
+As a learner, today's MLLM lacks a cheap, high-frequency, closed-loop viewpoint control system — a real-time embodied zoom lens and a brain that controls that zoom lens.
 
-出于对bitter lesson的尊重，很多MLLM选择将更原始的表示（比如waveform往往比mel spectrogram更原始）送给模型，让模型自主选择如何从原始表示学习到有用的知识。这么做算是把视角控制权交给了模型了吗？我认为不算。如果不引入任何inductive bias，模型推理时其实没有说不的权力，它必须咽下硬塞给它的巨量音视频信号——低级生物知道拒绝，MLLM无法拒绝。训练时更不用说了，根本还不存在数据准备层面的实时反馈闭环。
-- 目前的training Loop(data pipeline & learning algorithm)完全写死在代码里，未来如果能将其中比较简单的data pipeline做成可学习的（成为模型权重的一部分）——不妨将其称为learnable sensor，让模型在训练时自主调整对世界的观测策略，至少能形成反馈闭环。
+Out of respect for the bitter lesson, many MLLMs choose to feed more primitive representations to the model (for example, waveforms are generally more primitive than mel spectrograms), letting the model decide on its own how to learn useful knowledge from the raw representation. Does this count as handing viewpoint control over to the model? I don't think so. If you introduce no inductive bias at all, the model at inference time actually has no right to say no — it must swallow the massive audio-video signal shoved down its throat. Lowly creatures know how to refuse; an MLLM cannot refuse. As for training, needless to say, there isn't even a real-time feedback loop at the data-preparation level.
+- The current training loop (data pipeline & learning algorithm) is entirely hard-coded. If in the future we could make the simpler part of it — the data pipeline — learnable (becoming part of the model's weights) — we might call it a learnable sensor — letting the model autonomously adjust its strategy for observing the world during training, that would at least close the feedback loop.
 
 ```
-## 不可学习的training loop中，data pipeline显然是最容易被做成可学习的
+## In a non-learnable training loop, the data pipeline is obviously the easiest part to make learnable
 for batch in dataloader:
     x = augment(batch)
     y = model(x)
@@ -60,4 +60,4 @@ for batch in dataloader:
     optimizer.step()
 ```    
 
-新增可学习的传感器是否与简化/去除encoder方向背道而驰？否。二者不仅不背道而驰，还不谋而合地echo了bitter lesson：可学习的传感器负责的是如何去观测数据——这个过程目前是代码写死的完全没有灵活性，因此任何一点灵活性上的松动都是进步，都是在减少人为硬编码。而encoder负责的是拿到数据后进行特征工程——这个过程确实没必要引入过多inductive bias（连CNN都是一种罪，跟不必说手工特征了），简化/去除encoder也是减少人为硬编码。
+Does adding a learnable sensor run counter to the direction of simplifying/removing the encoder? No. Not only do the two not run counter to each other, they independently converge in echoing the bitter lesson: the learnable sensor is responsible for how to observe the data — a process currently hard-coded in code with zero flexibility, so any loosening of that inflexibility is progress, a reduction of human hard-coding. The encoder, meanwhile, is responsible for feature engineering once the data is in hand — a process where introducing too much inductive bias is genuinely unnecessary (even a CNN is a sin, let alone handcrafted features), so simplifying/removing the encoder is also a reduction of human hard-coding.

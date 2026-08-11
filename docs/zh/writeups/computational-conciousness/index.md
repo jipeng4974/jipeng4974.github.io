@@ -1,4 +1,4 @@
-# Computational Consciousness
+# 计算意识
 
 > 形而上学、神经科学意识论和计算意识。
 

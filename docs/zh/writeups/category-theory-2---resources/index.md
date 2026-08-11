@@ -1,6 +1,6 @@
 # CAT02: Resources
 
-> The 2nd CAT write-up is about the categorical formalism of resources, and transforming one set of resources into another. It covers monoidal preorders, wiring diagrams, monoidal monotone maps, and V-categories.
+> 第二篇 CAT 笔记讨论资源的范畴论形式化，以及如何将一组资源转化为另一组资源。内容涵盖 monoidal preorder（幺半预序）、wiring diagram（接线图）、monoidal monotone map 和 V-category。
 
 ---
 
@@ -8,30 +8,30 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-## Symmetric Monoidal Preorders
+## 对称幺半预序
 
-**Def 2.1:** A `symmetric monoidal structure` on a preorder $(X,≤)$ consists of two constituents: (i) an element $I \in X$, called the `monoidal unit`, (ii) and a function $\otimes: X \times X \rightarrow X$, called the `monoidal product`. These constituents must satisfy the following properties:
-- monotonicity: $\forall x_1, x_2, y_1, y_2 \in X$, if $x_1 \le y_1$ and $x_2 \le y_2$, then $x_1 \otimes x_2 \le y_1 \otimes y_2$.
-- unitality: $\forall x \in X$, $I \otimes x = x$ and $x \otimes I = x$ holds.
-- associativity: $\forall x,y,z \in X$, $(x\otimes y)\otimes z = x \otimes (y\otimes z)$.
-- symmetry: $\forall x,y \in X, x\otimes y = y\otimes x$.[^1]
+**定义 2.1:** 预序 $(X,≤)$ 上的一个 `对称幺半结构`（symmetric monoidal structure）由两个成分构成：(i) 一个元素 $I \in X$，称为 `幺半单位`（monoidal unit）；(ii) 一个函数 $\otimes: X \times X \rightarrow X$，称为 `幺半积`（monoidal product）。这些成分必须满足以下性质：
+- 单调性（monotonicity）：$\forall x_1, x_2, y_1, y_2 \in X$，若 $x_1 \le y_1$ 且 $x_2 \le y_2$，则 $x_1 \otimes x_2 \le y_1 \otimes y_2$。
+- 单位性（unitality）：$\forall x \in X$，$I \otimes x = x$ 且 $x \otimes I = x$ 成立。
+- 结合律（associativity）：$\forall x,y,z \in X$，$(x\otimes y)\otimes z = x \otimes (y\otimes z)$。
+- 对称性（symmetry）：$\forall x,y \in X, x\otimes y = y\otimes x$。[^1]
 
-**Def 2.2:** A preorder equipped with a symmetric monoidal structure, $(X,\le,I,\otimes)$, is called a `symmetric monoidal preorder`.
+**定义 2.2:** 配备了对称幺半结构的预序 $(X,\le,I,\otimes)$ 称为 `对称幺半预序`（symmetric monoidal preorder）。
 
-**Example 2.1(The Booleans):** $\mathbb{B} = \{true, false\}$ with $false < true$ is the simplest nontrivial preorder. We can define the monoidal unit be true and the monoidal product be $\wedge$(AND). Then we have a monoidal preorder which we denote $Bool := (\mathbb{B}, \le ,true, \wedge )$.
+**例 2.1（布尔值）:** $\mathbb{B} = \{true, false\}$ 配合 $false < true$ 是最简单的非平凡预序。我们可以定义幺半单位为 true，幺半积为 $\wedge$（与，AND）。这样我们就得到了一个幺半预序，记作 $Bool := (\mathbb{B}, \le ,true, \wedge )$。
 
-## Wiring Diagrams
-`Wiring diagrams` are visual representations for building new releationships from old. In a preorder without a monoidal structure, the relations are chained in series.
-![wiring_diagrams_1](https://jipeng4974.github.io/img/wiring_diagrams_1.png)
+## 接线图
+`接线图`（wiring diagram）是从旧关系构建新关系的可视化表示。在没有幺半结构的预序中，关系是串联起来的。
+![接线图 1](https://jipeng4974.github.io/img/wiring_diagrams_1.png)
 
-With a symmetric monoidal structure, relations could be arranged in parallel as well.
-![wiring_diagrams_2](https://jipeng4974.github.io/img/wiring_diagrams_2.png)
-The whole wiring diagram above says "if $t\le v, w+u\le x+z, v+x\le y$, then $t+u\le y+z$".
+有了对称幺半结构，关系也可以并联排列。
+![接线图 2](https://jipeng4974.github.io/img/wiring_diagrams_2.png)
+上面整张接线图表达的是"若 $t\le v, w+u\le x+z, v+x\le y$，则 $t+u\le y+z$"。
 
-We could draw two wires in parallel to represent the monoidal product of two labels.
-![wiring_diagrams_3](https://jipeng4974.github.io/img/wiring_diagrams_3.png)
-The validity of the box above corresponds to $x_1\otimes x_2 \le y_1 \otimes y_2 \otimes y_3$.
+我们可以并排画两条线来表示两个标签的幺半积。
+![接线图 3](https://jipeng4974.github.io/img/wiring_diagrams_3.png)
+上图中方框的合法性对应于 $x_1\otimes x_2 \le y_1 \otimes y_2 \otimes y_3$。
 
 TBD
 
-[^1]: To be a bit more rigorous, it's often useful to replace $=$ with $\cong$ throughout **Def 2.1**.
+[^1]: 更严谨一点说，把 **定义 2.1** 中的 $=$ 全部替换为 $\cong$ 往往更有用。

@@ -1,4 +1,4 @@
-# The Little Book Review & Internalization
+# The Little Book 书评
 
 > 正如DDIA可被视为分布式系统方向的入门教程，LBDL是理想的深度学习101。
 

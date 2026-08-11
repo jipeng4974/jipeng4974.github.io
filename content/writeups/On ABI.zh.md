@@ -1,5 +1,5 @@
 +++
-title = "On ABI"
+title = "论ABI"
 date = "2022-08-02"
 tags = ["sys"]
 description = "本文总结了介于ISA和语言标准这两个简约协议层之间隔离了大量复杂度的抽象层次——系统语言的ABI。"

@@ -1,6 +1,6 @@
 # Efficient ANNS at Scale
 
-> 如何在十亿、百亿级特征库上做高效的向量检索
+> How to perform efficient vector search over feature stores with billions or tens of billions of vectors
 
 ---
 
@@ -8,56 +8,56 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-向量检索分为KNN和ANN，KNN就是用brute-force计算出query向量和所有索引向量的相似度，取前k个。ANN则是通过近似手段加速计算，以误差换效率。
+Vector search falls into two categories: KNN and ANN. KNN brute-forces the similarity between the query vector and every indexed vector and returns the top k. ANN accelerates the computation through approximation, trading accuracy for efficiency.
 
-如何做高效的向量检索？方法有二，一是提升编码率（不仅能降低内存占用，也能加速计算，因为便于SIMD且减少访存）的量化（IVF向量量化、PQ量化、ScaNN各向异性量化、4bit量化），二是缩小搜索空间的图搜索（HNSW）。
+How do we do efficient vector search? There are two approaches. The first is quantization that improves the encoding rate (which not only reduces memory footprint but also speeds up computation, because it is SIMD-friendly and reduces memory access): IVF vector quantization, PQ quantization, ScaNN anisotropic quantization, and 4-bit quantization. The second is graph search (HNSW), which shrinks the search space.
 
-如何在十亿、百亿级特征库上做向量检索？主要挑战是索引无法放入内存，因而需要考虑内存-磁盘混合方案（SPANN）。
+How do we do vector search over feature stores with billions or tens of billions of vectors? The main challenge is that the index cannot fit into memory, so we need a hybrid memory-disk scheme (SPANN).
 
-本文只介绍一小部分有效且正交的技术，这些技术组合在一起可形成当前的最佳实践。其他一些古典、经典技术可以参考本文引用的论文的背景综述。
+This post only covers a small set of effective and orthogonal techniques; combined, they form the current best practice. For other older, classic techniques, see the background surveys in the papers cited here.
 
-# 相似度
-首先回顾一下什么是**向量之间的相似度**:
-- 对向量X和Y来说，x和y越接近，则x越大的地方y也大，x小的地方y也小，则内积越大。因此内积可用作相似度打分，不过不能抵抗尺度变化。
-- 为了抵抗尺度变化，往往将内积正则化到[-1,1]，就变成了余弦相似度cosθ，θ为向量夹角，显然θ越小，向量越接近。
-- 欧几里得距离正则化到[-1,1]后相当于sqrt(2-2cosθ)。可见欧式距离平方也是和余弦相似度成比的。
+# Similarity
+First, let's review what **similarity between vectors** means:
+- For vectors X and Y, the closer x and y are, the more y is large where x is large and small where x is small, and the larger the inner product becomes. So the inner product can serve as a similarity score, though it is not robust to scale changes.
+- To be robust to scale changes, the inner product is often normalized to [-1,1], which gives the cosine similarity cosθ, where θ is the angle between the vectors. Obviously, the smaller θ is, the closer the vectors are.
+- After normalizing Euclidean distance to [-1,1], it is equivalent to sqrt(2-2cosθ). So squared Euclidean distance is also proportional to cosine similarity.
 
 ![sim_measure](https://jipeng4974.github.io/img/sim_measure.png)
 
-正则化后欧式距离、内积、cosθ三者同源，所以我们一般就用余弦相似度cosθ去度量向量/embedding之间的相似程度。除非又特殊的抵抗位置变化的需求，可采用皮尔森相关系数，皮尔森相关系数是协方差（两个变量的总体误差）的正则化，不过它同时也可以被视为将x和y中心化后的余弦相似度。
+After normalization, Euclidean distance, inner product, and cosθ all share the same origin, so we generally use cosine similarity cosθ to measure the similarity between vectors/embeddings. Unless there is a special need to resist positional shifts, in which case the Pearson correlation coefficient can be used: it is the normalization of covariance (the joint error of two variables), but it can also be viewed as the cosine similarity between centered x and y.
 
-# 向量量化
-量化器是D维向量 x  ∈ R^D 到 q(x) ∈ C = {c_0, c_1, ... c_k-1} 的映射函数q。c_i即聚类中心centroid。
-所谓密码本（codebook）就是一个lookup table，用centroid下标作为原始向量的低bit表示，密码本大小就是k。
+# Vector Quantization
+A quantizer is a mapping function q from a D-dimensional vector x ∈ R^D to q(x) ∈ C = {c_0, c_1, ... c_k-1}. Each c_i is a cluster centroid.
+The so-called codebook is just a lookup table that uses the centroid index as the low-bit representation of the original vector; the codebook size is k.
 
-向量量化本质是有损压缩，表征学习本质上也是有损压缩，一个白盒，一个黑盒，都是试图降低高维数据的编码率。
+Vector quantization is essentially lossy compression. Representation learning is also essentially lossy compression — one is a white box, the other a black box — both trying to reduce the encoding rate of high-dimensional data.
 
-# IVF：聚类、倒排、剪枝
-倒排（特指IVF）是一种古老的量化技术，早期应用于[Video Google](https://www.robots.ox.ac.uk/~vgg/publications/2003/Sivic03/sivic03.pdf)。核心思想是基于k-means聚类做向量量化。k-means聚类起源于信号处理领域，目标是把n个向量分区到k个clusters，每个向量属于离centroid最近的cluster。
+# IVF: Clustering, Inverted Index, Pruning
+Inverted indexing (specifically IVF) is an old quantization technique, applied early on in [Video Google](https://www.robots.ox.ac.uk/~vgg/publications/2003/Sivic03/sivic03.pdf). Its core idea is vector quantization based on k-means clustering. K-means clustering originates from signal processing; its goal is to partition n vectors into k clusters, where each vector belongs to the cluster with the nearest centroid.
 
-聚类后有些边缘数据点既属于A，也属于B，那就把它同时放到A和B的centroid对应的postinglist里面去，不过重复放置会导致postinglist膨胀，为了应对这种膨胀，可采取剪枝策略，具体可参考微软的SPTAG项目和[SPANN论文](https://arxiv.org/pdf/2111.08566.pdf)。
+After clustering, some boundary data points belong to both A and B, so they are placed into the posting lists of both A's and B's centroids. But duplicate placement causes posting list bloat; to deal with this bloat, a pruning strategy can be adopted — see Microsoft's SPTAG project and the [SPANN paper](https://arxiv.org/pdf/2111.08566.pdf).
 
-Faiss的IVFFlat就是在聚类形成centroid为term的倒排后提供检索能力，nlist为聚类数，nprobe为临近centroid探测数，nprobe=nlist时退化为暴搜。IVFFLat在检索时将query邻近的nprobe个centroid对应的所有原始向量作为搜索空间进行暴搜。由于centroid的表示方式可以简化成clusterid，所以实际上IVF也是一种量化：用一个数组存放所有的centroid向量，数组下标即可表示centroid。
+Faiss's IVFFlat provides retrieval on top of the inverted index formed by clustering, with centroids as terms. nlist is the number of clusters, nprobe is the number of nearby centroids probed, and when nprobe=nlist it degenerates into brute-force search. At query time, IVFFlat brute-force searches all original vectors under the nprobe centroids nearest to the query. Since a centroid's representation can be simplified to a cluster id, IVF is actually also a form of quantization: store all centroid vectors in one array, and the array index itself represents the centroid.
 
-# PQ：乘积量化
-基于聚类的量化对低维向量比较有效，但随着向量维度升高，出现误差也变高，而且这种误差不是提升聚类数目能解决的。如果把聚类数目（codebook大小）提升到2^64，训练这个聚类的开销就会高得无法接受，需要数倍于2^64的样本，内存显然也放不下。**乘积量化（PQ）**就是降维手段解决IVF量化误差的技术，[Jegou et al., 2011](https://lear.inrialpes.fr/pubs/2011/JDS11/jegou_searching_with_quantization.pdf)以及[ScaNN](https://arxiv.org/pdf/1908.10396.pdf)均讨论了PQ。其核心思想是对索引数据量化，将d维空间切分为M个子空间，将高维向量的误差拟合为分段的低维向量误差之和。
+# PQ: Product Quantization
+Clustering-based quantization works well for low-dimensional vectors, but as vector dimensionality increases, the error grows too — and this error cannot be fixed by simply increasing the number of clusters. If the number of clusters (codebook size) were raised to 2^64, the cost of training that clustering would be unacceptably high, requiring several times 2^64 samples, and it clearly wouldn't fit in memory either. **Product Quantization (PQ)** is the technique that solves IVF's quantization error through dimensionality reduction; both [Jegou et al., 2011](https://lear.inrialpes.fr/pubs/2011/JDS11/jegou_searching_with_quantization.pdf) and [ScaNN](https://arxiv.org/pdf/1908.10396.pdf) discuss PQ. Its core idea is to quantize the indexed data by splitting the d-dimensional space into M subspaces, approximating the error of a high-dimensional vector as the sum of the errors of its segmented low-dimensional vectors.
 
-乘积量化中，IVF倒排链存的不是原始向量，而是原始向量的一种编码：
-- 求原始d维向量与高维粗聚类centroid的残差（残差的目的是中心化，让数据点分布变得更集中，使精度更好）
-- 将残差向量切成M个分段，每个分段维度为d/M
-- 每个分段做$k=2^n$个细聚类，n即为低维细聚类clusterid的编码长度，4bit或8bit
-- 用每个分段的邻近低维细聚类centroid去量化该分段上的原始残差分段
+In product quantization, what the IVF posting list stores is not the original vector, but an encoding of it:
+- Compute the residual between the original d-dimensional vector and its high-dimensional coarse-cluster centroid (the purpose of the residual is centering — making the data distribution more concentrated, which improves precision)
+- Split the residual vector into M segments, each of dimension d/M
+- Run $k=2^n$ fine clusters on each segment, where n is the code length of the low-dimensional fine-cluster id — 4bit or 8bit
+- Quantize each original residual segment with its nearest low-dimensional fine-cluster centroid
 
-Faiss的IVFPQ就结合了IVF和PQ，IVF粗聚类是一级量化，PQ则是二级量化。一方面索引体积减小，另一方面计算上也只需要计算残差和分段细聚类centroid近邻的距离，还能SIMD加速，性能收益非常显著。不过IVFPQ的distance究竟只是一种拟合，是距离粗聚类centroid的距离加上M个分段里query残差和邻近细聚类centroid的距离总和，这种拟合可以一定程度上帮助找到近邻，但不适合用作距离，可以把IVFPQ当做粗排，结果再做一次brute-force或高精度ANN重算，得到更精确的距离。
+Faiss's IVFPQ combines IVF and PQ: IVF coarse clustering is the first-level quantizer, and PQ is the second-level quantizer. On one hand the index shrinks; on the other hand, computation only requires distances between residuals and segment-wise fine-cluster centroids, which can also be SIMD-accelerated — a very significant performance win. However, the IVFPQ distance is ultimately just an approximation: the distance to the coarse-cluster centroid plus the sum of distances between the query residual and the nearby fine-cluster centroids across the M segments. This approximation helps find neighbors to some extent but is unsuitable as an actual distance. You can treat IVFPQ as a coarse ranking stage, then rerun brute-force or high-precision ANN on the results to get more accurate distances.
 
-ScaNN提出了各向异性量化，算是正本清源，纠正了此前就近选择centroid在数学上的错误，并且实践了4-bit量化取得非常好的效果（其实4bit量化的效果还比各向异性更大，但各向异性在理论上贡献更大）。传统的量化把数据点量化到离自己最近的聚类中心，但这么做未必是误差最低的，越平行的向量之间内积越大，越正交的向量之间内积越小，因此赋予平行向量更高的误差惩罚权重效果更好。这就意味着不一定量化到距离最近的centroid了，目标是整体编码率不变的前提下，让平行方向量化误差更小，正交方向误差高一些其实无所谓，从而提升整体的ANN效果。
+ScaNN proposed anisotropic quantization, which set things right at the source: it corrected the mathematical error of the previous nearest-centroid selection, and it also demonstrated that 4-bit quantization works very well in practice (in fact, 4-bit quantization contributes more to the gains than anisotropy, but anisotropy is the bigger theoretical contribution). Traditional quantization quantizes a data point to its nearest cluster center, but that is not necessarily the lowest-error choice: the more parallel two vectors are, the larger their inner product; the more orthogonal, the smaller. So assigning a higher error penalty weight to parallel directions works better. This means we no longer necessarily quantize to the nearest centroid — the goal is, while keeping the overall encoding rate unchanged, to make the quantization error smaller in parallel directions and tolerate higher error in orthogonal directions, thereby improving overall ANN performance.
 
-假设d/M = 4，采用8bit量化，原始向量是256维f32向量，则PQ将256个float32压缩到64个int8，内存减少到1/16。乘积量化显然可以显著减少内存和存储开销，其实这也能加速计算，原因如下：
-- 高效点乘（其实也是误差换效率）：O(dk+mn) 比 O(nd)快，d维度的query和n个量化后的向量点乘，引入m个大小为k的量化codebook，mn可以忽略不计，k远小于n。
-- memory bandwidth：现代处理器需要“高计算量per memory read”才能充分发挥硬件的计算性能。量化压缩数据点后内存带宽的使用也下降了，变得更计算密集。
-- 向量量化中引入的低bit表示，尤其是4bit量化，和低bit浮点数量化一样，可以享受SIMD、AMX的性能红利。
+Suppose d/M = 4 with 8-bit quantization, and the original vector is a 256-dimensional f32 vector. Then PQ compresses 256 float32 values into 64 int8 values, reducing memory to 1/16. Product quantization obviously reduces memory and storage cost significantly, but it also speeds up computation, for the following reasons:
+- Efficient dot products (also trading accuracy for efficiency): O(dk+mn) is faster than O(nd). For the dot product of a d-dimensional query with n quantized vectors, introducing m codebooks of size k, mn is negligible and k is much smaller than n.
+- Memory bandwidth: modern processors need "high compute per memory read" to fully exploit their computational performance. Once data points are compressed by quantization, memory bandwidth usage drops as well, making the workload more compute-intensive.
+- The low-bit representations introduced by vector quantization — especially 4-bit quantization — enjoy the same SIMD and AMX performance dividends as low-bit floating-point quantization.
 
-# 最佳实践：根据应用场景将各种正交技术进行正确组合
-HNSW、IVF、PQ、各向异性的score-aware quantization loss、brute-force事实上都是正交的技术，可以组合起来使用。
+# Best Practice: Correctly Combining Orthogonal Techniques for Your Scenario
+HNSW, IVF, PQ, anisotropic score-aware quantization loss, and brute-force are in fact all orthogonal techniques that can be combined.
 
-比如进行了PQ量化的数据点可以再构建一个HNSW，用图方法在超大规模数据集上做查询显然比ivfpq更高效。各向异性量化则是对此前PQ量化的修正。考虑到量化后的距离失真，还能用brute-force把ivf+pq+hnsw的粗排结果重算一下得到最精确的距离，由于已经经过一轮粗排，候选数据集大小从十亿级别缩小到万级别，brute-force的开销就完全可以接受了。
+For example, data points that have undergone PQ quantization can have an HNSW built on top of them; using a graph method for queries on ultra-large-scale datasets is clearly more efficient than IVFPQ. Anisotropic quantization, in turn, is a correction to the earlier PQ quantization. And given the distance distortion introduced by quantization, you can also use brute-force to recompute the coarse-ranked results from ivf+pq+hnsw to get the most accurate distances. Since the candidates have already gone through one round of coarse ranking — shrinking from billions down to tens of thousands — the brute-force cost is entirely acceptable.

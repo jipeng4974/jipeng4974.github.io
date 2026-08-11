@@ -1,6 +1,6 @@
 # Diffusion Probabilistic Models
 
-> 本文是对朱军教授的分享——“用于生成高维数据的扩散模型”的笔记。值得注意的是DPM实践中巧妙使用了解析解，无论是前向过程的closed form $q(x_N|x_0)$，还是逆向过程中解析形式的方差估计，都大大提升了训练性能，体现了数学的精妙。
+> This post is my notes on Professor Jun Zhu's talk — "Diffusion Models for Generating High-Dimensional Data". Notably, DPM practice makes clever use of analytical solutions: both the closed form $q(x_N|x_0)$ in the forward process and the analytic-form variance estimate in the reverse process greatly improve training performance — a testament to the elegance of mathematics.
 
 ---
 
@@ -8,11 +8,11 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-# 扩散模型生成高维数据
-## 生成式模型范式
-不同于判别式方法，生成式建模范式是：给定未知数据分布的一组IID[^1]数据$x_i \sim p_D(x)$，去学一个参数空间为$\theta \in \Theta$的模型分布$p_\theta(x)$，令其逼近数据分布：$p_\theta(x) \approx p_D(x)$。
+# Diffusion Models for Generating High-Dimensional Data
+## The Generative Modeling Paradigm
+Unlike discriminative methods, the generative modeling paradigm is: given a set of IID[^1] samples $x_i \sim p_D(x)$ drawn from an unknown data distribution, learn a model distribution $p_\theta(x)$ with parameter space $\theta \in \Theta$ that approximates the data distribution: $p_\theta(x) \approx p_D(x)$.
 
-机器学习中，生成式模型的经典方法包括：
+Classic generative models in machine learning include:
 - Mixture of Gaussian for clustering
 - Naive Bayes for classification
 - Mixture of Experts(MoE) for unsupervised/supervised learning
@@ -20,56 +20,56 @@ LLMS index: [llms.txt](/llms.txt)
 - Nonparametric Bayesian methods
 - Deep generative models
 
-生成式模型天然具备构建基础模型的潜质，因为它的本质是对多元变量联合分布建模，只要能有效估计$p(x,y)$，自然就具备了对$p(x)$进行条件预测的能力——这也就构建出分类器，而且研究表明这样构建出来的分类器在半监督这种训练数据比较少的情况下表现出更高的数据利用率，此外也有些工作发现这种分类器在对抗干扰时表现得更鲁棒。
+Generative models naturally have the potential to serve as foundation models, because their essence is modeling the joint distribution of multivariate variables: as long as we can effectively estimate $p(x,y)$, we naturally gain the ability to make conditional predictions on $p(x)$ — which amounts to building a classifier. Research has shown that classifiers built this way achieve higher data efficiency in semi-supervised settings where training data is scarce, and some work has also found such classifiers to be more robust against adversarial perturbations.
 
-深度生成式模型的兴起，源自：
-- 相比判别式模型，模型的表达能力变强了，能描述高维数据的复杂分布。
-- 算法上有成熟的变分和马尔可夫链蒙特卡洛方法（MCMC）。
-- 数据上更容易通过自监督或无监督方法利用大规模数据。
-- 硬件上得到新GPU硬件对更大算力需求的支撑。
+The rise of deep generative models stems from:
+- Compared with discriminative models, their expressive power has grown, enabling them to describe the complex distributions of high-dimensional data.
+- Algorithmically, mature variational and Markov chain Monte Carlo (MCMC) methods are available.
+- On the data side, self-supervised or unsupervised methods make it easier to exploit large-scale data.
+- On the hardware side, new GPU hardware supports the demand for much greater compute.
 
-可微分神经网络深度生成模型用可微分DNN去学习随机变量之间的复杂关系，目标是将标准高斯白噪声变成一个自然场景下的真实分布（自然图片、声音、视频）。完全无监督下就能取得非常好的效果。这些模型根据概率密度函数定义可分为显式和隐式：
-- 显式模型如VAE、Energy-based models、Auto-Regressive、Flow-based Models、DPM(Diffusion probabilistic models)直接描述预期产出数据的概率分布。
-- 隐式模型如GAN、Moment-matching DGM则描述了一个变换过程，还需要通过一些准则去引导模型产生更符合预期数据分布的数据。
+Differentiable neural-network deep generative models use differentiable DNNs to learn the complex relationships among random variables, with the goal of turning standard Gaussian white noise into real distributions of natural scenes (natural images, audio, video). They achieve very good results even in a fully unsupervised setting. Based on how the probability density function is defined, these models fall into explicit and implicit categories:
+- Explicit models such as VAE, Energy-based models, Auto-Regressive, Flow-based Models, and DPM(Diffusion probabilistic models) directly describe the probability distribution of the data to be generated.
+- Implicit models such as GAN and Moment-matching DGM instead describe a transformation process, and still require some criterion to guide the model toward producing data that better matches the desired distribution.
 
-从训练目标来看，这些模型又可以分为最大似然估计（MLE）、Score-matching、对抗训练（Adversarial training）三类。
-- Score-matching：Moment-matching DGM, Diffusion Models
-- Adversarial training：GAN
-- MLE：Everything else
+From the perspective of training objectives, these models can further be divided into three categories: maximum likelihood estimation (MLE), Score-matching, and adversarial training.
+- Score-matching: Moment-matching DGM, Diffusion Models
+- Adversarial training: GAN
+- MLE: Everything else
 
-## 扩散模型
-物理过程中的扩散是随着时间推移，破坏结构，从有序到无序。
+## Diffusion Models
+Diffusion in physical processes destroys structure over time, going from order to disorder.
 
-扩散模型中扩散过程也是逐渐给数据加高斯噪声，使其信噪比下降。
+In diffusion models, the diffusion process likewise gradually adds Gaussian noise to the data, driving down its signal-to-noise ratio.
 
-Song et al., ICLR 2021[^2]将一个扩散变换描述为：$q(x_i|x_{i-1}) = \mathcal{N}(x_i;\sqrt{1- \beta_i}x_{i-1},\beta_iI)$，令$\alpha_i = \prod_{k=1}^{i} 1 - \beta_i$，则有$q_{\alpha_N}(x_N|x_0) = \prod_{i=1}^{N} q(x_i|x_{i-1}) = \mathcal{N}(x_N;\sqrt{\alpha_N} x_0, (1-\alpha_N)I)$，冗长的递归表达式最终可以划归为一个简洁的closed form[^5]，因此可以很方便地定义N步前向过程的loss。其中$\beta_i$是一系列噪声乘数，可以是超参，也可以说reparameterization学习到的结果。对每个训练数据$x_0 \sim q_D(x)$，都可以构造一个离散马尔可夫链$\{x_0,x_1,...,x_N\}$，经过$N$次加噪，最终使之趋近高斯白噪。$q(x_N|x_0) \sim \mathcal{N}(O,I), N \rightarrow \infty$。
+Song et al., ICLR 2021[^2] describe a diffusion transition as: $q(x_i|x_{i-1}) = \mathcal{N}(x_i;\sqrt{1- \beta_i}x_{i-1},\beta_iI)$; letting $\alpha_i = \prod_{k=1}^{i} 1 - \beta_i$, we have $q_{\alpha_N}(x_N|x_0) = \prod_{i=1}^{N} q(x_i|x_{i-1}) = \mathcal{N}(x_N;\sqrt{\alpha_N} x_0, (1-\alpha_N)I)$ — the lengthy recursive expression eventually reduces to a concise closed form[^5], so the loss of the N-step forward process can be defined very conveniently. Here $\beta_i$ is a series of noise multipliers, which can be hyperparameters or the result learned via reparameterization. For each training sample $x_0 \sim q_D(x)$, a discrete Markov chain $\{x_0,x_1,...,x_N\}$ can be constructed; after $N$ rounds of noise injection, it eventually approaches Gaussian white noise: $q(x_N|x_0) \sim \mathcal{N}(O,I), N \rightarrow \infty$.
 
 ![SDE](https://jipeng4974.github.io/img/sde.png)
 
-上述过程的逆向去噪过程$p(x_{i-1}|x_i)$则是未知、需要学习或估算的——可以用变分近似的方法求解，比如用一个均值为$x_i$函数的高斯分布$\mathcal{N}(\mu_n(x_n), \theta_n^2I)$去近似$p(x_{i-1}|x_i)$，用KL散度最小化的方法使之逼近。
+The reverse denoising process of the above procedure, $p(x_{i-1}|x_i)$, is unknown and must be learned or estimated — it can be solved via variational approximation, e.g., approximating $p(x_{i-1}|x_i)$ with a Gaussian distribution $\mathcal{N}(\mu_n(x_n), \theta_n^2I)$ whose mean is a function of $x_i$, and minimizing the KL divergence to bring it close.
 
-原理上来说Diffusion模型相对简单：
-- 只有加噪去噪，不需要去学encoder和decoder，只需要根据加噪学去噪。
-- 损失函数也比较简单。
-- 数学上是严格保证收敛的。
+In principle, Diffusion models are relatively simple:
+- There is only noise addition and denoising — no need to learn an encoder and decoder; you only learn to denoise based on how the noise was added.
+- The loss function is also fairly simple.
+- Convergence is rigorously guaranteed mathematically.
 
-## 大规模训练和高效数据生成
-此前变分近似的做法中，噪声的方差参数一般是固定下来，不做优化的。清华大学TSAIL提出的Analytical-DPMs[^6]发现可以给出逆向过程中每个时间点的均值函数和方差的一个解析形式——这个形式和一些学者手工设计的一些形式也比较耦合——最终得到一个不需要任何额外训练的方差估计器。训练好的DPM，只需要插入一行代码，就能用上这个解析形式的方差估计。用这个估计值使每一步的方差估计变得更准，使所需的整体步数变少，折算下来有20~80倍的性能提升。后来这个方法也在Dall-E 2中使用了。
+## Large-Scale Training and Efficient Data Generation
+In earlier variational-approximation approaches, the variance parameter of the noise was generally fixed and left unoptimized. Analytical-DPMs[^6], proposed by TSAIL at Tsinghua University, found that the mean function and variance at each timestep of the reverse process can be given an analytical form — one that also coincides with some forms hand-designed by other researchers — ultimately yielding a variance estimator that requires no additional training. For a trained DPM, you only need to insert one line of code to take advantage of this analytic-form variance estimate. The estimate makes the variance at each step more accurate, reducing the total number of steps required and translating into a 20–80x performance improvement. This method was later used in Dall-E 2.
 
-TSAIL团队的另一个工作DPM-Solver[^7]做了专门的求解器，使步数从几百步降低到十余步。
+Another work from the TSAIL team, DPM-Solver[^7], builds a dedicated solver that brings the number of steps down from several hundred to around a dozen.
 
-由于涉及加噪去噪，扩散模型的底层架构自然而然借鉴U-Net（CNN）。TSAIL团队的第三个工作，尝试把扩散模型和transformer结合，设计了U-ViT[^8]，在当时设置了5亿参数的（当时算最大的）大模型，证明对模型的可扩展性确实有帮助。同期有个工作DiT非常类似。Stable Diffusion 3.0就用的是DiT架构。
+Because it involves noise addition and denoising, the underlying architecture of diffusion models naturally borrows from U-Net (CNN). The TSAIL team's third work attempted to combine diffusion models with the transformer, designing U-ViT[^8]; they set up a 500M-parameter large model (the largest at the time), demonstrating that it genuinely helps model scalability. A contemporaneous work, DiT, is very similar. Stable Diffusion 3.0 uses the DiT architecture.
 
-回顾前文所述的“生成式模型天然具备构建基础模型的潜质，因为它的本质是对多元变量联合分布建模，只要能有效估计$p(x,y)$，自然就具备了对$p(x)$进行条件预测的能力”，基于这种heuristics，TSAIL团队的另一个研究是UniDiffuser[^9]，目标是用一个模型解决原本marginal diffuser、conditional diffuser、joint diffuser这多个模型才能解决的多个任务。当时DALL-E 2和Stable Diffusion只能文到图，而UniDiffuser能图到文或文到图。
+Recall what was said earlier — "generative models naturally have the potential to serve as foundation models, because their essence is modeling the joint distribution of multivariate variables: as long as we can effectively estimate $p(x,y)$, we naturally gain the ability to make conditional predictions on $p(x)$" — based on this heuristic, another research effort from the TSAIL team is UniDiffuser[^9], which aims to use a single model to solve the multiple tasks that previously required several models: marginal diffuser, conditional diffuser, and joint diffuser. At the time, DALL-E 2 and Stable Diffusion could only do text-to-image, while UniDiffuser could do image-to-text as well as text-to-image.
 
-做完图像之后，又做了Vidu[^10]文生视频的工作，在时间轴上做了升维，实现了16s的生成。此外，还做了3D内容生成，CRM[^11]图生3D，ProlificDreamer[^12]文生3D，在空间上做了升维。在最新的工作Vidu4D[^13]中，做了4D（即sequential 3D）重建。
+After images, they went on to do Vidu[^10], a text-to-video work that scales up along the time axis, achieving 16s generation. In addition, they worked on 3D content generation — CRM[^11] for image-to-3D and ProlificDreamer[^12] for text-to-3D — scaling up along the spatial dimension. In their latest work, Vidu4D[^13], they perform 4D (i.e., sequential 3D) reconstruction.
 
-## 从生成到判别式分类器
-生成式AI估计一个联合分布$P(x,y)$，基于贝叶斯定理可得$p(y|x) = \frac{p(x,y)}{p(x)} = \frac{p(y)p(x|y)}{p(x)}$，$y^* = \arg \underset{y\in \mathcal{Y}}{\max} p(y|x)$。
+## From Generation to Discriminative Classifiers
+Generative AI estimates a joint distribution $P(x,y)$; by Bayes' theorem, $p(y|x) = \frac{p(x,y)}{p(x)} = \frac{p(y)p(x|y)}{p(x)}$, and $y^* = \arg \underset{y\in \mathcal{Y}}{\max} p(y|x)$.
 
-如果联合分布是准确的，那么这个分类器就是最优的，即所谓贝叶斯分类器。
+If the joint distribution is accurate, this classifier is optimal — the so-called Bayes classifier.
 
-此外，Chen et al 2024[^14]的工作表明可以将一个预训练好的生成式基座模型转化成一个对噪声鲁棒的分类器。
+Moreover, the work of Chen et al 2024[^14] shows that a pretrained generative foundation model can be converted into a noise-robust classifier.
 
 [^1]: IID stands for Independent and Identically Distributed
 [^2]: Song et al. Score-based generative modeling through stohastic differential equations. ICLR 2021. [[arxiv]](https://arxiv.org/abs/2011.13456)

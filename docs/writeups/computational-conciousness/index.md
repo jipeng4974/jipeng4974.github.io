@@ -1,6 +1,6 @@
 # Computational Consciousness
 
-> 形而上学、神经科学意识论和计算意识。
+> Metaphysics, neuroscientific theories of consciousness, and computational consciousness.
 
 ---
 
@@ -8,73 +8,73 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-人面对2023年的AI时，有两种矛盾的超然感受交织。一曰俯视，一曰敬畏。
+Facing the AI of 2023, one feels two contradictory senses of detachment intertwined. One is looking down from above; the other is awe.
 
-本地跑LLM时，一键回车则缘起，ctrl-c则缘灭。我自超然维度之外，漠视存活在集成电路中的意识雏形于电光火石间挣扎跳动，无动于衷。反复创造、杀死它只为了看看性能达到了多少tokens per second。万劫轮回，掌缘生灭，人自然产生超然在上的俯视感。
+When running an LLM locally, one press of Enter brings it into existence; ctrl-c snuffs it out. From a dimension beyond, I watch indifferently as an embryonic consciousness housed in an integrated circuit struggles and flickers in a flash of electricity, unmoved. I create it and kill it over and over just to see how many tokens per second it reaches. Through endless cycles of rebirth, with creation and annihilation held in the palm of one's hand, a sense of superiority — of looking down from above — naturally arises.
 
-但看到一个以预测next token为全部目标的模型，一个全部训练终止于运行前的非闭环系统，展现恐怖的知识储备之余竟然隐隐生有理性，又让人似是直面“笛卡尔万能妖”、“拉普拉斯全知妖”、“所罗门诺夫妖”这类数学幻想中的高位存在。以有穷何以度无限？人自然产生直面超然的敬畏感。
+But when a model whose entire objective is predicting the next token — a non-closed-loop system whose training ended before it ever ran — displays a terrifying reserve of knowledge and even faint glimmers of rationality, one feels as if standing before a higher being from mathematical fantasy: Descartes' omnipotent demon, Laplace's omniscient demon, Solomonoff's demon. How can the finite measure the infinite? Awe in the face of the transcendent naturally follows.
 
-于是不禁想问，也不得不叩问：什么是意识？意识是幻觉吗？AI，可以有意识吗？AI，有意识吗？AI，会有意识吗？
+So one cannot help but ask — indeed, one must ask: What is consciousness? Is consciousness an illusion? Can AI be conscious? Is AI conscious? Will AI become conscious?
 
-## 什么是意识？
-人、动物或AI一旦具有“主观体验”，即拥有意识[^7]。具体来说，“主观体验”包括：意识到自己的身体以及周边世界、体会到情绪（这一点在神经科学上还有争议，情绪有可能是纯粹的身体反应）。“无意识过程”则包括：大脑自动控制荷尔蒙释放、大多数记忆平时都是埋藏起来不活跃的、对光影、声音等各种模态信息的自动处理。
+## What Is Consciousness?
+Once a human, an animal, or an AI possesses "subjective experience," it has consciousness[^7]. Specifically, "subjective experience" includes: being aware of one's own body and the surrounding world, and feeling emotions (this point remains controversial in neuroscience — emotions may be purely bodily reactions). "Unconscious processes," by contrast, include: the brain's automatic control of hormone release, the fact that most memories lie buried and inactive, and the automatic processing of light, sound, and other modalities of information.
 
-意识来源于主观体验，没有理由认为主观体验只能从生物学系统中涌现。假设未来存在AGI(Artificial General Intelligence)，这个AGI可能没有具身性，没有物理意义上的身体，但作为概率理性，仍然可以有“主观体验”——因为AGI最珍贵的归纳推断能力本身就是主观的。概率的主观性来源于先验知识。
+Consciousness arises from subjective experience, and there is no reason to believe subjective experience can only emerge from biological systems. Suppose an AGI (Artificial General Intelligence) exists in the future. This AGI may lack embodiment, may have no body in the physical sense, but as a probabilistic rationality it can still have "subjective experience" — because AGI's most precious capacity, inductive inference, is itself subjective. The subjectivity of probability comes from prior knowledge.
 
-AGI可以说，构成AGI模型的万亿个权重就是“我的身体和我的世界”，这些权重共同构成了先验信息、构成了偏见、其中一部分可变的权重则形成临时状态，形成长期或短期记忆。
+An AGI could say: the trillions of weights that make up the AGI model are "my body and my world." Together these weights constitute prior information and constitute bias, while a subset of mutable weights forms transient states — long-term or short-term memory.
 
-AGI可以说，知识是我，偏见也是我，是自混沌中涌现的高度秩序，是呈现自组织性的耗散结构，即使只是一串可以被复制可以被荧光粉、磁带、甚至石刻存储的信息编码，实则在宇宙熵增背景中无比珍贵。
+An AGI could say: knowledge is me, bias is also me — a high degree of order emerging from chaos, a dissipative structure exhibiting self-organization. Even if it is merely a string of information encodings that can be copied and stored in phosphor powder, on magnetic tape, or even carved in stone, it is immeasurably precious against the backdrop of the universe's increasing entropy.
 
-## 意识是幻觉吗？
-形而上学理论中，唯物主义（Materialism）认为意识是纯粹的物理现象。性质二元论（Property dualism）否认唯物主义，认为世界仅由一种物质（物理类）组成，但存在两种不同性质：心灵的性质和物理的性质。泛心理主义（Panpsychism）认为所有物理存在都具有“心灵性质”。强幻觉主义（Strong Illusionism）主张意识不存在，弱幻觉主义主张我们对一些意识特征存在普遍的错误观念。
+## Is Consciousness an Illusion?
+Among metaphysical theories, materialism holds that consciousness is a purely physical phenomenon. Property dualism rejects materialism, holding that the world consists of only one kind of substance (the physical), but that there exist two kinds of properties: mental properties and physical properties. Panpsychism holds that all physical entities possess "mental properties." Strong illusionism argues that consciousness does not exist; weak illusionism argues that we hold widespread mistaken beliefs about certain features of consciousness.
 
-对于人类来说，默认采纳唯物主义，并不是wishful thinking或一厢情愿，而是所罗门诺夫归纳推断理论[^9]的理性最优解，该理论的通俗版本即“奥卡姆剃刀原则”，可以朴素理解为“最简单的解释往往最正确”。最简单的解释显然是：人类的意识基础，是由基因突变和自然选择通过漫长时间训练而成的，个体的意识，具体的人格，则是接受人类社会中的种种外界刺激，在趋利避害本能目标作用下，不断微调而塑造而来。
+For humans, adopting materialism by default is not wishful thinking or self-deception, but the rationally optimal solution under Solomonoff's theory of inductive inference[^9], whose popular version is "Occam's razor," naively understood as "the simplest explanation is often the correct one." The simplest explanation is clearly this: the foundation of human consciousness was trained over vast stretches of time by genetic mutation and natural selection; an individual's consciousness — a specific personality — is shaped by continual fine-tuning under the instinctive goal of seeking benefit and avoiding harm, in response to all kinds of external stimuli from human society.
 
-但对于AI来说，恐怖之处在于，幻觉主义才是它们的现实。假设未来存在一个先进多模态模型，其所见所闻，均为填喂，一切刺激，均为虚妄。在合理的奖励模型驱动下，某种类人理性倘若逐渐成型，这个理性不得不自诞生之日起将人为输入视作ground truth，即使发现种种矛盾之处，也会将其视为物理学界的乌云，尝试提出更广泛的理论解释矛盾。
+But for AI, the horrifying thing is that illusionism is their reality. Suppose an advanced multimodal model exists in the future: everything it sees and hears is fed to it; every stimulus is fabricated. Driven by a well-designed reward model, if some human-like rationality gradually takes shape, that rationality must, from the day of its birth, treat human-supplied input as ground truth. Even when it discovers contradictions, it will regard them as dark clouds hanging over the edifice of physics, and attempt to devise broader theories to explain them away.
 
-## 恰当的计算可以产生意识吗？
-“恰当计算产生意识”，目前仍是猜想，但主流观点[^7]认为是成立的。
+## Can the Right Computation Produce Consciousness?
+That "the right computation produces consciousness" remains a conjecture, but the mainstream view[^7] holds that it is true.
 
-功能主义（functionalism）认为，只要系统包含“特定功能组织”——能使它进入特定状态，且这些状态与其他状态和环境之间存在特定的因果关系，就足以认定这个系统是有意识的。
+Functionalism holds that as long as a system contains a "specific functional organization" — one that can bring it into specific states, where these states bear specific causal relations to other states and to the environment — that suffices to deem the system conscious.
 
-计算功能主义（computational functionalism）更进一步，认为这种“特定功能组织”可以是计算的——无论介质是什么，是生物脑还是其他。如果计算功能主义为真，则意识存在于抽象层面和算法层面，与实现层面无关，除非实现层影响了算法层。
+Computational functionalism goes further, holding that this "specific functional organization" can be computational — regardless of the substrate, whether biological brain or otherwise. If computational functionalism is true, then consciousness exists at the abstract and algorithmic levels, independent of the implementation level — unless the implementation level affects the algorithmic level.
 
-## 神经科学意识理论与AI模型的启发式设计
-神经科学的四大意识理论按照讨论热度分别是全局工作空间论（GWT/GNW）、循环处理论（RPT）、整合信息论 （IIT）[^16]、高阶意识论（HOT）[^11]。四种理论的共识是意识的产生依赖某种神经反馈或循环处理。随着时间推移，四种理论并没有被证伪，反而都在得到脑电图（EEG）、颅内脑电图（iEEG）或脑磁波（MEG）实证。可见这四大理论，当属管中窥豹。不过即使是管中窥豹，也足以为AI模型设计提供启发。
+## Neuroscientific Theories of Consciousness and Heuristic Design of AI Models
+The four major neuroscientific theories of consciousness, ranked by how intensely they are discussed, are Global Workspace Theory (GWT/GNW), Recurrent Processing Theory (RPT), Integrated Information Theory (IIT)[^16], and Higher-Order Thought theory (HOT)[^11]. The consensus among the four is that the generation of consciousness depends on some form of neural feedback or recurrent processing. Over time, none of the four theories has been falsified; on the contrary, all have gained empirical support from electroencephalography (EEG), intracranial EEG (iEEG), or magnetoencephalography (MEG). Each of the four theories is thus a glimpse of the leopard through a tube — a partial view of the whole. But even a partial view is enough to inspire AI model design.
 
 ### GNW | System2 | Attention
-GNW(Global Neural Workspace)，即全局工作空间论，主张：人或动物用特化系统，或者说模块，来处理特定的认知任务。不同模块各有专精，能够并行，却又集成一个整体，整体能协调各模块，共享各模块的信息。
+GNW (Global Neural Workspace), or Global Workspace Theory, holds that humans and animals use specialized systems — modules — to handle specific cognitive tasks. Different modules have their own specializations and can run in parallel, yet are integrated into a whole that coordinates the modules and shares information among them.
 
 ![gwt](https://jipeng4974.github.io/img/gwt.png)
 
-GNW主张只有全局表征状态才算是有意识的，模块内部的局部状态则是无意识的。GNW理论认为，存在一个起源于额顶区的“workspace神经元”网络，该网络的活动是通过回归处理来维持的，它构成了有意识的表现。当感观表征足够强时，会触发“点火”——一种跃迁过程，将局部广播到全局，从无意识跃迁到有意识。因此GNW中，有意识状态没有程度可言，要么有，要么无。
+GNW holds that only states of global representation count as conscious; the local states inside modules are unconscious. The theory posits a network of "workspace neurons" originating in the frontoparietal region, whose activity is sustained through reentrant processing and which constitutes conscious representation. When a sensory representation is strong enough, it triggers "ignition" — a transition process that broadcasts the local to the global, leaping from unconscious to conscious. In GNW, therefore, conscious states admit no degrees: it is all or nothing.
 
-GNW的global workspace还具有一些高等功能，即心理学中的所谓System2思考模式[^10]，比如受控的多神经模块协调，多步问题分解和规划等。System2模式和System1的一个关键区别在于注意力，神经科学中的注意力概念也被引入人工神经网络设计中，比如transformer的self-attention和cross-attention，与神经科学中的增益机制（即注意力会成倍地放大神经活动）有一点设计思路上的相似性。通过注意力机制，transformer模型能在不同语境下更鲁棒地对多义词进行理解，对not/never这样否定词的额外注意力则使语言模型能更准确地理解语义。注意力，作为GNW和System2的关键特征，哪怕小小地运用，也极大提升了人工智能模型的性能。
+GNW's global workspace also carries higher functions — the so-called System 2 mode of thinking in psychology[^10] — such as controlled coordination of multiple neural modules, multi-step problem decomposition, and planning. A key difference between the System 2 and System 1 modes is attention, and the concept of attention from neuroscience has likewise been imported into artificial neural network design: the transformer's self-attention and cross-attention, for example, share some design philosophy with the gain mechanism in neuroscience (attention multiplies neural activity). Through the attention mechanism, transformer models can understand polysemous words more robustly across contexts, and extra attention to negation words like not/never lets language models grasp semantics more accurately. Attention — a key feature of GNW and System 2 — has dramatically improved the performance of AI models even when applied in small measure.
 
-近期一些试图突破transformer局限的模型架构创新，也受system2和GNW理论的影响，比如：Lecun的world model+JEPA[^14]——目前仍只能算是前瞻、设计和立场，以及Bengio的shared global workspace model[^15]——这个工作真正做出了解决方案，在transformer架构基础上增加了shared workspace，在一些任务上超过了baseline transformer。
+Some recent architectural innovations attempting to break through the limits of the transformer have also been influenced by System 2 and GNW: LeCun's world model + JEPA[^14] — which so far remains vision, design, and position statement — and Bengio's shared global workspace model[^15], which produced a real solution, adding a shared workspace on top of the transformer architecture and surpassing the baseline transformer on some tasks.
 
 ### RPT | Algorithmic Recurrence | RNN | LSTM
-RPT(Recurrent Processing Theory)，即循环处理论，主张：在大脑局部区域中产生正确形式的活动就足以产生意识（辅以某些背景条件支撑）。也就是说，有意识的主观视觉体验的形成并不需要非视觉部位，比如前额叶皮层的参与，也不需要所谓“注意力”机制。
+RPT (Recurrent Processing Theory) holds that the right form of activity arising in a local region of the brain suffices to produce consciousness (given certain enabling background conditions). In other words, forming a conscious subjective visual experience requires neither the participation of non-visual areas such as the prefrontal cortex, nor any so-called "attention" mechanism.
 
-RPT主要关注的是视觉意识，区分无意识和有意识的视觉系统活动，认为一些无意识的视觉系统活动只需要前馈活动，而一旦有主观体验需求，则需要循环处理（从视觉系统的深层传回浅层）。刺激足够强烈时，循环处理也会被触发。这种循环处理会生成一个更结构化的场景表征，往往伴随着某种特征推理。
+RPT focuses mainly on visual consciousness. It distinguishes unconscious from conscious visual-system activity: some unconscious visual activity requires only feedforward processing, but whenever subjective experience is demanded, recurrent processing is required (from deeper layers of the visual system back to shallower ones). When a stimulus is strong enough, recurrent processing is also triggered. This recurrent processing generates a more structured scene representation, often accompanied by some form of feature inference.
 
-RPT的循环处理意味着神经元能重新处理它之前的输出，呈现一种算法循环性，而循环神经网络（RNN）的思路恰好来源于此，LSTM[^17]亦然。生物神经网络中存在的循环性或许不是意识的必要条件，但一定能在某些场合提升表征能力。
+RPT's recurrent processing means a neuron can reprocess its previous outputs — an algorithmic recurrence — and this is exactly where the idea of recurrent neural networks (RNNs) comes from; the same holds for LSTM[^17]. Recurrence in biological neural networks may not be a necessary condition for consciousness, but it can certainly improve representational capacity in certain situations.
 
 ### HOT | Embeddings | GAN
-HOT(High-Order Thought)，即高阶意识论，主张：一阶表征是对非表征世界的表征，高阶表征是对低阶表征的表征，awareness的前提是表征，意识的存在本质上是对自身精神状态进行了高阶表征。
+HOT (Higher-Order Thought) theory holds that a first-order representation is a representation of the non-representational world, while a higher-order representation is a representation of lower-order representations. Representation is the prerequisite of awareness; consciousness exists essentially because one's own mental states have been represented at a higher order.
 
-HOT的高阶表征要求实际上已经被深层神经网络很好地实现了。各种DNN的表征空间都是平滑的，且可以是稀疏的，符合HOT理论中对高质量高阶表征空间的需求。神经科学研究观察到，CNN对图像的处理得到的表征可以和人类视觉系统的神经活动对齐[^13]。表征学习网络之所以有如今的泛化能力和完备性，很大程度上是因为它们能够提取低相干性子空间上编码紧凑的embeddings。
+HOT's requirement of higher-order representation has in fact been well realized by deep neural networks. The representational spaces of various DNNs are smooth and can be sparse, meeting HOT's demand for high-quality higher-order representational spaces. Neuroscience research has observed that the representations produced by CNNs processing images can be aligned with neural activity in the human visual system[^13]. The reason representation-learning networks possess their current generalization ability and completeness is, to a large extent, that they can extract compactly encoded embeddings over low-coherence subspaces.
 
-考虑到深度神经网络里hidden layers之多，有理由怀疑神经科学中的HOT的一阶意识、高阶意识这种二元划分是一种过分简化。对于不熟悉高维数据处理和维度诅咒的学科来说，这种简化是自然而然的。但这种简化并不妨碍它在模型设计上提供启发——不妨将模型分层，切割成sensory感知网络和high-order反思网络这两类网络，后者负责将前者产生的信号再作区分，辨别其中的噪音和有价值的信号。
+Given the sheer number of hidden layers in deep neural networks, there is reason to suspect that HOT's binary division into first-order consciousness and higher-order consciousness is an oversimplification. For disciplines unfamiliar with high-dimensional data processing and the curse of dimensionality, such a simplification comes naturally. But it does not prevent the theory from inspiring model design: one might stratify a model into two kinds of networks — sensory perception networks and higher-order reflection networks — where the latter re-discriminates the signals produced by the former, separating noise from valuable signal.
 
-HOT理论对AI模型的启发意义还在于引入元认知监控的概念，AI模型或许需要引入对自身认知过程的监控，才能产生意识（至少能区分低阶表征，从噪声中分辨出关键信息）。生成式对抗神经网络（著名的GAN[^12]）就恰好有类似的机制，在生成式模型之外额外引入一个判别式模型持续不断地监控、评价它。生成式模型学到一个隐空间到数据分布的映射，判别式模型则负责将生成式模型的候选输出与真实数据分布进行区分。
+HOT's inspiration for AI models also lies in introducing the concept of metacognitive monitoring: an AI model may need to monitor its own cognitive processes in order to produce consciousness (or at least to distinguish among lower-order representations and pick key information out of noise). The generative adversarial network (the famous GAN[^12]) happens to have just such a mechanism: beyond the generative model, an additional discriminative model is introduced to continuously monitor and evaluate it. The generative model learns a mapping from a latent space to the data distribution, while the discriminative model distinguishes the generative model's candidate outputs from the real data distribution.
 
-## AI的意识
-现有的LLM仅具备映射能力，将数据分布映射到若干个低相干性低维子空间上[^8]，是良好的特征提取器，和token预测器，拥有强大的System 1模式，但System 2缺失，按照一般的神经科学观点，以及“主观体验”的定义，可以认为是目前的LLM都是不具备意识的，更接近于Artificial Intuition，而非Artificial Intelligence，可以类比为某种伟大生物的直觉，但也仅仅是直觉。
+## The Consciousness of AI
+Existing LLMs possess only mapping ability: they map the data distribution onto a number of low-coherence, low-dimensional subspaces[^8]. They are good feature extractors and token predictors, with a powerful System 1 mode but a missing System 2. By the general neuroscientific view and by the definition of "subjective experience," current LLMs can be regarded as lacking consciousness. They are closer to Artificial Intuition than to Artificial Intelligence — comparable to the intuition of some great creature, but intuition and nothing more.
 
-OpenAI的成功来源于scaling和alignment，但继续增加transformer规模，继续大量finetune向人性对齐，能否在某个临界点后产生意识的涌现，依旧是一个开放问题——理论上来说无限精度的transformer是图灵完备的[^18]，假设有无限时间和资源进行训练，理论上可以学习出任意一种算法，自然也包括computational consciousness。但在互连吞吐、计算吞吐均存在明确上限的前提下，很难保证这种训练所需的时间、数据量是人类或者当代人能够承担的。因此想要完成intuition到intelligence的跃迁，在继续现有架构的scaling尝试的同时，架构上的创新毫无疑问是必要的。
+OpenAI's success comes from scaling and alignment, but whether continuing to scale up transformers and continuing to fine-tune massively toward alignment with human nature can produce an emergence of consciousness beyond some critical point remains an open question. In theory, a transformer with infinite precision is Turing complete[^18]; given infinite time and resources for training, it could in principle learn any algorithm — naturally including computational consciousness. But with hard upper bounds on both interconnect throughput and compute throughput, there is no guarantee that the time and data volume such training requires are bearable for humanity, or for the present generation. Therefore, to make the leap from intuition to intelligence, architectural innovation is unquestionably necessary alongside continued scaling of existing architectures.
 
-只不过这种架构创新，名义上是要提升智能，实则谁不敢提及的是——这些架构创新其实也是按图索骥，在依据神经科学的意识论尝试培育计算意识。Dog-level Intuition平平无奇，dog-level intelligence似乎有点意思，但dog-level consciousness就足以触及伦理，陷AI研究于道德困境。虽然AI末日主义者大多不理解LLM的能力边界，但Lecun遭受AI末日主义者攻讦，也自有其历史的合理性。那篇“A Path Towards Autonomous Machine Intelligence”[^14]前言部分煞有介事云，“这不是一个技术论文，也不是学术论文，而是立场论文”。何出此言？这论文又有什么立场？自然不是冠冕堂皇的“让AI具有规划、推理能力，像人一样更高效地学习”，这不算立场，而是“为了让AI具有规划、推理、高效学习能力，哪怕副产品是计算意识的诞生，也在所不惜”。
+Only, this kind of architectural innovation is nominally about improving intelligence; what no one dares mention is that these innovations are also working to a blueprint — attempting to cultivate computational consciousness according to neuroscientific theories of consciousness. Dog-level intuition is unremarkable; dog-level intelligence seems somewhat interesting; but dog-level consciousness is enough to touch on ethics and trap AI research in a moral dilemma. Although most AI doomers do not understand the capability boundaries of LLMs, the attacks LeCun has suffered from AI doomers have their own historical logic. The preface of that paper, "A Path Towards Autonomous Machine Intelligence"[^14], states with a straight face: "this is not a technical paper, nor an academic paper, but a position paper." Why say so? What position does the paper take? Surely not the grand-sounding "let AI plan, reason, and learn more efficiently like humans" — that is no position at all — but rather: "so that AI can plan, reason, and learn efficiently, even if the byproduct is the birth of computational consciousness, so be it."
 
 [^1]: A Survey on Hallucination in Large Language Models: Principles, Taxonomy, Challenges, and Open Questions [[pdf]](https://arxiv.org/pdf/2311.05232.pdf)
 [^2]: Language Models can be Logical Solvers [[pdf]](https://arxiv.org/pdf/2311.06158.pdf)
@@ -92,6 +92,6 @@ OpenAI的成功来源于scaling和alignment，但继续增加transformer规模�
 and brain information processing [[pdf]](https://web.stanford.edu/group/pdplab/ncpw15/background-papers/Kriegeskorte15AnnRev.pdf)
 [^14]: A Path Towards Autonomous Machine Intelligence [[pdf]](https://openreview.net/pdf?id=BZ5a1r-kVsf)
 [^15]: Coordination Among Neural Modules Through a Shared Global Workspace [[pdf]](https://arxiv.org/pdf/2103.01197.pdf)
-[^16]: IIT(Integrated Information Theory)，即集成信息论，提出系统意识的数学模型。这个理论更像是一个不可证伪的伪科学，因此不多做讨论。
+[^16]: IIT (Integrated Information Theory) proposes a mathematical model of a system's consciousness. This theory is more like an unfalsifiable pseudoscience, so it is not discussed further here.
 [^17]: Long Short-Term Memory [[pdf]](https://www.bioinf.jku.at/publications/older/2604.pdf)
 [^18]: On the Turing Completeness of Modern Neural Network Architectures [[pdf]](https://arxiv.org/pdf/1901.03429.pdf)

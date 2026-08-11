@@ -1,6 +1,6 @@
 # Linkers & Loaders
 
-> 《Linkers & Loaders》填补了一个niche知识域——链接和加载。
+> Linkers & Loaders fills a niche body of knowledge — linking and loading.
 
 ---
 
@@ -8,84 +8,83 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-链接器或加载器的基本工作是绑定——把抽象的名字绑定到更具体的名字上，比如把`getline`函数绑定到“.text的第612字节处”。
+The basic job of a linker or loader is binding — binding abstract names to more concrete ones, such as binding the `getline` function to "byte 612 of .text".
 
-## 地址绑定的历史
-打孔卡带(punched card/paper tape)计算机时代，程序员把符号程序手动汇编成机器码输入机器。代码中如果使用了名字（符号地址），也需程序员手动翻译成地址。因此代码里的任意一条指令的增减都可能影响到机器码中的所有地址。
+## A History of Address Binding
+In the era of punched card/paper tape computers, programmers hand-assembled symbolic programs into machine code and fed it into the machine. If the code used names (symbolic addresses), the programmer had to translate them into addresses by hand. As a result, adding or removing any single instruction in the code could affect every address in the machine code.
 
-这是名字与地址过早绑定的恶果。汇编器允许程序员用符号名字写程序，解决了这一问题。
+This is the bitter fruit of binding names to addresses too early. Assemblers solved this problem by allowing programmers to write programs using symbolic names.
 
-打孔卡带时代也已经有了子程序和库的概念，当时把一些子程序分类存放在卡带里，主程序使用子程序时就需要加载并重排子程序卡带。这个过程实际上就是手动的`library search`和`重定位`。
+The punched card era already had the concepts of subroutines and libraries. Subroutines were stored sorted into card decks, and when the main program needed a subroutine, the corresponding deck had to be loaded and rearranged. This process was essentially manual `library search` and `relocation`.
 
-在操作系统出现前，每个程序都默认把整个机器内存空间独享，自然可以用固定的内存地址，毕竟机器的所有地址都是可用的。操作系统出现后，程序必需与操作系统、甚至其他程序共享内存空间，实际地址在操作系统加载程序成后才能知道，这又将地址绑定从链接时延后至加载时，因此重定位加载器从链接器中独立出来。链接器负责部分地址绑定，在每个程序内部做相对地址重分配；加载器负责重定位，进行最终的地址分配。
+Before operating systems existed, every program assumed it had the entire machine's memory to itself, so it could naturally use fixed memory addresses — after all, every address on the machine was available. Once operating systems appeared, programs had to share memory with the OS and even with other programs, and the actual addresses could only be known after the OS loaded the program. This pushed address binding back from link time to load time, and the relocating loader split off from the linker. The linker performs part of the address binding, reallocating relative addresses within each program; the loader handles relocation, performing the final address assignment.
 
-早期内存非常紧张，程序体量很快超过了内存上限，因此链接器提供了一种overlay机制，允许不同部分的程序共享同一块内存。直到90年代出现虚拟内存之后这个机制才消失。硬件重定位和虚拟内存的出现使链接器和加载器变得更简单。
+Early memory was extremely scarce, and programs soon outgrew the memory limit, so linkers provided an overlay mechanism that allowed different parts of a program to share the same block of memory. This mechanism did not disappear until virtual memory arrived in the 90s. Hardware relocation and virtual memory made linkers and loaders simpler.
 
-计算机执行一个程序的多个副本时，这个程序的大部分内容实际上是可以共享的，因此引入了分段机制，将只读代码段和可写代码段分离，一个机器上只需要加载一份只读代码段。因此链接器需额外为每个代码段分配地址。
+When a computer runs multiple copies of the same program, most of the program's content can actually be shared, so the segmentation mechanism was introduced to separate read-only code segments from writable segments — only one copy of the read-only code segment needs to be loaded on a machine. The linker therefore has to allocate addresses for each segment separately.
 
-计算机即使在执行多个不同程序，这些程序往往也共享大量代码，因此出现了共享库。静态共享库不够灵活，库里的任何代码改动都要求重新链接。因此出现了动态共享库，令符号和分段并不绑定实际地址，而是推迟到程序运行时再进行绑定——甚至还能进一步延迟，在首次调用时才绑定。
+Even when a computer runs many different programs, those programs often share large amounts of code, which led to shared libraries. Static shared libraries were not flexible enough: any code change in the library required relinking. So dynamic shared libraries appeared, in which symbols and segments are not bound to actual addresses — the binding is deferred until the program runs, and can even be delayed further, until the first call.
 
+## Linking vs Loading
+The linker handles symbol resolution; the loader handles program loading. Both can do relocation, and there are also all-in-one `linking loaders`.
 
-## 链接 vs 加载
-链接器负责符号解析，加载器负责程序加载，二者都可以做重定位，也存在三合一的`linking loaders`。
+- Symbol resolution: symbols are the medium through which a program calls subroutines. The linker resolves function names like sqrt to locations in a library and patches the caller's code so the call instruction points to that location.
+- Program loading: loading copies the program into memory, and along the way also sets memory protection bits, arranges virtual memory mappings, and so on.
+- Relocation: compilers and assemblers generate program addresses starting from zero for each compilation unit (file). When the linker combines multiple subroutines into a complete program, it usually performs one round of relocation. The complete program's addresses still start from zero, so after the loader loads the program into memory, it performs relocation once more.
 
-- 符号解析：所谓符号，就是程序调用子程序的媒依。链接器将诸如sqrt这样的函数名解析为库中的位置，并给调用方的代码打个补丁，让调用指令指向这个位置。
-- 程序加载：加载即把程序拷贝到内存，也顺带做些设置内存保护位、安排虚拟内存映射等事。
-- 重定位：编译器、汇编器为每个编译单元（文件）生成的程序地址从零开始。往往链接器把多个子程序拼成一个完整程序时会做一次重定位。这个完整程序的地址仍然从零开始，因此加载器将程序加载进内存后又会做一次重定位。
+## 2-pass Linking
+Linking, like compiling and assembling, is a 2-pass process. The linker takes object files, static libraries, dynamic libraries, and command-line arguments as input, and produces an executable file — plus, when debugging is enabled, debugger symbol files or a load map. Object files, static libraries, and dynamic libraries are all segmented (code/data) and each contains at least one symbol table, exporting and importing some symbols.
 
-## 2-pass链接
-链接和编译、汇编一样，也是个2-pass过程。链接器以对象文件、静态库、动态库、命令行参数为输入，输出可执行文件，如开启debug，还伴随生成debugger符号文件或load map。其中对象文件、静态库、动态库都是分段的（code/data），且至少有一个符号表，导出/导入一些符号。
+In the 1st pass, the linker scans all input files, obtains the size of each segment, and collects all symbol definitions and references, thereby creating a unified segment table and a unified symbol table. It then assigns a location to every symbol and determines the sizes and positions of the segments in the output address space.
 
-链接器在1st pass中扫描所有输入文件，获取各分段大小，收集所有符号定义和引用，从而创建一个统合分段表和一个统合符号表，进而为每个符号分配位置，确定输出地址空间的分段大小和位置。
+In the 2nd pass, the linker reads the previously generated object files, replaces all symbol references with numeric addresses, adjusts all memory addresses in code and data to the relocated segment addresses, and finally adds the header, relocation sections, and symbol table to the updated object file.
 
-随后链接器在2nd pass中读取此前生成的对象文件，把所有符号引用替换为数值地址，把所有代码、数据中的内存地址调整成重定位后的分段地址，最后再给更新后的对象文件添加header、重定位段、符号表。
+If the program uses dynamic linking, the symbol table contains the information the `runtime linker` needs to resolve dynamic symbols. The linker usually also generates some glue code that provides calling stubs for invoking dynamically linked libraries.
 
-如果程序用到了动态链接，则符号表包含`runtime linker`解析动态符号所需的信息。通常链接器还会生成一些胶水代码，为调用动态链接库提供调用例程。
+Whether or not the program uses dynamic linking, the symbol table always provides some information for relinking and debugging — many object formats are relinkable, meaning the generated object files are allowed to serve as input to later links.
 
-无论程序是否使用动态链接，符号表中总会提供一些供重链接和debug用的信息——很多对象格式都是可以重链接的，即允许生成的对象文件作为后续链接的输入。
+## Object Files
+The binary code files that compilers and assemblers generate from source code are object files. They contain a header, object code, a relocation list (positions that need to be relocated at link time), a global symbol table, debugging information, and more.
 
-## 对象文件
-编译器和汇编器为源码生成的二进制码文件即对象文件，包含header、object code、重定向列表（一些链接时需重定向的位置）、全局符号表、debug信息等内容。
+As raw material, object files ultimately feed into three kinds of end products: linkables, executables, and loadables.
 
-对象文件作为原材料，最终可用于三类最终产物：linkables、executables、loadables。
+- Linkables contain rich symbol information and relocation information, and their object code is organized into fine-grained logical sections, making it convenient for the linker to post-process them with symbol resolution and relocation.
+- Executables contain page-aligned object code (allowing it to be mapped into virtual memory), need not provide any symbol information beyond what dynamic linking requires, and need to provide little or no relocation information. Their object code is organized into coarser-grained segments, or into segments reflecting the specific hardware execution environment, often split into read-only and read-write pages.
+- Loadables may only need to contain object code, or may need to provide full symbol and relocation information, depending on the implementation of the system runtime.
 
-- Linkables包含丰富的符号信息、重定位信息，object code也组织成细小的逻辑段，方便链接器后期加工，做符号解析和重定位。
-- Executables包含页对齐的object code（允许映射到虚拟内存），不需要提供动态链接需求之外的任何符号信息，也只需要提供很少或不提供重定位信息。其object code被组织成较大粒度的段或反映硬件执行环境的特定分段，往往分成read-only和read-write pages。
-- Loadables可能只需包含object code，也可能需提供完整的符号和重定位信息，这取决于系统runtime的实现。
+The typical object file format, Unix a.out, contains a header, a text section, a data section, and other sections.
+Its header (taking BSD as an example) contains the text segment size, initialized data size, uninitialized data size (the BSS segment), symbol table size, entry point (starting address), text relocation size, and data relocation size.
 
-典型的对象文件格式Unix a.out包含header、text section、data section、other sections。
-其header（以BSD为例）包含text segment size、inited data size、uninited data size（BSS段）、symbol table size、entry point（起始地址）、text 重定位 size、data 重定位 size。
+When loading an a.out, the operating system first reads the header to get the size of each segment, then checks whether a shared code segment already exists and creates one if not. It maps the text segment into the memory space, creates a private data segment large enough, initializes the bss segment to zero, creates and maps a stack segment (often separate from the data segment, since heap and stack typically grow at different rates), pushes the program's initial arguments onto the stack, and finally sets up the registers and jumps to the program's starting address.
 
-加载a.out时，操作系统先读header，获取各分段大小，再查找是否已存在共享代码段，若没有再新建一个，将text分段映射到内存空间，创建足够大的私有数据分段，把bss分段初始化为零，创建并映射栈分段（往往独立于数据段，因为堆和栈增长速度往往不同），把程序运行的初始参数入栈，最后设置寄存器并跳转到程序的起始地址。
+To reduce unnecessary paging and let object files map directly onto 4K pages, later UNIX systems introduced pageable formats that expand the header to 4K and round the text segment boundary up to the next 4K. The downside is that they are not compact and waste disk space. Later still came compact pageable formats that simply treat the header as part of the text segment (QMAGIC and ELF).
 
-为了减少不必要的paging，让对象文件能直接映射到4K的页，后续UNIX上出了一些pageable格式把header扩展到4K，把text分段的边界向上取整到下一个4K。这样做的缺点是不够紧凑，浪费磁盘空间。后来又出现了一些compact pageable格式，把header直接视作text分段的一部分（QMAGIC和ELF）。
+a.out does not support relocation, nor does it support the special handling of C++ initializer/finalizer code, so it was replaced by ELF (Executable and Linking Format), which supports cross-compilation, dynamic linking, and more.
 
-a.out不支持重定位，也不支持C++的initializer/finalizer代码的特殊处理，被支持cross-compilation、动态链接等机制的ELF（Executable and Linking Format）取代。
+ELF adopted DWARF as its debugging format and provides three file types: relocatable, executable, and shared object.
+- Relocatables can be created by compilers and assemblers, but must be further linked before they can run.
+- Executables have completed relocation and static symbol resolution and can be mapped directly into memory.
+- Shared objects are dynamically linked libraries, containing both the symbol information needed at link time and code executable at runtime.
 
-ELF采用了DWARF作为其debugging格式，提供三种文件类型：relocatable、executable、shared object。
-- Relocatables可被编译器、汇编器创建，但需要进一步被链接后才能运行。
-- Executables做完了重定向和静态符号解析，可直接映射至内存。
-- Shared objects就是动态链接库，包含链接时所需的符号信息和运行时可执行的代码。
-
-ELF被设计为具备双重属性：
-- 加载视角下是即将放入内存的loadable segments：在加载器看来，ELF是由program header描述的一组分段，无需关心分区。可执行分段只有廖廖几个。典型的BFD-ld或Gold链接的Linux ELF一般将其分为2个loadable分段：RE（只读可执行，包含.text，.rodata等）、RW（读写，包含.data，.bss等）。这样可以减少内核mmap次数到2次，但把只读数据放进只读可执行分段总归牺牲了安全性。比较新的Linux出于安全考虑分成3个分段R、RE、RW。将ELF header和.rodata放进R。更新一些的BFD-ld虽然把ELF header和.rodata分在R分段，但忘记合并这两个R了，导致出现4个loadable分段。[^1]
-- 链接视角下是磁盘上的linkable sections：分区机制允许链接器对ELF进一步加工。单个分段由若干分区（section）组成。比如一个loadable read-only分段可以包含可执行代码、只读数据、动态链接符号这三个分区。Relocatables有分区表。Executables有ELF header表。Shared objects则兼具二者。典型的ELF可重定位程序包含十余个分区，例如.text、.data、.rodata、.bss、.rel.text（代码分区的重定位信息）、.rel.data、.rel.rodata、.init（C++全局变量构造函数）、.fini（C++全局变量析构函数）、.symtab（符号表）、.dynsym（动态库符号表）、.strtab、.dynstr、.interp（解释器路径）。可执行ELF和重定位ELF在格式上基本一致，只不过数据被重新安排，使文件能直接映射到内存，即pageable。
+ELF is designed with a dual nature:
+- From the loading perspective, it is loadable segments about to be placed into memory: to the loader, an ELF is a set of segments described by the program header, and there is no need to care about sections. There are only a handful of loadable segments. A typical Linux ELF linked by BFD-ld or Gold is generally divided into 2 loadable segments: RE (read-execute, containing .text, .rodata, etc.) and RW (read-write, containing .data, .bss, etc.). This reduces the number of kernel mmaps to 2, but putting read-only data into a read-execute segment sacrifices some security. Newer Linux systems, out of security considerations, split it into 3 segments: R, RE, and RW, placing the ELF header and .rodata in R. Even newer BFD-ld, while putting the ELF header and .rodata in the R segment, forgot to merge the two Rs, resulting in 4 loadable segments.[^1]
+- From the linking perspective, it is linkable sections on disk: the section mechanism allows the linker to further process the ELF. A single segment consists of several sections. For example, one loadable read-only segment can contain three sections: executable code, read-only data, and dynamic linking symbols. Relocatables have a section table. Executables have an ELF header table. Shared objects have both. A typical ELF relocatable program contains more than a dozen sections, such as .text, .data, .rodata, .bss, .rel.text (relocation info for the code section), .rel.data, .rel.rodata, .init (C++ global variable constructors), .fini (C++ global variable destructors), .symtab (symbol table), .dynsym (dynamic library symbol table), .strtab, .dynstr, .interp (interpreter path). Executable ELFs and relocatable ELFs are essentially identical in format; the data is simply rearranged so the file can be mapped directly into memory — i.e., pageable.
 
 ![sections_segments](https://149520725.v2.pressablecdn.com//wp-content/uploads/2018/01/Image5.png)
 
 
-## 静态库和动态库
-静态库本质上是一组对象文件，再稍微多加一点点信息（甚至有些系统直接把对象文件拼接起来就算是合法的静态链接库了）。
+## Static Libraries and Dynamic Libraries
+A static library is essentially a set of object files, with just a little bit of extra information (some systems even just concatenate object files and call that a legitimate static library).
 
-链接器在处理完常规输入文件后，如果发现有的导入符号未定义，则遍历库，寻找该符号，将包含这些符号的文件链接起来。
+After processing the regular input files, if the linker finds that some imported symbols are still undefined, it walks through the libraries, looks up those symbols, and links in the files that contain them.
 
-动态库让链接过程变得稍微复杂一点，将上述工作部分从链接转移到了加载时。链接器会在链接时找到能够解析未定义符号的那些动态库，但暂不链接任何代码，而是在输出文件里备注一下在哪个动态库可以招到特定符号，从而令加载器在加载程序时绑定这些动态库。
+Dynamic libraries complicate the linking process slightly, moving part of the above work from link time to load time. At link time, the linker finds the dynamic libraries that can resolve the undefined symbols, but does not link any code yet. Instead, it notes in the output file which dynamic library a given symbol can be found in, so that the loader binds those dynamic libraries when loading the program.
 
-## 链接需遵循ABI
-每个操作系统都会给出一个ABI让程序使用，包括一些系统调用、封装系统调用的技术、内存地址规则、寄存器规则、调用约定。链接器必需是ABI compliant的，必需遵循ABI要求，提供特定静态数据的地址表，以符合调用约定的方式进行标准的函数调用。
+## Linking Must Follow the ABI
+Every operating system provides an ABI for programs to use, covering system calls, techniques for wrapping system calls, memory address rules, register rules, and calling conventions. The linker must be ABI compliant: it must follow the ABI requirements, provide address tables for specific static data, and make standard function calls in a manner consistent with the calling convention.
 
-以Intel x86为例，提供6个32位通用寄存器EAX、EBX、ECX、EDX、ESI、EDI，两个寻址寄存器EBP、ESP，6个16位寄存器CS、DS、ES、FS、GS、SS。其中ESP是硬件栈指针，EBP通常是当前帧指针。
+Take Intel x86 as an example: it provides six 32-bit general-purpose registers EAX, EBX, ECX, EDX, ESI, EDI; two addressing registers EBP, ESP; and six 16-bit registers CS, DS, ES, FS, GS, SS. Among them, ESP is the hardware stack pointer, and EBP is usually the current frame pointer.
 
-x86架构里存在硬件栈，有硬件返回命令——硬件电路将返回地址push到栈上，并跳转至该地址。其他架构大多保存在寄存器里，因此x86上软件无需把寄存器里的返回地址放到主存的某个地方保存起来。
+The x86 architecture has a hardware stack and a hardware return instruction — the hardware circuitry pushes the return address onto the stack and jumps to that address. Most other architectures keep it in a register instead, so on x86 the software does not need to save the return address from a register to somewhere in main memory.
 
 [^1]: [Why an ELF executable could have 4 LOAD segments?](https://stackoverflow.com/questions/57761007/why-an-elf-executable-could-have-4-load-segments)

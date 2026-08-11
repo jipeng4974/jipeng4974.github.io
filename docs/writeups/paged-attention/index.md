@@ -1,6 +1,6 @@
 # Paged Attention
 
-> Paged Attention：提升同时处理多请求的显存利用率和吞吐。
+> Paged Attention: improving memory utilization and throughput when serving many concurrent requests.
 
 ---
 
@@ -8,19 +8,19 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-在LLM serving场景，通过恰当的batching积攒足够多的请求，可提升LLM吞吐。但每个请求对应的KV Cache非常巨大——在原始实现中，KV Cache需要为`max_tokens`预留内存，但每个请求实际上携带的tokens数目普遍远小于`max_tokens`，造成大量内存浪费和反复的动态内存分配。
+In LLM serving, accumulating enough requests through proper batching can improve LLM throughput. However, the KV Cache for each request is huge — in the naive implementation, the KV Cache has to reserve memory for `max_tokens`, but the actual number of tokens carried by each request is usually far smaller than `max_tokens`, causing massive memory waste and repeated dynamic memory allocation.
 
-`PagedAttention`[^1]的目标就是消除这种内存浪费、在请求内部和请求之间灵活共享一些KV cache。vLLM通过`PagedAttention`达到此前sota的`FasterTransformer`和`Orca`的2~4倍吞吐。
+The goal of `PagedAttention`[^1] is to eliminate this memory waste and flexibly share KV cache within and across requests. With `PagedAttention`, vLLM achieves 2–4x the throughput of the previous SOTA systems, `FasterTransformer` and `Orca`.
 
-此前，朴素的KV Cache实现如下图所示，简短的prompt和并不长的当前iteration只占据了7+4个slots，剩余2038个slots不得不预留在内存里以支撑最大序列长达2048的承诺（采样结束才能知道实际tokens数目），在这之后才能是下一个请求的slots，中间预留的部分就完全浪费掉了。
+Previously, the naive KV Cache implementation looked like the figure below: a short prompt plus the not-so-long current iteration occupy only 7+4 slots, while the remaining 2038 slots have to be reserved in memory to honor the promise of a maximum sequence length of 2048 (the actual number of tokens is only known once sampling finishes). Only after that can the next request's slots begin — the reserved part in between is completely wasted.
 
 ![naive_kv_cache](https://jipeng4974.github.io/img/naive_kv_cache.png)
 
-`PagedAttention`把连续的kv存在不连续的内存空间上，借用类似页表的机制（引入一个block_table）规避内存碎片化问题。具体来讲，`PagedAttention`把KV cache分区成若干个K blocks和V blocks，每个K/V block容纳固定数量tokens所对应的K/V向量，因此attention计算也被转化为blockwise计算。这和`FlashAttention`有点像，不过应用的尺度不同，前者是为了大规模serving时克服碎片化、按需取用，后者是为了单次self-attention计算能全部fit in SRAM。
+`PagedAttention` stores logically contiguous KV in non-contiguous memory space, borrowing a page-table-like mechanism (introducing a block_table) to sidestep memory fragmentation. Specifically, `PagedAttention` partitions the KV cache into a number of K blocks and V blocks, where each K/V block holds the K/V vectors corresponding to a fixed number of tokens, so the attention computation is also transformed into blockwise computation. This is somewhat similar to `FlashAttention`, but applied at a different scale: the former overcomes fragmentation and enables on-demand allocation for large-scale serving, while the latter makes a single self-attention computation fit entirely in SRAM.
 
 ![block_table](https://jipeng4974.github.io/img/block_table.png)
 
-这个物理kv blocks显然是支持多个请求复用的。如下图所示，为每个请求维护一个小的block table即可。
+These physical KV blocks can obviously be reused across multiple requests. As shown in the figure below, maintaining a small block table for each request is all it takes.
 
 ![vllm_two_requests](https://jipeng4974.github.io/img/vllm_two_requests.png)
 

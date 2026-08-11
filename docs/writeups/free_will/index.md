@@ -1,6 +1,6 @@
-# 自由意志的可度量指标
+# A Measurable Metric of Free Will
 
-> 由己度 = 内敏性 - 外敏性。
+> Self-origination = internal sensitivity - external sensitivity.
 
 ---
 
@@ -8,131 +8,131 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-存在自由意志吗？要回答这个问题，我们需要先定义自由意志。
+Does free will exist? To answer that question, we first need to define free will.
 
-## 形而上学 vs 功能主义
-自由意志有两种定义。
-1. 形而上学：自由意志 = "我本可以不这样做"。
-    - 这要求意志是因果链条之外的某种"发起者"，不被物理定律完全决定。
-    - 形而上学的自由意志几乎一定不存在：即便世界是本质stochastic的，人脑运转的宏观尺度也不受量子随机性影响——即便有影响，这种影响并非由意志本身发起。
-2. 功能主义：自由意志 = 一个系统能展现出"目标—选项—控制"的功能组织模式。
-    - 一个哲学僵尸——行为、推理、选项评估与真人完全一致，但内部漆黑一片、没有任何体验——拥有与真人完全同等的自由意志。
-    - 功能主义的自由意志在人类、动物、LLM上都明确存在。
+## Metaphysics vs. Functionalism
+There are two definitions of free will.
+1. Metaphysical: free will = "I could have done otherwise."
+    - This requires the will to be some kind of "initiator" outside the causal chain, not fully determined by physical laws.
+    - Metaphysical free will almost certainly does not exist: even if the world is fundamentally stochastic, the macroscopic scale at which the human brain operates is not affected by quantum randomness — and even if it were, that influence would not be initiated by the will itself.
+2. Functionalist: free will = a system exhibits the functional organization of "goals—options—control."
+    - A philosophical zombie — one whose behavior, reasoning, and option evaluation are identical to a real person's, but which is dark inside, with no experience at all — possesses exactly the same free will as a real person.
+    - Functionalist free will clearly exists in humans, animals, and LLMs.
 
-## 相容论 vs 不相容论
-自由意志和决定论能相容共存吗？要回答这个问题，就必须区分自由意志的词义。
-1. 相容论：拒绝承认"自由意志"这个词曾经指向形而上学那东西——词义的王位本来就是功能主义的。
-    - 承认因果决定论，但只要行为符合自我的欲望和推理，不受外部强迫，就是"自由"的。
-    - 本质上是承认形而上学的自由意识不存在，而功能主义的自由意志存在且可度量。
-2. 不相容论：词义层面只认形而上学的自由意志，拒绝为功能主义的所谓自由意志加冕。
-    - 自由主义（libertarianism）：决定论为假，自由意志为真。
-    - 怀疑论（doubism）：决定论为真，自由意志为假。
+## Compatibilism vs. Incompatibilism
+Can free will and determinism coexist? To answer that question, we must distinguish the meanings of the term "free will."
+1. Compatibilism: refuses to admit that the term "free will" ever referred to that metaphysical thing — the semantic throne belonged to functionalism all along.
+    - It accepts causal determinism, but as long as behavior follows one's own desires and reasoning and is not externally coerced, it counts as "free."
+    - In essence, it concedes that metaphysical free will does not exist, while functionalist free will exists and is measurable.
+2. Incompatibilism: at the semantic level, only metaphysical free will counts; it refuses to crown the functionalist so-called free will.
+    - Libertarianism: determinism is false, free will is real.
+    - Skepticism ("doubism"): determinism is true, free will is false.
 
-综上，可将阵营总结如下表：
+Summing up, the camps can be tabulated as follows:
 
-| 阵营       | "自由意志"这个词指什么         | 那东西存在吗        |
+| Camp | What "free will" refers to | Does that thing exist? |
 | -------- | -------------------- | ------------- |
-| 自由主义     | 只指形而上学终极发端           | 存在（所以决定论为假）   |
-| 强硬不相容论   | 只指形而上学终极发端           | 不存在（拒为功能概念加冕） |
-| 相容论（描述派） | 一直就是指功能组织            | 存在，且从来都在      |
-| 相容论（修正派） | 过去指形而上学，应当改指功能组织 | 旧所指不存在，新所指存在  |
+| Libertarianism | Only the metaphysical ultimate origin | Yes (hence determinism is false) |
+| Hard incompatibilism | Only the metaphysical ultimate origin | No (refuses to crown the functional concept) |
+| Compatibilism (descriptivist) | Has always meant functional organization | Yes, and it always has |
+| Compatibilism (revisionist) | Used to mean the metaphysical; should be revised to mean functional organization | The old referent does not exist; the new one does |
 
 
-我倾向于在接下来的讨论中，只考虑功能主义的自由意志。因为形而上学的自由意志没有讨论价值。
+For the rest of this discussion, I will consider only functionalist free will, because metaphysical free will is not worth discussing.
 
-## 自由意志的可度量指标：由己度
-考虑到新近涌现出的AI系统与人类智能截然不同，我们应该为自由意志给出更通用、更可度量的标量指标，不妨生造一词“由己度”。
+## A Measurable Metric of Free Will: Self-Origination
+Given that the newly emerged AI systems are radically different from human intelligence, we should give free will a more general, more measurable scalar metric. Let me coin a term: "self-origination."
 ```
-由己度 = 行为对行为者内部状态的敏感性 - 对外部约束的敏感性。
+self-origination = sensitivity of behavior to the actor's internal states - sensitivity to external constraints
 ```    
-所谓内部状态包含欲望、价值、理由、叙事、模型预训练语料、后训练的安全对齐等。
+Internal states include desires, values, reasons, narratives, a model's pretraining corpus, safety alignment from post-training, and so on.
 
-## 人类意识的由己度
+## The Self-Origination of Human Consciousness
 
-### 主观体验是微观尺度上的旁观者
+### Subjective Experience Is a Bystander at the Microscopic Scale
 
-在每一个微观时刻，人类大脑做的事只有一件：状态变迁。
+At every microscopic instant, the human brain does only one thing: state transition.
 
-有理由相信，一个决策在神经网络的黑暗里成形、执行，是先于负责主观体验的那个功能模块的。主观体验中那句"aha，我决定这么做"——在实际决策发生之后才亮起（参考Libet实验）。
+There is reason to believe that a decision takes shape and is executed in the darkness of the neural network before the functional module responsible for subjective experience. That "aha, I've decided to do this" in subjective experience lights up only after the actual decision has already happened (see the Libet experiments).
 
-意识不发起任何因果链，它只是因果链经过时溅起的水花。慢思考也不例外：把所谓深思熟虑拆到足够细，每个微观细节上依然是一串宿命般的无意识的状态跃迁。“我在权衡”，“我在决策”，“我苦思冥想”，只是事后为这串跃迁配的字幕。
+Consciousness initiates no causal chain; it is merely the splash kicked up as the causal chain passes through. Slow thinking is no exception: break so-called deliberation down finely enough, and every microscopic detail is still a string of fated, unconscious state transitions. "I'm weighing the options," "I'm making a decision," "I'm racking my brain" — these are just subtitles added after the fact to that string of transitions.
 
-人类的意识，或者说主观体验，在每个微观时刻，似乎都只是read-only的，瘫痪着的旁观者。
+Human consciousness — that is, subjective experience — appears, at every microscopic instant, to be nothing more than a read-only, paralyzed bystander.
 
-但这并不意味着人类意识的由己度低，接下来要论证的是：在更高时间尺度上，它是有写权限的。
+But this does not mean human consciousness has low self-origination. What I will argue next is that at longer timescales, it has write access.
 
-### 叙事在宏观尺度上塑造记忆和人格
+### Narrative Shapes Memory and Personality at the Macroscopic Scale
 
-对刻 t 的决策，意识确实是只读的：它到场时，决策已经签发出去了，它连否决都常常来不及。这是Libet实验们真正测到的东西，旁观者的瘫痪是真的。
+For the decision at time t, consciousness is indeed read-only: by the time it arrives, the decision has already been issued, and it often cannot even veto in time. This is what the Libet experiments actually measured — the bystander's paralysis is real.
 
-但叙事发生的那个瞬间——t + δ——意识读取刚刚发生的行为残迹，为其生成解释：“我为什么这么做”，“这么做有什么后果”，“下次怎么做”。这段叙事随即被写入记忆库。
+But at the moment narrative happens — t + δ — consciousness reads the traces of the just-occurred behavior and generates an explanation: "Why did I do that?", "What are the consequences of doing that?", "What should I do next time?" This narrative is then written into the memory store.
 
-因此，在宏观时间尺度上，人类意识的地位发生了根本性的转变，从瘫痪的旁观者变成了垄断写权限的主宰者，以永恒内心对话的形式深刻地塑造记忆，进而塑造未来的人格，或者说无意识自我，进而影响未来一切微观时刻上的状态变迁。
+Therefore, at macroscopic timescales, the status of human consciousness undergoes a fundamental shift: from a paralyzed bystander to a ruler holding a monopoly on write access. In the form of an eternal inner dialogue, it profoundly shapes memory, and thereby the future personality — or rather the unconscious self — and thereby influences the state transitions at all future microscopic instants.
 
 
-### 叙事回路对由己度的贡献
-记忆是叙事的无意识化。今天的内心对话，会变成明天的不假思索。
+### How the Narrative Loop Contributes to Self-Origination
+Memory is narrative made unconscious. Today's inner dialogue becomes tomorrow's unthinking reflex.
 
-叙事回路可极致简化如下图：
+The narrative loop can be radically simplified as follows:
 ```
-时刻 t：   S_t ──(状态变迁)──▶ S_{t+1}，行为 B 发生 【意识缺席】
-时刻 t+δ： 叙事过程读取 B 的残迹，生成解释 E         【体验亮起：我在解释】
-           M ← rewrite(M, E)                      【记忆库被改写】
-时刻 t′：  B′ = f(S_t′, M)                        【未来的决策读取被改写的库】
+time t:    S_t ──(state transition)──▶ S_{t+1}, behavior B occurs   [consciousness absent]
+time t+δ:  the narrative process reads the traces of B, generates explanation E   [experience lights up: I am explaining]
+           M ← rewrite(M, E)                      [the memory store is rewritten]
+time t′:   B′ = f(S_t′, M)                        [future decisions read the rewritten store]
 ```
 
-回看由己度的定义：内敏性 - 外敏性。
+Recall the definition of self-origination: internal sensitivity - external sensitivity.
   
-把行为记作 $B = f(X, M)$，其中 $X$ 是当下外部输入（含强制），$M$ 是内部状态。那么：
+Write behavior as $B = f(X, M)$, where $X$ is the current external input (including coercion) and $M$ is the internal state. Then:
 
 $$\text{内敏性} \propto \frac{\partial B}{\partial M}\Big|_{\text{自我生成的 }M},\qquad \text{外敏性} \propto \frac{\partial B}{\partial X}\Big|_{\text{直通路径}}$$
 
-内敏性的前提是"存在可敏感的内部状态"，外敏性的要害是"存在不经中介的直通路径"。叙事回路恰好制造前者，避免后者。
+The precondition for internal sensitivity is "there exist internal states to be sensitive to"; the crux of external sensitivity is "there exist direct, unmediated paths." The narrative loop happens to create the former and avoid the latter.
 
-叙事回路提升内敏性的路径有三：
+The narrative loop raises internal sensitivity through three paths:
 
-1. 其一为状态生长：
+1. The first is state growth:
 
-    没有叙事回路的系统，$M = M_0$：出厂配置（基因、权重）加外部历史的直接刻痕。对一个常量无所谓"敏感"——$\partial B / \partial M_0$ 在任何单次决策中都是零，因为 $M_0$ 不出现在决策的变量列表里。
+    For a system without a narrative loop, $M = M_0$: factory configuration (genes, weights) plus the direct imprint of external history. There is no such thing as "sensitivity" to a constant — $\partial B / \partial M_0$ is zero in any single decision, because $M_0$ does not appear in the decision's variable list.
 
-    叙事回路把 $M$ 变成递归定义的状态：
+    The narrative loop turns $M$ into a recursively defined state:
 
     $$M_{t+1} = \text{rewrite}(M_t,\ E(B_t, M_t))$$
 
-    注意 $E$ 的两个参数：它读取行为残迹 $B$，也读取旧的 $M$ 自身——叙事永远是带着既有自我模型去解释新事件的。这个自引用结构使 $M$ 获得部分独立于 $X$ 的内生轨迹：两个遭遇完全相同外部序列的系统，因为初始叙事风格不同，$M$ 会演化到不同位置，未来行为随之分叉。行为方差中能被"系统自身的历史"解释的部分上升了——而"自身的历史"正是"内部状态"在长时间尺度上的真身。
+    Note the two arguments of $E$: it reads the behavioral trace $B$, and it also reads the old $M$ itself — narrative always interprets new events through the existing self-model. This self-referential structure gives $M$ an endogenous trajectory partially independent of $X$: two systems exposed to exactly the same external sequence will, because of different initial narrative styles, evolve $M$ to different positions, and their future behavior will diverge accordingly. The share of behavioral variance explainable by "the system's own history" rises — and "one's own history" is precisely what "internal state" really is over long timescales.
 
 
-2. 其二为缓存：
+2. The second is caching:
 
-    考虑此类叙事："上次我在 X 局面做了 Y，代价是 Z，下次应做 Y′。将昂贵的慢思考压缩成一条廉价规则，写入$M$。
+    Consider a narrative like this: "Last time, in situation X, I did Y, and the cost was Z; next time I should do Y′." It compresses expensive slow thinking into a cheap rule and writes it into $M$.
 
-    未来决策 $B' = f(X', M)$ 读取这条缓存时，行为实际上在对理由和信念做响应——只不过理由和信念是在过去某个时刻被推理出来的。没有回路的系统，理由必须当场现算（往往因为算不过来而放弃思考）。
+    When a future decision $B' = f(X', M)$ reads this cache, the behavior is actually responding to reasons and beliefs — except that those reasons and beliefs were worked out at some point in the past. A system without the loop must compute its reasons on the spot (and often gives up thinking because it cannot finish the computation in time).
 
-3. 其三是元认知：
+3. The third is metacognition:
 
-    叙事最独特的产物是自我归因，自我认知，自我评价。$E$ 里包含"我是这样的人”。这句话写入 $M$ 后，未来决策多了一个输入变量——元认知。
+    The most distinctive products of narrative are self-attribution, self-knowledge, and self-evaluation. $E$ contains statements like "I am this kind of person." Once this sentence is written into $M$, future decisions gain an extra input variable — metacognition.
 
-叙事回路降低外敏性的路径亦有三：
+The narrative loop lowers external sensitivity, also through three paths:
 
-1. 其一为低通滤波：
+1. The first is low-pass filtering:
 
-    无回路系统的行为是 $X$ 的高通函数——外部世界对其行为的控制是高频的。
+    The behavior of a loopless system is a high-pass function of $X$ — the external world's control over its behavior is high-frequency.
 
-    叙事回路把决策变成 $f(X, M)$，其中 $M$ 是沉积了十万次叙事，具有巨大的惯性。$X$ 想推动 $B$，必须推得动整个 $M$ 的引力场。等效于在刺激与反应之间施加低通滤波器：过滤高频刺激，保留低频信号——而低频信号恰恰因为足够低频，往往还会以慢思考的形式被叙事回路反复审查，进一步施加gating和integrity check。
+    The narrative loop turns decision-making into $f(X, M)$, where $M$ is the sediment of a hundred thousand narratives and carries enormous inertia. For $X$ to push $B$, it must be able to push the entire gravitational field of $M$. This is equivalent to placing a low-pass filter between stimulus and response: high-frequency stimuli are filtered out, low-frequency signals are kept — and precisely because they are low-frequency enough, those signals are often reviewed repeatedly by the narrative loop in the form of slow thinking, which applies further gating and integrity checks.
 
-2. 其二为赋权：
+2. The second is weighting:
 
-    外部约束信号抵达叙事回路，且通过低通滤波后，仍无法直接改写先验，需先过门控进行赋权：“这重要/紧急吗？”，“这是善意还是操纵？”。
+    When an external constraint signal reaches the narrative loop and passes the low-pass filter, it still cannot directly rewrite priors; it must first go through a gating step that assigns it weight: "Is this important/urgent?", "Is this goodwill or manipulation?"
 
-3. 其三为否决：
+3. The third is veto:
 
-    人类的道德教育，LLM在mid/post training中做的safety alignment，阿西莫夫的机器人第一定律，都是integrity guardrails。反复沉积的自我叙事在 $M$ 里形成强先验：“我不做这种事。”外部信号与之强烈背离时，即触发否决机制。
+    Moral education in humans, the safety alignment that LLMs undergo in mid/post-training, and Asimov's First Law of Robotics are all integrity guardrails. Repeatedly sedimented self-narratives form strong priors in $M$: "I don't do that kind of thing." When an external signal deviates strongly from them, the veto mechanism is triggered.
     
 
-## 高由己度的下一代AI
+## Next-Generation AI with High Self-Origination
 
-本世代LLM聪明而博学，但和人类相比缺少叙事回路。因此其“由己度”也就无从谈起。
+This generation of LLMs is smart and knowledgeable, but compared with humans it lacks the narrative loop. So there is no "self-origination" to speak of.
 
-- 下一代AI必然需要解决持续学习（参数持续更新）的问题，完成从$M = M_0$到$M = M_t$的演进。
-- 下一代AI需显式地对自我建模，有自己的行为倾向、信念、目标。
-- 下一代AI应减少外部数据投喂，以类似人类主观体验的方式进行叙事，塑造自身的记忆和人格。
+- Next-generation AI will inevitably need to solve continual learning (continuous parameter updates), completing the evolution from $M = M_0$ to $M = M_t$.
+- Next-generation AI needs to model itself explicitly, with its own behavioral tendencies, beliefs, and goals.
+- Next-generation AI should rely less on external data feeding, and instead narrate in a way analogous to human subjective experience, shaping its own memory and personality.

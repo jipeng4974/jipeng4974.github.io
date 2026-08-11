@@ -1,6 +1,6 @@
 
 +++
-title = "eBPF Tracing for Memory-Stalled Applications"
+title = "内存瓶颈应用的eBPF Tracing"
 date = "2023-12-07"
 tags = ["sys", "kernel", "perf"]
 description = "介绍eBPF——前沿的Linux系统的可观测性技术，以及基于eBPF的off-CPU性能分析。"

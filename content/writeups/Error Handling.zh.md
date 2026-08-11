@@ -1,5 +1,5 @@
 +++
-title = "Error Handling"
+title = "错误处理"
 date = "2024-04-09"
 tags = ["se"]
 description = "本文讨论现代C++的错误处理问题。"

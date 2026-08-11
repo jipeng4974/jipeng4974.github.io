@@ -1,10 +1,11 @@
 +++
-title = "Distributed Computing Systems At Scale"
+title = "大规模分布式计算"
 date = "2023-06-07"
 tags = ["sys"]
 description = "纷乱的分布式现象、繁琐的工程实践容易遮蔽对分布式计算系统本质的理解，遂做梳理。"
 showFullContent = false
 +++
+
 # Distributed Computing Systems At Scale
 分布式计算系统完成规模化的跳跃后，核心挑战是正确性和系统效率。前者对应共识抽象，后者对应性能工程。
 

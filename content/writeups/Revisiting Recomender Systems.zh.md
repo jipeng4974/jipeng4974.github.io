@@ -1,5 +1,5 @@
 +++
-title = "Revisiting Recommender Systems"
+title = "再窥推荐系统"
 date = "2024-06-03"
 tags = ["ai"]
 description = "本文是对孙爱欣教授的分享——“推荐系统研究现状的理解”的笔记，对大致内容进行了摘要，并收集了提及文献的链接——可以一窥推荐系统领域学术研究的现状，精辟，有趣，令人震撼。"

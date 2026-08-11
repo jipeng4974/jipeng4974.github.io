@@ -1,6 +1,6 @@
 # eBPF Tracing for Memory-Stalled Applications
 
-> 介绍eBPF——前沿的Linux系统的可观测性技术，以及基于eBPF的off-CPU性能分析。
+> An introduction to eBPF — the cutting-edge observability technology for Linux — and eBPF-based off-CPU performance analysis.
 
 ---
 
@@ -8,31 +8,31 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-## 现代workloads的瓶颈
-如今使用CPU而不将计算offload到GPU等加速器的数据中心应用，大多是访存密集应用，例如倒排检索、向量检索、模型推理、分析型数据库。
+## The Bottleneck of Modern Workloads
+Today's data center applications that run on CPUs without offloading computation to accelerators like GPUs are mostly memory-bound, e.g., inverted index retrieval, vector search, model inference, and analytical databases.
 
-纯粹instruction-bound的workload反而罕见。即使是最典型的计算密集场景，充满了矩阵乘加的大模型训推，实际瓶颈也出现在内存IO、off-package互连上。
+Purely instruction-bound workloads are actually rare. Even in the most typical compute-intensive scenario — LLM training and inference, full of matrix multiply-accumulates — the real bottleneck shows up in memory I/O and off-package interconnects.
 
-现代硬件的发展趋势是越来越深的内存hierarchy，相应地，现代workloads（训推、检索、数据分析）的瓶颈也逐渐向内存总线、Cache、MMU、CPU-to-CPU互连、inter-node互连转移。
+The trend of modern hardware is an ever-deeper memory hierarchy. Correspondingly, the bottlenecks of modern workloads (training/inference, retrieval, data analytics) are gradually shifting toward the memory bus, cache, MMU, CPU-to-CPU interconnects, and inter-node interconnects.
 
-如今内存慢得就像过去的磁盘。Rust的hashmap用B树而非红黑树实现。ScyllaDB和DragonFly通过利用numa机器局部性以及更好的cache优化分别击败Cassandra和Redis。至少，对不自研加速器硬件的互联网公司的研发团队——即数据中心应用的开发者来说，矩阵乘加offloading到GPU/ASIC/AMX即可，访存优化为代表的互连优化才是性能工程的主战场。
+Memory today is as slow as disks used to be. Rust's hashmap is implemented with a B-tree rather than a red-black tree. ScyllaDB and DragonFly beat Cassandra and Redis respectively by exploiting NUMA locality and better cache optimization. At the very least, for the R&D teams of internet companies that don't build their own accelerator hardware — that is, for developers of data center applications — matrix multiply-accumulates can simply be offloaded to GPU/ASIC/AMX, while interconnect optimization, represented by memory-access optimization, is the main battleground of performance engineering.
 
 
-## CPU Profiling和CPU利用率的局限性
-对于访存密集应用来说，很多人被CPU利用率高误导，以为计算是瓶颈，于是做CPU profiling[^1]和计算优化，往往效果不佳。假设只有10%线程时间在CPU上跑，而70%在等内存读写，那无论CPU profiling做得多好，也没办法找到真正的瓶颈。```perf```是典型的CPU profiling工具，```perf record -F 1000```是按照1000Hz采样，对各个函数上的时钟周期可以给出比较准确的估计，但这种采样在阻塞阶段不生效。 类似地，CPU火焰图也只是给出不阻塞时的采样数据，CPU火焰图的最上沿的函数就是所有on—CPU函数，其耗时之和是CPU time之和，不包括off-CPU time。
+## The Limitations of CPU Profiling and CPU Utilization
+For memory-bound applications, many people are misled by high CPU utilization into thinking computation is the bottleneck, so they do CPU profiling[^1] and compute optimization, often with disappointing results. Suppose only 10% of thread time is actually spent running on the CPU, while 70% is spent waiting on memory reads and writes — then no matter how well the CPU profiling is done, it cannot find the real bottleneck. ```perf``` is a typical CPU profiling tool; ```perf record -F 1000``` samples at 1000Hz and gives fairly accurate estimates of clock cycles spent in each function, but this kind of sampling doesn't work during blocked periods. Similarly, CPU flame graphs only show sampling data from non-blocked periods: the functions at the top edge of a CPU flame graph are all the on-CPU functions, and their durations sum to total CPU time, excluding off-CPU time.
 
-CPU利用率在目前仍然被广泛使用，但它已经过时。CPU利用率的真实含义是“非空闲率”，即CPU没有跑idle thread的比例，也就包括了内存IO阻塞、网络IO阻塞、spinlock盲等。这个概念过于古老，它出现时尚不存在memory wall，cpu并不显著快于主存，这显然已经不适用于现代硬件语境，容易给人计算单元是系统瓶颈的错觉。
+CPU utilization is still widely used today, but it is outdated. The real meaning of CPU utilization is "non-idle rate" — the fraction of time the CPU is not running the idle thread — which therefore includes memory I/O stalls, network I/O stalls, spinlock spinning, and so on. This concept is too old: when it was coined, the memory wall did not yet exist and the CPU was not significantly faster than main memory. It clearly no longer fits the modern hardware context, and it easily creates the illusion that the compute units are the system bottleneck.
 
-## eBPF off-CPU分析：in-kernel简报 
-怎么度量off-CPU time？最简单的办法是应用层tracing，记录重点代码各个函数和代码块的耗时。大多数情况下，这其实就是最好的方案，精度也不错。不过相比火焰图还不够帅，也不够全面，毕竟在哪加时间戳依赖主观判断，有时候真正的瓶颈会出现在意想不到的地方。
+## eBPF Off-CPU Analysis: An In-Kernel Briefing
+How do we measure off-CPU time? The simplest approach is application-level tracing: record the time spent in the key functions and code blocks. In most cases this is actually the best solution, with decent accuracy. But it's not as cool as flame graphs, and not as comprehensive either — after all, where to add timestamps relies on subjective judgment, and sometimes the real bottleneck shows up in unexpected places.
 
-Linux 4.8+[^3]可使用eBPF做off-CPU分析。比如eBPF工具[bcc/cpudist](https://github.com/iovisor/bcc/blob/master/tools/cpudist.py)，[bcc/offcputime](https://github.com/iovisor/bcc/blob/master/tools/offcputime_example.txt)。offcputime生成的call stacks可以直接用[flamegraph.pl](https://github.com/brendangregg/FlameGraph)绘制off-CPU火焰图。bcc包含了大量工具，其具体使用方式可参照其[官方tutorial](https://github.com/iovisor/bcc/blob/master/docs/tutorial.md)。
+Linux 4.8+[^3] can use eBPF for off-CPU analysis, e.g., the eBPF tools [bcc/cpudist](https://github.com/iovisor/bcc/blob/master/tools/cpudist.py) and [bcc/offcputime](https://github.com/iovisor/bcc/blob/master/tools/offcputime_example.txt). The call stacks generated by offcputime can be rendered directly into an off-CPU flame graph with [flamegraph.pl](https://github.com/brendangregg/FlameGraph). bcc ships with a large collection of tools; see its [official tutorial](https://github.com/iovisor/bcc/blob/master/docs/tutorial.md) for how to use them.
 
-eBPF tracing与传统的off-CPU tracer(比如```perf```)相比，最显著的优势是不必把所有内核事件往用户空间dump（调度事件是非常频繁的，```perf```往往生成巨量数据，注入的额外开销太大，不仅仅是CPU开销，还有磁盘IO开销），而是在内核就按照某种可编程的规则做了总结，把精简的信息输出出来。
+Compared with traditional off-CPU tracers (such as ```perf```), the most significant advantage of eBPF tracing is that it doesn't have to dump every kernel event to userspace (scheduling events are extremely frequent; ```perf``` often generates massive amounts of data and injects too much extra overhead — not just CPU overhead, but disk I/O overhead as well). Instead, it summarizes events in the kernel according to a programmable rule and outputs only the condensed information.
 
-此外，内核支持eBPF后，各种off-CPU分析需求都可以统一用eBPF实现，不再需要针对不同场景使用或制作不同的工具了——此前用```perf```做事件追踪，用storage tracing做存储IO追踪，用内核统计数据观测调度时延，不成体系，且性能良莠不一。
+Moreover, once the kernel supports eBPF, all kinds of off-CPU analysis needs can be implemented uniformly with eBPF — there's no longer any need to use or build different tools for different scenarios. Previously, one used ```perf``` for event tracing, storage tracing for storage I/O, and kernel statistics to observe scheduling latency: unsystematic, and with widely varying performance.
 
-eBPF追踪off-CPU时长的思路是在context switch事件结束时记录一次stack（off—CPU期间stack是不变的，一次足矣），为当前context的off-CPU时长增加线程睡眠时间。其伪代码如下：
+The idea behind eBPF off-CPU tracing is to record the stack once when a context switch finishes (the stack doesn't change while off-CPU, so once is enough), and to add the thread's sleep time to the current context's off-CPU duration. Its pseudocode:
 ```python
 on context switch finish:
 	sleeptime[prev_thread_id] = timestamp
@@ -48,27 +48,27 @@ on tracer exit:
 		print totaltime[key]
 ```
 
-## 所以，什么是eBPF？
-简单说，eBPF是一个允许跑自定义代码做一些tracing和系统监控的in-kernel runtime，是BPF的升级版。
+## So, What Is eBPF?
+Simply put, eBPF is an in-kernel runtime that allows running custom code for tracing and system monitoring — an upgraded version of BPF.
 
 ![ebpf](https://jipeng4974.github.io/img/ebpf.png)
 
-最初的BPF，即Berkeley Packet Filter，是一个用于报文过滤的几乎被遗忘的古老内核特性。eBPF在BPF基础上做了扩展，允许事件源从报文扩展到多种多样的事件源，eBPF VM有更大的存储空间，更多寄存器和64位word size——BPF事实上提供了一个in-kernel的沙盒环境，或者说虚拟机，安全且受限地执行用户定义的程序。因此eBPF机制的出现实际上在内核态程序、用户态程序之外创造了新的软件品类。
+The original BPF, the Berkeley Packet Filter, is an ancient, almost forgotten kernel feature for packet filtering. eBPF extends BPF: event sources are no longer limited to packets but expanded to a wide variety of sources, and the eBPF VM has more storage, more registers, and a 64-bit word size. BPF in effect provides an in-kernel sandboxed environment — a virtual machine, really — that executes user-defined programs safely and with restrictions. So the emergence of the eBPF mechanism actually created a new category of software beyond kernel-space and user-space programs.
 
-eBPF程序不是预编译或解释的，而是JIT CO-RE[^2]的，程序出错既不abort，也不panic，而是返回error message。内核态直接访问资源，用户态通过系统调用或fault访问资源，eBPF则是通过一些受限的helper访问资源——目前来说主要作用还是tracing，做一些可观测性上的工作。
+eBPF programs are neither precompiled nor interpreted; they are JIT-compiled with CO-RE[^2]. When a program goes wrong, it neither aborts nor panics — it returns an error message. Kernel space accesses resources directly; user space accesses resources via system calls or faults; eBPF accesses resources through a set of restricted helpers. For now, its main use is still tracing — observability work.
 
 ![ebpf2](https://jipeng4974.github.io/img/ebpf2.png)
 
-eBPF把JIT编译器和安全验证器直接放到了内核里，用户态的bpf程序先经过parser变成AST，再做一些构造和语法分析，然后生成IR，最终生成优化后的bytecode。BPF bytecode作为输入进入内核的JIT和verifier再编译成机器码给CPU执行。
+eBPF puts a JIT compiler and a safety verifier directly inside the kernel. A userspace bpf program is first turned into an AST by a parser, goes through some construction and syntax analysis, then generates IR, and finally produces optimized bytecode. The BPF bytecode enters the kernel's JIT and verifier as input, and is compiled into machine code for the CPU to execute.
 
 ![ebpf3](https://jipeng4974.github.io/img/ebpf3.png)
 
-## eBPF的其他应用
-eBPF除了用在可观测性上，还可以应用于网络，在L3/L4/L7做traffic control, monitoring或load balancing，比如libbpf ```tc```/```qdiscs``` library, ```XDP```(裸金属高性能可编程网络)/```Cilium```(高性能云原生网络)/```Katran```(传输层负载均衡)。
+## Other Applications of eBPF
+Beyond observability, eBPF can also be applied to networking — traffic control, monitoring, or load balancing at L3/L4/L7 — for example the libbpf ```tc```/```qdiscs``` library, ```XDP``` (bare-metal, high-performance programmable networking), ```Cilium``` (high-performance cloud-native networking), and ```Katran``` (transport-layer load balancing).
 
-此外，eBPF还可以应用于安全领域。毕竟eBPF可以观测系统中的各种事件，比如监控某些敏感文件（/etc/passwd这种）是否被篡改。基于这种观测能力在加上一些安全相关的先验知识，就可以做一些安全工具。K8s的```seccomp```工具就是基于eBPF实现的。
+In addition, eBPF can be applied to security. After all, eBPF can observe all kinds of events in the system — for example, monitoring whether sensitive files (like /etc/passwd) have been tampered with. Based on this observability plus some security-related prior knowledge, one can build security tools. The K8s ```seccomp``` tooling is implemented on top of eBPF.
 
 
-[^1]: 区别于off-CPU分析，这里的CPU profiling指狭义的on-CPU分析，不考虑阻塞中的thread time。
-[^2]: CO-RE: Compile Once Run Everywhere，也就是说BPF bytecode是可以relocate的。
-[^3]: 不过Linux 5.x才有完整的CO-RE和BTF支持，其中BTF(BPF Type Format)是为eBPF设计的内核数据结构描述机制。
+[^1]: Unlike off-CPU analysis, CPU profiling here refers to the narrow sense of on-CPU analysis, which does not account for blocked thread time.
+[^2]: CO-RE: Compile Once, Run Everywhere — that is, BPF bytecode is relocatable.
+[^3]: However, full CO-RE and BTF support only arrived in Linux 5.x, where BTF (BPF Type Format) is a kernel data structure description mechanism designed for eBPF.

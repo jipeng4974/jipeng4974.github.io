@@ -1,6 +1,6 @@
 # Semantic Depth & Music Re-ID
 
-> 本文提出语义深度指标，从归纳偏置、数据驱动、性能工程、级联排序等角度讨论Music Re-ID。
+> This post proposes a semantic depth metric and discusses Music Re-ID from the angles of inductive bias, data-driven methods, performance engineering, and cascaded ranking.
 
 ---
 
@@ -8,71 +8,71 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-从基于纯先验的手工特征检索，到纯数据驱动的深度度量学习，再到给模型提供一些先验领域知识辅助学习，是螺旋上升的过程。
+From purely prior-based handcrafted feature retrieval, to purely data-driven deep metric learning, and then to providing the model with prior domain knowledge to assist learning — the process spirals upward.
 
-即便是代表极致数据驱动的预训练MLLM，也普遍将log mel频谱而非原始波形送入模型的audio encoder，这本身就是一种基于人耳听觉和心理声学的归纳偏置。
+Even pretrained MLLMs, which represent the extreme of data-driven approaches, universally feed log mel spectrograms rather than raw waveforms into their audio encoders — this in itself is an inductive bias grounded in human hearing and psychoacoustics.
 
-音乐是天然高度结构化的，音乐检索领域的标注数据天然是稀缺且不公开的，因此基于先验知识引入归纳偏置是合乎逻辑的，可以让模型不必从声学、信号处理、音乐理论学起。
-
-
-# 归纳偏置
-
-## 选取合适的语义深度
-语义深度(semantic depth)是我生造的指标。
-
-从现实世界采样信号到人的主观认知之间存在若干个抽象层次，自信号层面每下潜一个抽象层次，则语义深度+1。
-
-音乐表征领域中，不妨将语义深度定义如下：
-
-- 语义深度为0的通用音频信号特征，无音乐语义，如peaks、spectra flux、shazam/quad fingerprints、mfcc。
-
-- 语义深度为1的音乐微观结构特征，携带音乐语义，如harmonic peaks/ridges、attack onsets、beat positions、spectral envelope、pitch contour。
-
-- 语义深度为2的音乐中观结构特征，往往覆盖5~30s有记忆点的motif，如melody、rhythm、groove。
-
-- 语义深度为3的音乐宏观结构特征，往往覆盖全曲，能挖掘更深层的叙事、情感、结构、风格、关联信息、特定语境下的信息。
+Music is naturally highly structured, and annotated data in the music retrieval domain is naturally scarce and non-public. Therefore, introducing inductive bias based on prior knowledge is logical — it spares the model from having to learn acoustics, signal processing, and music theory from scratch.
 
 
-## 选取恰当的输入形态
-如果确定应用场景中query和doc几乎都是音乐，输入层面自然可以选用合乎乐理的cqt频谱，并根据该场景所需的语义深度选取对应的音频切片粒度。
+# Inductive Bias
 
-## 捕捉不变量的归纳偏置
-其次可以将某些手工特征作为辅助信息提供给模型。这些手工特征大多属于频谱的某种压缩表示，关注特定语义深度为1的音乐不变量，例如pitch contour，harmonic peaks的拓扑关系。
+## Choosing the Right Semantic Depth
+Semantic depth is a metric I coined myself.
 
-# 数据驱动
-## 硬样本挖掘
-确定一个fpr足够低的得分阈值，基于KNN检索取top k，得分超阈值则为positive(用于扩充sim group)，其他为negative。
+There are several levels of abstraction between a signal sampled from the real world and human subjective perception. Each time you dive one level of abstraction down from the signal level, semantic depth increases by 1.
 
-从top k中negative cands中剔除掉hard negative（得分大于sim group平均相似度而小于阈值，这部分只能依赖人工标注），留下得分低于sim group平均相似度的semi-hard negatives。
+In the field of music representation, we might define semantic depth as follows:
 
-## 生成数据
-音乐或视频生成模型续写、改编样本。
+- Semantic depth 0: general audio signal features with no musical semantics, e.g., peaks, spectral flux, shazam/quad fingerprints, MFCC.
 
-## 数据增强
-变速变调、扰动加噪、混音。
+- Semantic depth 1: micro-structural music features that carry musical semantics, e.g., harmonic peaks/ridges, attack onsets, beat positions, spectral envelope, pitch contour.
 
-# 性能工程
+- Semantic depth 2: meso-structural music features, typically covering memorable motifs of 5–30s, e.g., melody, rhythm, groove.
 
-## Encoder轻量化
-当query足够短，比如普遍是仅10s的音频clip时，可fit in cnn[^1]感受野，且该cnn架构进行过恰当的attention hybrid改造[^2]，transformer encoder的长程相关性建模优势就不存在了。
+- Semantic depth 3: macro-structural music features, typically covering the entire piece, capable of mining deeper narrative, emotional, structural, and stylistic information, as well as relational and context-specific information.
+
+
+## Choosing the Right Input Form
+If the queries and docs in the target scenario are almost all music, the input layer can naturally adopt the musically motivated CQT spectrogram, and the audio slice granularity can be chosen according to the semantic depth required by the scenario.
+
+## Inductive Bias for Capturing Invariants
+Certain handcrafted features can also be provided to the model as auxiliary information. Most of these handcrafted features are compressed representations of the spectrum, focusing on musical invariants at a specific semantic depth of 1, such as pitch contour and the topological relationships among harmonic peaks.
+
+# Data-Driven
+## Hard Sample Mining
+Set a score threshold with a sufficiently low FPR, take the top k from KNN retrieval: those scoring above the threshold are positives (used to expand the sim group), and the rest are negatives.
+
+From the negative candidates in the top k, remove the hard negatives (scores higher than the sim group's average similarity but below the threshold — this part can only rely on manual annotation), and keep the semi-hard negatives whose scores are below the sim group's average similarity.
+
+## Generated Data
+Use music or video generation models to continue or adapt samples.
+
+## Data Augmentation
+Speed and pitch shifting, perturbation and noise injection, remixing.
+
+# Performance Engineering
+
+## Encoder Lightweighting
+When the query is short enough — for example, audio clips of only 10s — it can fit within the receptive field of a CNN[^1], and if that CNN architecture has undergone proper attention-hybrid modifications[^2], the transformer encoder's advantage in long-range dependency modeling disappears.
 
 ## MRL
-MRL（套娃表征学习）允许表征向量的前若干维构成的子向量是直接可用于检索的，这显然优于独立的PCA降维或训练时加个线性层降维，更加灵活，值得尝试。
+MRL (Matryoshka Representation Learning) allows the sub-vectors formed by the first few dimensions of a representation vector to be used directly for retrieval. This is clearly superior to standalone PCA dimensionality reduction or adding a linear layer during training for dimensionality reduction — more flexible and worth trying.
 
-MRL主要用于超大规模检索中降低向量索引的存储和检索开销。
+MRL is mainly used in ultra-large-scale retrieval to reduce the storage and retrieval cost of the vector index.
 
-MRL在推理阶段也降低了分类头实际激活参数量，在class数量特别多的场景可稍稍降低检索成本。
+MRL also reduces the number of actually activated parameters in the classification head during inference, which can slightly lower retrieval cost in scenarios with a particularly large number of classes.
 
 ## QAT
-和MRL相比，QAT固然也减小向量尺寸，但主要是为了发挥硬件低精度推理的性能优势，大幅降低推理成本。QAT和MRL的收益和损失均正交。
+Compared with MRL, QAT certainly also reduces vector size, but its main purpose is to exploit the performance advantage of hardware low-precision inference, substantially cutting inference cost. The gains and losses of QAT and MRL are orthogonal to each other.
 
-# 级联排序
-多数场景下，metrics learning + 大规模ANN向量检索足以解决音频检索问题。
+# Cascaded Ranking
+In most scenarios, metric learning + large-scale ANN vector retrieval is sufficient to solve audio retrieval problems.
 
-少数困难场景，需要引入级联检索，用embedding模型做粗召，用某种reranker做精排。
-- reranker可以是一个基于原有embedding模型的cross-encoder reranker。
-- 或基于预训练MLLM在rerank任务上做后训练。
+In a few difficult scenarios, cascaded retrieval is needed: use an embedding model for coarse recall, and some reranker for fine ranking.
+- The reranker can be a cross-encoder reranker built on the original embedding model.
+- Or a pretrained MLLM post-trained on the rerank task.
 
-[^1]: 这里的CNN只是大类，实际会使用Resnet中的ResNeSt变种。ResNeSt比Resnet多了Split-Attention Conv。
+[^1]: CNN here is just a broad category; in practice we would use the ResNeSt variant of ResNet. ResNeSt adds Split-Attention Conv on top of ResNet.
 
-[^2]: 在ResNeSt-50基础上，还可以在layer2, layer3插入NonLocal自注意力模块，进一步提升上下文理解能力。此外，低层还会用IBN替代BN，即一半通道走InstanceNorm，另一半SyncBN。引入InstanceNorm可去风格，抑制模型对能量包络的学习。
+[^2]: On top of ResNeSt-50, we can further insert NonLocal self-attention modules into layer2 and layer3 to improve contextual understanding. In addition, the lower layers replace BN with IBN — half the channels go through InstanceNorm, the other half through SyncBN. Introducing InstanceNorm removes style and suppresses the model's learning of the energy envelope.

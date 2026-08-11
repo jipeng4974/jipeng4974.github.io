@@ -1,6 +1,6 @@
 # Quantization and Pruning
 
-> 总结推理优化问题中相当重要的模型压缩技术——量化和剪枝。
+> A summary of two model compression techniques that matter a lot for inference optimization: quantization and pruning.
 
 ---
 
@@ -8,64 +8,64 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-模型压缩技术中，最实用的是量化，其次还可以尝试剪枝。量化降低精度，剪枝裁剪参数。
+Among model compression techniques, quantization is the most practical one, and pruning is also worth a try. Quantization lowers precision; pruning trims away parameters.
 
 # Quantization
-可以将k-bit量化问题视作将取值范围$(x_{min},x_{max})$的float数值$x$经过量化函数$g(x)$映射到取值范围$(0,2^{k-1})$的int型数值$Q$，并尽可能减少整体模型精度损失（well，如果没有端到端的模型accuracy/perplexity指标，也可以把目标设置为最小化output MSE/RMSE）的问题。$Q=round(g(x))$，
+The k-bit quantization problem can be viewed as mapping a float value $x$ in the range $(x_{min},x_{max})$ through a quantization function $g(x)$ to an integer value $Q$ in the range $(0,2^{k-1})$, while keeping the overall model accuracy loss as small as possible (well, if no end-to-end model accuracy/perplexity metric is available, the objective can instead be set to minimizing the output MSE/RMSE). $Q=round(g(x))$,
 
 ## Uniform vs Non-uniform
-根据Q的分布是否为均匀分布，可讲量化器分为uniform quantizers和non-uniform quantizers[^8]。
+Depending on whether the distribution of Q is uniform, quantizers can be divided into uniform quantizers and non-uniform quantizers[^8].
 
-Non-uniform quantization往往用几个离散的等级模拟其他分布（$x$真实的分布可能是lognorm分布、norm分布），以期在更稠密的取值范围内提升精度，缺点是计算量更大一些。
+Non-uniform quantization typically uses a few discrete levels to approximate other distributions (the true distribution of $x$ might be lognormal or normal), aiming to improve precision in the denser parts of the value range; the downside is somewhat higher computational cost.
 
 ## Affine vs Scale
-在uniform quantization中，变换函数又有两个选择：affine和scale。前者用一个仿射函数（$g(x)=kx+b$），后者只用（$g(x)=kx$），0在映射后仍为0，$Q$和$x$在0两侧对称，因此又叫对称量化，实际上是仿射量化的一个特例，由于去掉了offset，计算更简化了，也容易向量化。
+Within uniform quantization, there are two further choices for the transform function: affine and scale. The former uses an affine function ($g(x)=kx+b$), while the latter uses only ($g(x)=kx$): 0 remains 0 after mapping, and $Q$ and $x$ are symmetric around 0, so it is also called symmetric quantization. It is actually a special case of affine quantization; with the offset removed, the computation is simpler and easier to vectorize.
 
 ## PTQ vs QAT
-根据是否涉及backprop，量化可以分为PTQ(post-training Quantization)和QAT(Quantization Aware Training)这两类。QAT因训练成本高昂，难以扩展到大模型。因此大模型量化更多地使用PTQ。
+Depending on whether backprop is involved, quantization falls into two categories: PTQ (Post-Training Quantization) and QAT (Quantization-Aware Training). Because of its high training cost, QAT is hard to scale to large models, so PTQ is used more often for large-model quantization.
 
 ## Dynamic vs Static 
-静态精度量化把权重、激活函数、梯度统一转成低精度表示，比如W8A8量化。推理阶段W8A8完全是int8算术计算，不需要执行任何量化、反量化函数。
+Static-precision quantization converts weights, activations, and gradients uniformly into low-precision representations, e.g., W8A8 quantization. At inference time, W8A8 is entirely int8 arithmetic, with no need to execute any quantization or dequantization functions.
 
-静态量化的参数（scale factor $k$、zero point $b$）是固定的。那么如何决定合适的$k$或$b$呢？静态量化往往需要通过在校准集上收集激活分布，寻找最小化MSE的最优解。但这种校准过程也会引入过拟合校准集的问题。在输入数据的分布非常明确，可以被校准集正确刻画的场景下，可以使用静态量化。
+The parameters of static quantization (scale factor $k$, zero point $b$) are fixed. So how do we pick suitable $k$ or $b$? Static quantization usually collects activation distributions over a calibration set and searches for the optimum that minimizes MSE. But this calibration process can also introduce overfitting to the calibration set. Static quantization works when the input data distribution is well understood and can be properly captured by the calibration set.
 
-动态精度量化，又称weight-only量化，只把权重量化到低精度，激活仍保留高精度（因此模型变成了混合精度模型）。动态量化中，量化参数是推理时即时演算的，因此无需专门的校准阶段。推理时激活精度会动态调整精度（上限是模型中存储的激活精度，下限是权重精度，需施加量化函数到激活，或反量化函数到权重），因此保留了部分浮点数计算。
+Dynamic-precision quantization, also called weight-only quantization, only quantizes weights to low precision while activations stay in high precision (so the model becomes a mixed-precision model). In dynamic quantization, the quantization parameters are computed on the fly at inference time, so no dedicated calibration phase is needed. During inference, the activation precision is adjusted dynamically (the upper bound is the activation precision stored in the model, the lower bound is the weight precision; this requires applying quantization functions to the activations or dequantization functions to the weights), so some floating-point computation is retained.
 
-通常静态量化适合CNN，动态量化适合RNN、transformers。
+In general, static quantization suits CNNs, while dynamic quantization suits RNNs and transformers.
 
-量化器的计算量在混合精度模型（比如int4权重量化+fp16激活函数量化的gptq，或torchao QAT的8da4w，或llama.cpp的q4_k）中会影响推理性能。以llama.cpp的q4_k为例，中间张量（比如两个4-bits的sum，再用4-bits有几率产生overflow）有些需要用8-bits而非4-bits量化，可以把模型张量用计算量更高误差更少的量化器（比如non-uniform量化器，计算量虽大但不影响运行时开销），中间张量用计算量小的uniform量化器[^10]。
+The computational cost of the quantizer affects inference performance in mixed-precision models (e.g., GPTQ with int4 weight quantization plus fp16 activations, torchao QAT's 8da4w, or llama.cpp's q4_k). Take llama.cpp's q4_k as an example: some intermediate tensors (such as the sum of two 4-bit values, which has a chance of overflow if stored in 4 bits again) need to be quantized to 8 bits rather than 4 bits. The model tensors can therefore be quantized with a more compute-intensive but lower-error quantizer (e.g., a non-uniform quantizer — expensive to compute, but it does not affect runtime overhead), while intermediate tensors use a cheap uniform quantizer[^10].
 
 ## LLM Quantization
-- GPTQ[^17]：一种适用于大模型的oneshot量化方法，把所有权重都批量放入矩阵中，逐层量化，每次都最小化输出MSE。GPTQ采用int4/fp16混合精度量化，4-bit用于权重量化，激活函数仍用fp16。GPTQ利用二阶信息做误差补偿，但可能在重建过程中过拟合校准集，导致模型损失泛用性。
+- GPTQ[^17]: a one-shot quantization method for large models. It batches all weights into matrices and quantizes them layer by layer, minimizing the output MSE each time. GPTQ uses int4/fp16 mixed-precision quantization: 4-bit for weight quantization, fp16 for activations. GPTQ leverages second-order information for error compensation, but it may overfit the calibration set during reconstruction, causing the model to lose generality.
 
-- AWQ[^18]：一种低比特weight-only的量化方法，只对权重进行量化，将激活函数和梯度保留为全精度。AWQ认为只有0.1~1%的权重是salient的，应跳过这些salient权重。激活后的分布比权重本身更加salient，因此AWQ根据激活分布寻找需要被跳过的权重。
+- AWQ[^18]: a low-bit weight-only quantization method that quantizes only the weights, keeping activations and gradients in full precision. AWQ holds that only 0.1–1% of the weights are salient and that these salient weights should be skipped. The post-activation distribution is more salient than the weights themselves, so AWQ uses the activation distribution to find the weights to skip.
 
-- GGUF：在llama.cpp的k-quant体系中，qN_0表示N-bits scale量化，qN_1表示N-bits affine量化，qN_k代表特殊的block-wise量化，把原模型权重分块，每个块有自己的根据最大值简单算出的scaling factor（这样显然并不最优，后来又做了改进版本，见[^10]），salient权重被量化到高精度，其他的则量化到低精度，是混合精度的。以q2_k quant为例，salient权重被量化到4-bit，而其他权重则是2bit。q4_0则分别把所有权重都量化到4-bit。
+- GGUF: in llama.cpp's k-quant family, qN_0 denotes N-bit scale quantization, qN_1 denotes N-bit affine quantization, and qN_k stands for a special block-wise quantization: the original model weights are split into blocks, each with its own scaling factor simply derived from the maximum value (this is obviously not optimal; an improved version came later, see [^10]). Salient weights are quantized to higher precision and the rest to lower precision — a mixed-precision scheme. Take the q2_k quant as an example: salient weights are quantized to 4-bit, while the other weights use 2-bit. q4_0, by contrast, quantizes all weights uniformly to 4-bit.
 
-- SmoothQuant[^23]：与per-channel激活量化不同，SmoothQuant把magnitudes做了一个smooth操作，避免过于剧烈的inter-channel variation。SmoothQuant把原本非常uniform的权重分别变得稍有起伏，但实际上仍然易于计算。
+- SmoothQuant[^23]: unlike per-channel activation quantization, SmoothQuant applies a smoothing operation to the magnitudes to avoid overly drastic inter-channel variation. SmoothQuant makes the originally very uniform weights slightly uneven, but they remain easy to compute with.
 
 ![smooth](https://jipeng4974.github.io/img/smooth_quant.png)
 
 ## k-bit Inference Scaling Laws
-根据[^5]中的三万五千次k-bit推理实验，模型总体积不变的情况下，4-bit精度几乎永远是最优解。
+According to the 35,000 k-bit inference experiments in [^5], with the total model size held constant, 4-bit precision is almost always the optimal choice.
 
 # Pruning
-对应PTQ，也存在PTP(Post-Training Pruning)，本文主要讨论PTP，即无需高昂重训练成本（可以通过LoRA恢复）的剪枝。
+Analogous to PTQ, there is also PTP (Post-Training Pruning). This article mainly discusses PTP — pruning that does not require expensive retraining (recovery can be done via LoRA).
 
-## 结构化稀疏
-结构化稀疏在特定维度（chanel、conv kernel）上对卷积、矩阵乘做剪枝操作，改变其shape，生成更小的模型。
+## Structured Sparsity
+Structured sparsity prunes convolutions and matrix multiplications along specific dimensions (channel, conv kernel), changing their shapes and producing a smaller model.
 
-LLM-Pruner[^20]、Torch-Pruning[^26]是针对LLM的结构化稀疏方法。Isomorphic Pruning[^27]则是近期针对ViT和现代CNN的SOTA方法。
+LLM-Pruner[^20] and Torch-Pruning[^26] are structured-sparsity methods for LLMs. Isomorphic Pruning[^27] is a recent SOTA method for ViTs and modern CNNs.
 
-## 非结构化稀疏
-非结构化稀疏以每一个参数为单元进行稀疏，不改变参数矩阵shape，只是令其中部分值为零。要求底层推理实现能有效地利用矩阵稀疏性进行加速。
+## Unstructured Sparsity
+Unstructured sparsity sparsifies at the granularity of individual parameters; it does not change the shape of the parameter matrices, it merely zeroes out some of their values. It requires the underlying inference implementation to effectively exploit matrix sparsity for acceleration.
 
-SparseGPT[^24]在不显著牺牲perplexity的前提下，对175B级别的模型使用（one-shot，无需retraining），达到60%非结构化稀疏。
+SparseGPT[^24] can be applied to 175B-scale models (one-shot, no retraining) without significantly sacrificing perplexity, reaching 60% unstructured sparsity.
 
-SparseGPT将剪枝问题规约到超大规模稀疏回归实例上，用一种新的近似稀疏回归求解器高效求解，能在单GPU上几个小时内跑完100B级模型的稀疏。
+SparseGPT reduces the pruning problem to extremely large-scale sparse regression instances and solves them efficiently with a new approximate sparse-regression solver, capable of sparsifying a 100B-scale model on a single GPU within a few hours.
 
-## 半结构化稀疏
-N:M Pruning[^25]是一种半结构化稀疏方法。SparseGPT这样的非结构化稀疏技术可以通过修改、适配成2:4 sparsity在A100上得到加速。
+## Semi-structured Sparsity
+N:M Pruning[^25] is a semi-structured sparsity method. Unstructured-sparsity techniques like SparseGPT can be modified and adapted into 2:4 sparsity to gain acceleration on the A100.
 
 
 [^1]: [Quantization-Aware Training for Large Language Models with PyTorch](https://pytorch.org/blog/quantization-aware-training/)

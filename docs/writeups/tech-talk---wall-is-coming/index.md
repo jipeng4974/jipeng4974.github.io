@@ -1,6 +1,6 @@
 # Tech Talk: Wall is Coming
 
-> Tech Talk文稿，梳理内存墙问题的历史渊源，尝试给出对优化空间的理解，推导出相应的启发性策略，并列举一些访存优化技术。
+> Tech Talk transcript: traces the historical roots of the memory wall problem, attempts to frame an understanding of the optimization space, derives corresponding heuristics, and lists several memory-access optimization techniques.
 
 ---
 
@@ -8,104 +8,104 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-# 内存墙和登纳德定律失效
-“内存墙（the Memory Wall）”和“登纳德定律失效（the break down of Dennard Scaling）”是计算生态演化中的两个核心矛盾。
-- 为了对抗Dennard Scaling的失效，计算硬件的架构从单核向多核、众核突围。
-- 为了掩盖内存墙问题，内存层级（memory hierarchy）变得越来越深，off-chip互连带宽不得不迅速提高。
+# The Memory Wall and the Breakdown of Dennard Scaling
+The "Memory Wall" and the "breakdown of Dennard Scaling" are the two core contradictions in the evolution of the computing ecosystem.
+- To counter the breakdown of Dennard Scaling, compute hardware architecture broke out from single-core toward multi-core and many-core.
+- To mask the memory wall problem, the memory hierarchy has grown deeper and deeper, and off-chip interconnect bandwidth has had to increase rapidly.
 
-起初单核到多核是巨变，逼迫软件架构进行痛苦重构，并发编程问题木秀于林，因此被近20年的工业界实践+学术界研究集火秒了——如今我们有多线程编程范式、异步回调范式、goroutine式的有栈协程、C++/Rust的async/await无栈协程、lockfree/waitfree数据结构等诸多工具。
-相较而言，这几十年来内存墙问题由于其隐蔽性、不紧急性、棘手性，不仅没得到妥善解决，反而根深蒂固，愈发遮掩不住，暴露在软件工程师面前，因此这次分享的重点是内存墙。
+At first, the move from single-core to multi-core was a seismic shift: it forced painful restructuring of software architecture, and concurrent programming problems stood out like a tree above the forest — so they got focus-fired and taken down by nearly 20 years of industry practice plus academic research. Today we have plenty of tools: multithreading paradigms, async callback paradigms, goroutine-style stackful coroutines, C++/Rust async/await stackless coroutines, lockfree/waitfree data structures, and so on.
+By contrast, over these decades the memory wall problem — owing to its hidden, non-urgent, and intractable nature — has not only failed to be properly solved but has become deeply entrenched, and it can no longer be concealed: it is now exposed right in front of software engineers. So the focus of this talk is the memory wall.
 
-不过在进入正题之前，还需先介绍一下数据中心硬件和微处理器架构演化的些许背景。
+But before getting to the main topic, I need to give a bit of background on the evolution of data center hardware and microprocessor architecture.
 
-# 21世纪数据中心硬件的演化简史
-## 00s，Commodity Computing时代
-远古时期我们并不会说“数据中心硬件”，因为还不存在现代意义上的互联网产业，也就没有现代意义上的数据中心。自然也就没有“for 大数据/云/Edge/AI”的营销话术，更多的是强调用廉价、不可靠、大规模的commodity hardware搭建分布式有状态系统，Google在这方面做了开创性的尝试。
+# A Brief History of Data Center Hardware Evolution in the 21st Century
+## The 00s: The Commodity Computing Era
+In ancient times we didn't talk about "data center hardware," because the Internet industry in the modern sense didn't exist yet, so neither did data centers in the modern sense. Naturally there was no marketing speak like "for big data / cloud / Edge / AI" either; the emphasis was more on building distributed stateful systems out of cheap, unreliable, large-scale commodity hardware, and Google made pioneering attempts in this direction.
 
-> 相对IBM mainframe、super computer而言，当年x86的廉价是一目了然的。Google草创之初用的是奔腾2。
-> 银行业、DAPRA成就了IBM power系列，如今Power9/10机器虽然被Xeon/EPYC完爆，仍然可以靠银行软件的祖宗之法不可变和政府订单苟延残喘，保有一份niche市场。
+> Compared with IBM mainframes and supercomputers, the cheapness of x86 back then was plain to see. Google ran on Pentium II when it was first founded.
+> The banking industry and DARPA made the IBM Power series. Today, although Power9/10 machines are completely crushed by Xeon/EPYC, they can still linger on thanks to the unchangeable ancestral laws of banking software and government orders, holding on to a niche market.
 
 ![commodity_computing](https://jipeng4974.github.io/img/commodity_computing.png)
 
-10s之前是x86微处理器完全不具备多核可扩展性的年代。
-- `FSB`(front-side bus)是罪魁祸首。下图架构中，内存总线和PCIe总线需共享一个`FSB`才能与CPU相连，导致`FSB`成为瓶颈，CPU数量不具备横向扩展性。
-- 当年的`PCIe`还是1.0（03年初代`PCIe`），带宽和lane数都相当有限，即使强上多核，网络IO、磁盘IO也跟不上。
+Before the 10s, x86 microprocessors had no multi-core scalability at all.
+- The `FSB` (front-side bus) was the chief culprit. In the architecture shown below, the memory bus and the PCIe bus had to share a single `FSB` to connect to the CPU, making the `FSB` the bottleneck and leaving the CPU count unable to scale out.
+- Back then `PCIe` was still 1.0 (the first-generation `PCIe` from 2003), with quite limited bandwidth and lane counts. Even if you forced multi-core in, network IO and disk IO couldn't keep up.
 ![fsb](https://jipeng4974.github.io/img/fsb.png)
 
-零零年代恰逢摩尔定律逐渐在单核语境失效，专注提升芯片性能在2004年后不再可行，硬件厂商不得不在架构上向多核方向突围。
+The 00s happened to coincide with Moore's Law gradually failing in the single-core context; focusing purely on improving chip performance was no longer viable after 2004, and hardware vendors had to break out architecturally toward multi-core.
 ![clock](https://jipeng4974.github.io/img/clock.png)
 
-## 一零年代初，多核时代
-2012年的Intel Xeon E5-2600 V1 32nm Sandy Bridge是里程碑式的服务器产品，移除`FSB`（这个实际上在09年的Nehalem机器上就已经做了）、引入`QPI`/`DMI`取代`FSB`、PCIe2.0，使微架构获取多核可扩展性。
-> E5 family算是耳熟能详，虽然普遍要到寿命极限，但至今应该仍有很多公司在用。
-> 当年买电脑时，所谓二代i3/i5/i7就是`SandyBridge`，和一代i5/i7的`Nehalem`有代差。
+## The Early 10s: The Multi-Core Era
+The Intel Xeon E5-2600 V1 32nm Sandy Bridge in 2012 was a milestone server product: it removed the `FSB` (this had actually already been done on the 2009 Nehalem machines), introduced `QPI`/`DMI` to replace the `FSB`, plus PCIe 2.0, giving the microarchitecture multi-core scalability.
+> The E5 family is a household name; although most units are reaching the end of their lifespan, many companies should still be using them today.
+> When buying a computer back then, the so-called second-gen i3/i5/i7 was `SandyBridge`, a full generation ahead of the first-gen i5/i7 `Nehalem`.
 
-`Sandy Bridge`之后是`Haswell`，变化不大。`Haswell`之后是`Broadwell`，环状拓扑`Broadwell Ring`即得名于此。
+After `Sandy Bridge` came `Haswell`, which changed little. After `Haswell` came `Broadwell`, from which the ring topology `Broadwell Ring` takes its name.
 ![clock](https://jipeng4974.github.io/img/broadwell_ring.png)
-再后面就是Skylake，开始冠上Scalable之名了，从多核走向众核，从近代走到现代。
+After that came Skylake, which began to carry the Scalable name — moving from multi-core to many-core, from the early modern era into the modern era.
 
-## 一零年代末~二零年代初，众核时代
-17年Intel推出了1st gen Xeon Scalable，`Skylake`，采用了Mesh Architecture。见Things are getting meshy
-同时期AMD也推出了ENYC 7001，算是打破了Xeon的垄断局面。在US-TTP机房我们就有不少AMD机器。
+## The Late 10s to Early 20s: The Many-Core Era
+In 2017 Intel released the 1st gen Xeon Scalable, `Skylake`, which adopted a Mesh Architecture. See Things are getting meshy
+Around the same time AMD also launched the EPYC 7001, which more or less broke Xeon's monopoly. We have quite a few AMD machines in our US-TTP data center.
 
-`Skylake`的升级版`Ice Lake`并未顺利孵化，因为18年出了Meltdown/Spectre的大新闻（speculative execution的安全漏洞），于是在`Skylake`上修了漏洞，19年推出`Cascade Lake`作为2nd-Gen Xeon。原本的顺位继承者`Ice Lake`在21年姗姗来迟，变成了第三代。
+The successor to `Skylake`, `Ice Lake`, did not hatch smoothly, because 2018 brought the big Meltdown/Spectre news (security vulnerabilities in speculative execution). So the vulnerabilities were patched on `Skylake`, and `Cascade Lake` was released in 2019 as the 2nd-Gen Xeon. The original heir in line, `Ice Lake`, arrived belatedly in 2021 and became the third generation.
 
-`Cooper Lake`和`Ice Lake`同代，都被称为第三代，但实际上架构和`Ice Lake`不同，是基于`Skylake`改的，专为多socket(4~8s)设计，相比general-purpose的`Ice Lake`， `Cooper Lake`稍稍超出commodity hardware范畴，估计是想卖给特定的专用计算领域，用来替代老旧的UNIX系统，比如`Oracle Solaris`，`IBM AIX`。互联网场景下我们还是倾向于横向扩容而不是纵向扩容。
+`Cooper Lake` is of the same generation as `Ice Lake` — both are called the third generation — but its architecture is actually different from `Ice Lake`'s; it was modified from `Skylake` and designed specifically for multi-socket (4~8s) systems. Compared with the general-purpose `Ice Lake`, `Cooper Lake` slightly exceeds the commodity hardware category; presumably it was meant to be sold to certain specialized computing fields, to replace aging UNIX systems such as `Oracle Solaris` and `IBM AIX`. In Internet scenarios we still prefer scaling out over scaling up.
 
-目前数据中心应用的主力机型是`Ice Lake`、`Cascade Lake`机器，23~24年起计算/访存密集的场景则会逐步用到第四代Xeon：`Sapphire Rapids`机器。
-19年20年我们还零零散散有一些1st gen Xeon Scalable Gold机器，后来很快就汰换掉了。
+Currently the mainstay models for data center applications are `Ice Lake` and `Cascade Lake` machines; starting from 2023~2024, compute/memory-intensive scenarios will gradually move to the fourth-generation Xeon: `Sapphire Rapids` machines.
+In 2019 and 2020 we still had a scattered handful of 1st gen Xeon Scalable Gold machines, which were soon phased out.
 ![clock](https://jipeng4974.github.io/img/broadwell_ring.png)
 
-`Ice Lake`和`Cascade Lake`都是monolithic mesh设计。
-- 这里monolithic是相对于chiplet/tile-based而言的单个huge die承载many-core的范式；
-- 这里mesh是相对于此前E5时代Broadwell Ring环状拓扑而言的网状拓扑。
+Both `Ice Lake` and `Cascade Lake` use a monolithic mesh design.
+- Here monolithic refers to the paradigm of a single huge die carrying many cores, as opposed to chiplet/tile-based designs;
+- And mesh refers to the mesh topology, as opposed to the ring topology of the Broadwell Ring from the earlier E5 era.
 
-二者差异主要在制程（10nm vs 14nm）、最大核心数、PCIe路数、内存通道数（单socket支持的DIMM[^1]数 16 vs 12）。
+The differences between the two lie mainly in the process node (10nm vs 14nm), the maximum core count, the number of PCIe lanes, and the number of memory channels (the number of DIMMs[^1] supported per socket: 16 vs 12).
 
-24年起开始交付的4th-Gen `Sapphire Rapids`的芯片架构从mono-die转型为更类似AMD的multi-die(Intel自称是tile-based），微架构从sunny cove更新到golden cove（tpause指令可用于优化spinlock），配置相当华丽，支持先进互连协议（`PCIe5`/`CXL`），支持DDR5，新指令集`AMX`，顶配还有3D堆叠的on-package HBM[^2]。
+The 4th-Gen `Sapphire Rapids`, which began shipping in 2024, transitions its chip architecture from mono-die to a more AMD-like multi-die design (Intel calls it tile-based); the microarchitecture was updated from sunny cove to golden cove (the tpause instruction can be used to optimize spinlocks). Its configuration is quite gorgeous: support for advanced interconnect protocols (`PCIe5`/`CXL`), DDR5, the new `AMX` instruction set, and the top-end configuration even has 3D-stacked on-package HBM[^2].
 
-## 一些总结
-### 硬件生态里，生命和环境也是相互塑造的
-PC用户成就了繁荣、易获得、标准化的x86 商用硬件市场。商用硬件集群刚好又适应互联网workloads（没有大量浮点数计算，integer server为主，但数据量极为庞大），才有了分布式系统支撑的现代数据中心，再然后才有硬件厂商为数据中心定制优化的服务器硬件，比如Scalable Xeon。
+## Some Takeaways
+### In the hardware ecosystem, life and environment also shape each other
+PC users created the prosperous, accessible, standardized x86 commodity hardware market. Commodity hardware clusters happened to suit Internet workloads (no heavy floating-point computation, mostly integer servers, but an enormous volume of data), which made possible the modern data center supported by distributed systems; only then did hardware vendors start customizing and optimizing server hardware for data centers, such as Scalable Xeon.
 
-PC玩家成就了Nvidia GPU，GPU恰好适应AI workloads，于是有了各种MLSys和GPGPU应用。然后才有Nvidia在加速计算方向上的投入。有了A100之后，ChatGPT训练就是在A100+IB network基础上量体裁衣做的大规模模型并行。随后又因为ChatGPT的轰动效应，反哺了高端GPU产业。
+PC gamers made the Nvidia GPU; GPUs happened to suit AI workloads, hence all kinds of MLSys and GPGPU applications. Only then came Nvidia's investment in accelerated computing. Once the A100 existed, ChatGPT training was done as large-scale model parallelism tailor-made on top of A100 + IB networks. The sensational effect of ChatGPT then fed back into the high-end GPU industry.
 
-生态位很难被人为设计、凭空创造，比如Intel Optane PMem，占据了非常合理的生态位，很多系统方向的研究都是靠PMem发的论文，因为它太合理了，弥补了磁盘和内存之间的空缺。但还是因为需求侧跟不上，在22年被砍掉了。究其根本，PMem在AI训推场景下没啥用，在主流的搜广推应用上不能带来显著成本优势，在交易场景和分析型场景要么比不上磁盘+内存，要么不值得投入人力去大改架构。
-### 现代硬件特征
-- 核心数众多
-- 设法缓解Memory Wall问题——近20年来DRAM cycle time每年缩减的速率与摩尔定律对比呈相对停滞，cache miss的后果愈发严重。
-  - Memory hierarchy变深：cache变多，最新的顶配SPR机器还增加了on-package HBM，本地内存之外还有远端NUMA node，内存下面还可以有PMem、SSD，本地节点之外还有局域网/云端节点。总之，是通过增加层级隐藏Memory Wall问题。
-  - Off-package/chip-to-chip互连带宽提升：跟上核心数增多带来的IO需求，缓解批量读写场景下的Memory Wall问题。
-### 黑盒化和白盒化同时发生
-现代硬件对工程能力提出了更苛刻的要求——通过off-CPU analysis、data-oriented cache-friendly设计、手动内存管理、甚至手动prefetching才能真正释放其性能潜力。
+An ecological niche is hard to design artificially or create out of thin air. Take Intel Optane PMem: it occupied a very reasonable niche — a lot of systems research papers were published thanks to PMem, because it was just so reasonable, filling the gap between disk and memory. Yet it was still axed in 2022 because the demand side couldn't keep up. Fundamentally, PMem is not very useful in AI training/inference scenarios; it brings no significant cost advantage to mainstream search/ads/recommendation applications; and in transactional and analytical scenarios it either can't beat disk + memory or isn't worth the manpower for a major architectural overhaul.
+### Characteristics of Modern Hardware
+- Numerous cores
+- Efforts to alleviate the Memory Wall problem — over the past 20 years, the yearly reduction rate of DRAM cycle time has been relatively stagnant compared with Moore's Law, and the consequences of a cache miss have grown ever more severe.
+  - The memory hierarchy grows deeper: more caches; the latest top-end SPR machines even add on-package HBM; beyond local memory there are remote NUMA nodes; below memory there can be PMem and SSD; beyond the local node there are LAN/cloud nodes. In short, the Memory Wall problem is hidden by adding more levels.
+  - Off-package/chip-to-chip interconnect bandwidth increases: to keep up with the IO demands brought by growing core counts and to alleviate the Memory Wall problem in bulk read/write scenarios.
+### Black-Boxing and White-Boxing Happen Simultaneously
+Modern hardware places harsher demands on engineering capability — only through off-CPU analysis, data-oriented cache-friendly design, manual memory management, and even manual prefetching can its performance potential truly be unleashed.
 
-但这和现代软件工程愈发简化的发展方向背道而驰——通过runtime、虚拟机、动态语言、微服务范式的职责划分、基于hypervisor的虚拟化和容器化等手段解放程序员心智。
+But this runs counter to the ever-simplifying direction of modern software engineering — freeing programmers' minds through runtimes, virtual machines, dynamic languages, the separation of responsibilities in the microservices paradigm, hypervisor-based virtualization, and containerization.
 
-这种背道而驰使现代软件实践走向两条岔路，一个是以白盒化为手段的基础设施建设：更好的hypervisor、更好的mlsys、高性能检索、高性能存储、高性能网络，另一个是以黑盒化为目标的上层应用：利用虚拟化、容器化、微服务化、动态语言、runtime语言的便捷性提升productivity。
+This divergence takes modern software practice down two forks: one is infrastructure building with white-boxing as the means — better hypervisors, better mlsys, high-performance retrieval, high-performance storage, high-performance networking; the other is upper-layer applications with black-boxing as the goal — exploiting the convenience of virtualization, containerization, microservicization, dynamic languages, and runtime languages to improve productivity.
 
-# 现代硬件上的性能工程实践
-## 对优化空间的理解
-性能工程即有系统方法论指导的软件优化实践。
-可以从两个视角分解“优化任务”：
-- 优化 = 减少算法总工作量 + 硬件使能
-- 优化 = 减少运行时间 = 减少CPU时间 + 减少阻塞时间
-“算法改良”和“硬件使能”接近正交，“on-CPU time”和“off-CPU time”又大体互补，因此可以为优化空间$W$构造正交基{硬件使能$x$，算法优化$y$，算术密度$z$}，则$W = \{[x,y,z] \in R^3 | 0 \le z \le 1 \}$。
+# Performance Engineering Practice on Modern Hardware
+## Understanding the Optimization Space
+Performance engineering is software optimization practice guided by a systematic methodology.
+An "optimization task" can be decomposed from two perspectives:
+- Optimization = reducing total algorithmic work + hardware enablement
+- Optimization = reducing runtime = reducing CPU time + reducing blocked time
+"Algorithm improvement" and "hardware enablement" are nearly orthogonal, and "on-CPU time" and "off-CPU time" are largely complementary. So we can construct an orthogonal basis {hardware enablement $x$, algorithmic optimization $y$, arithmetic intensity $z$} for the optimization space $W$, giving $W = \{[x,y,z] \in R^3 | 0 \le z \le 1 \}$.
 
 <div id="damn"><svg width="480" height="420"></svg></div>
 
-## 推导出的一些Heuristics
-基于对优化空间完整图景的理解，能推导出一些性能工程的Heuristics：
+## Some Derived Heuristics
+Based on an understanding of the full picture of the optimization space, we can derive some performance engineering heuristics:
 
-- 应首先确定程序的算术密度
-  - 为何区分on-CPU vs off-CPU至关重要？因为你的100%忙碌的CPU可能并不忙碌。CPU profiling仅描述完整图景的一部分，甚至一小部分。常用的CPU利用率这一指标具有欺骗性和迷惑性，实则既包括on-CPU计算也包括off-CPU阻塞。如果存在严重访存瓶颈，100%的CPU的superscalar pipeline里全是stall的空泡，CPU的各类算术逻辑单元、SIMD/AMX等专用计算硬件都在空等。
-  - 当然off-CPU过高也可能是磁盘/网络IO密集导致的，但这类IO-bound应用往往不是成本大头，还不足以兴师动众地做优化，除非是专门做存储或专门搞网络的infra部门才需要关心。此外还有可能是代码写得有问题，锁粒度太大，过度持有锁，同样造成off-CPU 比例过高。
-- 如今的内存应被视为外设
-  - 曾经为慢速外设准备的数据结构，如今适合内存场景：
-    - C++的有序map是用红黑树实现的，Rust选择了B+树，以便利用其更好的locality，因为如今的内存已经和几十年前的磁盘一样慢得不可容忍了。
-    - DashTable这种原本用在PMem（非易适性内存，内存带宽远低于DRAM）上的数据结构，如今被DragonFly拿来用在内存数据库上，性能远超Redis/Memcached。
-  - 因此需将内存层级白盒化，充分发挥硬件潜力。
-- 避免和编译器优化撞车
-  - 不需要用移位操作或其他汇编指令优化乘除法。乘以8必然会被自动优化成左移动3。除法也会被优化成乘加。下面的例子是非常古老的编译器对 volatile int y = x / 71的处理。编译器优化乘法还会用LEA指令，LEA原本旨在加速小结构体数组的成员地址计算，但实际上也能用来加速乘法，比如乘以5可以写成lea eax, [eax*4 + eax]，利用现成的电路就比较快，算是硬件使能领域里编译器帮你做好的工作。
+- You should first determine the arithmetic intensity of the program
+  - Why is distinguishing on-CPU vs off-CPU crucial? Because your 100%-busy CPU may not actually be busy. CPU profiling only describes part of the full picture — sometimes even a small part. The commonly used CPU utilization metric is deceptive and misleading: it actually covers both on-CPU computation and off-CPU blocking. If there is a severe memory-access bottleneck, the superscalar pipeline of a 100%-utilized CPU is full of stall bubbles, and the CPU's various arithmetic logic units and dedicated compute hardware like SIMD/AMX are all waiting idly.
+  - Of course, high off-CPU may also be caused by disk/network-IO intensity, but such IO-bound applications are usually not the bulk of the cost and don't warrant a big optimization campaign — only infra departments specializing in storage or networking need to care. Alternatively, the code itself may be problematic: lock granularity too coarse, locks held too long, which likewise causes an excessively high off-CPU ratio.
+- Memory today should be treated as a peripheral
+  - Data structures once designed for slow peripherals are now suitable for memory scenarios:
+    - C++'s ordered map is implemented with a red-black tree, while Rust chose a B+ tree to exploit its better locality — because memory today is already as intolerably slow as disks were decades ago.
+    - Data structures like DashTable, originally used on PMem (non-volatile memory, whose bandwidth is far lower than DRAM), are now used by DragonFly in its in-memory database, with performance far exceeding Redis/Memcached.
+  - Therefore the memory hierarchy needs to be white-boxed to fully exploit hardware potential.
+- Avoid colliding with compiler optimizations
+  - There is no need to optimize multiplication and division with shifts or other assembly instructions. Multiplying by 8 will inevitably be auto-optimized into a left shift by 3. Division will also be optimized into multiply-and-add. The example below shows how a very old compiler handles volatile int y = x / 71. Compilers also use the LEA instruction to optimize multiplication: LEA was originally meant to speed up member address computation for arrays of small structs, but it can actually be used to speed up multiplication too — for example, multiplying by 5 can be written as lea eax, [eax*4 + eax]. Using existing circuitry is faster; this counts as work the compiler has already done for you in the realm of hardware enablement.
     ```assembly
     // volatile int y = x / 71;8b 0c 24        mov ecx, DWORD PTR _x$[esp+8] ; load x into ecx
     mov eax, -423447479 ; magic happens starting here...
@@ -119,26 +119,26 @@ PC玩家成就了Nvidia GPU，GPU恰好适应AI workloads，于是有了各种ML
     mov DWORD PTR _y$[esp+8], eax
     ```
   
-  - 可以放心去做手动SIMD。手动SIMD和LLVM自动向量化优化位于不同抽象层次，基本上也不必对LLVM的自动向量化抱有期望。短期内见不到程序语言和库层面对SIMD进行良好抽象的希望。
-    - 手动SIMD需要程序员根据目标机器微架构型号选择合适的指令（不同微架构的各种simd指令的latency各不相同）；
-    - 选择恰当的simd size(并非越大越好，而且不同size对应不同的shuffle)；
-    - 还要处理最后不满一个batch的数据导致的各种各样的corner cases；
-    - 对数据地址进行对齐或对不对齐数据进行容忍。
-  - 用最新的编译器，用O3，很多细节就不必手动优化，如Copy Ellison，Tail-recursion Elimination，甚至Mutually recursion Elimination，Inlining，多数Loop优化——Loop unrolling(+步长)/fission(逆fusion)/tiling(cache blocking)/unswitching(内层去分支化)/自动向量化/interchange。
-  - 涉及到逻辑和具体应用场景，没有标准优化策略的优化仍需自己做，比如Loop fusion，调整递归粒度，调整编码策略（紧凑程度和编解码开销的tradeoff）。
+  - You can safely do manual SIMD. Manual SIMD and LLVM's auto-vectorization sit at different abstraction levels, and basically you shouldn't place expectations on LLVM's auto-vectorization either. In the short term there is no hope of a good SIMD abstraction at the programming-language or library level.
+    - Manual SIMD requires the programmer to choose appropriate instructions based on the target machine's microarchitecture model (the latency of various SIMD instructions differs across microarchitectures);
+    - choose an appropriate SIMD size (bigger is not always better, and different sizes correspond to different shuffles);
+    - handle the various corner cases caused by leftover data that doesn't fill a full batch at the end;
+    - align data addresses, or tolerate unaligned data.
+  - Use the latest compiler and use O3; then many details need no manual optimization, such as copy elision, tail-recursion elimination, even mutual-recursion elimination, inlining, and most loop optimizations — loop unrolling (+ stride) / fission (inverse fusion) / tiling (cache blocking) / unswitching (de-branching the inner loop) / auto-vectorization / interchange.
+  - Optimizations that involve logic and concrete application scenarios, for which there is no standard optimization strategy, still have to be done yourself — e.g., loop fusion, adjusting recursion granularity, and adjusting the encoding strategy (the tradeoff between compactness and encode/decode overhead).
 
 
-## 访存优化的一些Tricks
-- 如何度量算术密度或访存密度?
-  - perf 或 perf_event_open: cache_miss/instructions, 或ipc
+## Some Tricks for Memory-Access Optimization
+- How to measure arithmetic intensity or memory-access intensity?
+  - perf or perf_event_open: cache_miss/instructions, or ipc
   - Intel PCM
-  - eBPF tools，比如https://github.com/iovisor/bcc
-  - 静态分析：load/store指令占比可粗略翻译算术/访存密度，但受缓存命中率影响较大。
-- 如何根据内存配置设置合适的object padding？
-  - 内存配置中有两个影响应用层的重要概念：内存通道（memory channels）、内存列（memory ranks）。x86架构下内存通道和内存列在内存地址上interleaving，即均匀分布且递增。因此RAM可视为$n_chan \times n_rank$个block组成。其DIMM架构如下图。
-[图片]
-  - 具体的object padding方式可以参考下面这段伪码，其中64B是cache line size，也恰好是一个block的size。大体思路是先保证内存池里的地址都是64B的整数倍，再保证下一个对象的block id和n_chan*n_rank互质。
-  - 这个padding不让对象的起始地址反复命中同一个channel或同一个rank，令下一个对象起始地址落入不同的channel/rank，充分利用不同内存通道、不同内存列，避免通道、列之间的负载不均，提升访存带宽。
+  - eBPF tools, e.g. https://github.com/iovisor/bcc
+  - Static analysis: the proportion of load/store instructions can roughly indicate the arithmetic/memory-access intensity, but it is heavily affected by the cache hit rate.
+- How to set appropriate object padding based on the memory configuration?
+  - There are two important concepts in memory configuration that affect the application layer: memory channels and memory ranks. Under the x86 architecture, memory channels and memory ranks are interleaved across memory addresses, i.e., evenly distributed and increasing. Therefore RAM can be viewed as composed of $n_chan \times n_rank$ blocks. Its DIMM architecture is shown in the figure below.
+[Image]
+  - For the concrete object padding approach, refer to the pseudocode below, where 64B is the cache line size and also happens to be the size of one block. The general idea is to first ensure that all addresses in the memory pool are integer multiples of 64B, then ensure that the next object's block id is coprime with n_chan*n_rank.
+  - This padding prevents objects' starting addresses from repeatedly hitting the same channel or the same rank, making the next object's starting address fall into a different channel/rank, fully utilizing the different memory channels and memory ranks, avoiding load imbalance across channels and ranks, and improving memory-access bandwidth.
     ```C  
     static unsigned int object_align(unsigned int obj_size)
     {
@@ -150,25 +150,25 @@ PC玩家成就了Nvidia GPU，GPU恰好适应AI workloads，于是有了各种ML
             return new_obj_size * 64; 
     }
     ```
-- Cache优化：Cache line对齐避免false sharing；利用cache blocking。
-- 规避锁瓶颈
-  - 基于静态锁分析或ebpf off-CPU分析，找到过分粗粒度的锁和过度超期持有的锁。
-  - 寻找更好的并发数据结构：无锁实现良莠不齐；Many-core scalability最好的永远是array。
-  - Kernel bypassing：规避某些带锁的内核实现，如用户态网络协议栈替代内核栈。
-  - Share-nothing：最极端的做法可以效仿seastar，每个核心只在自己的专用内存上执行单线程代码，尽量避免CPU-to-CPU traffic，将锁彻底从代码里消除。
-- In-register storage：尽量保证简单函数用到的参数、存放中间产物的容器足够小，可完全用寄存器存下，编译器自动就会把所有load/store优化掉。
-- 考虑使用预分配内存和栈上静态结构：不得不访存时，生命周期较长的对象可考虑使用预分配内存，临时容器可以考虑根据线上数据分布设计成按某种规则切分的静态结构，并放在栈上（栈内存分配只是栈指针移动，而malloc复杂的多，如果说默认版本的malloc还有全局锁，不够scalable）。
-- 考虑使用编译期evaluation和全局静态内存区。
-- 利用1GB huge pages存数据，相比4KB默认页，hugepage所需的page table entry总数大大减少，可显著减小page table size和tlb size、降低tlb miss和page table walk开销，提升内存分配的连续性和内存访问的局部性，这些都有助于提升内存带宽。
-- 利用4MB large pages存代码，.text segment也可以用更大的页（不过最大只支持4MB），ITLB和DTLB一样，miss也会造成stall。ITLB问题的诊断可借助https://github.com/intel/iodlr，解决方法把.text移动到已有的large pages里[^3]或静态链接并使用libhugetlbfs库。目前尚未看到该优化在真实项目中落地，但看起来相当promising，可参考[Runtime Performance Optimization Blueprint: Large Code Pages](https://www.intel.com/content/dam/develop/external/us/en/documents/runtimeperformanceoptimizationblueprint-largecodepages-q1update.pdf)。
-- 尊重NUMA拓扑，避免远端内存访问，即UPI traffic。
+- Cache optimization: align to cache lines to avoid false sharing; use cache blocking.
+- Avoid lock bottlenecks
+  - Based on static lock analysis or eBPF off-CPU analysis, find locks with excessively coarse granularity and locks held for excessively long.
+  - Look for better concurrent data structures: lock-free implementations vary widely in quality; the best many-core scalability always comes from arrays.
+  - Kernel bypassing: avoid certain kernel implementations that carry locks, e.g., replacing the kernel stack with a user-space network protocol stack.
+  - Share-nothing: the most extreme approach is to emulate seastar — each core executes single-threaded code only on its own dedicated memory, avoiding CPU-to-CPU traffic as much as possible and eliminating locks from the code entirely.
+- In-register storage: try to keep the parameters used by simple functions and the containers holding intermediate results small enough to fit entirely in registers; the compiler will then automatically optimize away all loads/stores.
+- Consider pre-allocated memory and on-stack static structures: when memory access is unavoidable, long-lived objects can use pre-allocated memory; temporary containers can be designed — based on the online data distribution — as static structures partitioned by some rule and placed on the stack (stack allocation is just a stack pointer move, whereas malloc is far more complex; and the default malloc even has a global lock, so it doesn't scale).
+- Consider compile-time evaluation and global static memory regions.
+- Use 1GB huge pages to store data. Compared with the default 4KB pages, huge pages greatly reduce the total number of page table entries needed, which can significantly shrink page table size and TLB size, reduce TLB miss and page table walk overhead, and improve the continuity of memory allocation and the locality of memory access — all of which help improve memory bandwidth.
+- Use 4MB large pages to store code: the .text segment can also use larger pages (though the maximum supported is only 4MB). The ITLB, like the DTLB, causes stalls on misses. ITLB problems can be diagnosed with the help of https://github.com/intel/iodlr; the solution is to move .text into existing large pages[^3], or to link statically and use the libhugetlbfs library. I haven't yet seen this optimization land in a real project, but it looks quite promising; see [Runtime Performance Optimization Blueprint: Large Code Pages](https://www.intel.com/content/dam/develop/external/us/en/documents/runtimeperformanceoptimizationblueprint-largecodepages-q1update.pdf).
+- Respect the NUMA topology and avoid remote memory accesses, i.e., UPI traffic.
 ![numa](https://jipeng4974.github.io/img/NUMA.png)
-- 利用新架构特性和新的指令集扩展，如基于AMX实现GEMM的精度和性能优化广泛用在各种训推框架，AVX512_IFMA指令扩展做大数乘法已被用在新版本的OpenSSL中，以及基于QAT（QuickAssist）对AES、RSA、ECC等密码学应用做硬件加速。
-- 利用prefetching让cache变得更聪明。
-  - 所谓hardware prefetching就是从内存预取数据到cache（通常是LLC）。Hardware prefetcher有简单的stride pattern识别逻辑，比如a,a+2,a+4,a+6这种loop是可以被识别的。没必要刻意触发hardware prefetching，正常的代码都可以触发。但需避免误触发hardware prefetching——比如一个横跨多个cache line的大结构体其实只需要访问它的前几个field，但hardware prefetcher误以为还要接着读，就会造成cache pollution。稍微调整下这几个fields的访问顺序，破坏掉constant stride pattern即可。
-  - 找到合适的timing使用software prefetching，预取数据会带来巨大吞吐性能提升，也能用来隐藏latency，但究竟何时预取，预取哪些数据只能靠反复尝试。而一旦timing选错了反而造成cache污染，导致性能下降。
-    - 尽量让prefetch指令分散（最好和load也分散），夹杂在计算指令中间。如果连续prefetch，那和一堆load一样，也会造成空泡。
-    - 选择合适的PSD(prefetch scheduling distance)，即提前几个iteration预取。对计算量大的loop，可以提前1个iteration，对于计算量小的，可能要提前多个iteration。下面这个例子PSD=3。
+- Take advantage of new architectural features and new instruction set extensions: for example, AMX-based GEMM precision and performance optimization is widely used in various training/inference frameworks; the AVX512_IFMA instruction extension for big-number multiplication has been used in newer versions of OpenSSL; and QAT (QuickAssist)-based hardware acceleration for cryptographic applications such as AES, RSA, and ECC.
+- Use prefetching to make the cache smarter.
+  - So-called hardware prefetching means prefetching data from memory into cache (usually the LLC). The hardware prefetcher has simple stride-pattern recognition logic; for example, a loop like a, a+2, a+4, a+6 can be recognized. There is no need to deliberately trigger hardware prefetching — normal code triggers it. But you need to avoid triggering it by mistake: for example, a large struct spanning multiple cache lines may only need its first few fields accessed, but the hardware prefetcher mistakenly thinks it will keep reading, causing cache pollution. Slightly adjusting the access order of those fields to break the constant stride pattern is enough.
+  - Find the right timing to use software prefetching: prefetching data brings huge throughput improvements and can also hide latency, but exactly when to prefetch and which data to prefetch can only be found through repeated trial and error. And once the timing is chosen wrongly, it instead causes cache pollution and degrades performance.
+    - Try to spread out prefetch instructions (ideally spread out from loads too), interleaving them among computation instructions. If you prefetch continuously, that — like a bunch of loads — will also create bubbles.
+    - Choose an appropriate PSD (prefetch scheduling distance), i.e., how many iterations ahead to prefetch. For a loop with heavy computation, you can prefetch 1 iteration ahead; for one with light computation, you may need to prefetch multiple iterations ahead. In the example below, PSD=3.
     ```assembly    
     top_loop:
     prefetchnta [edx + esi + 128*3]
@@ -182,31 +182,31 @@ PC玩家成就了Nvidia GPU，GPU恰好适应AI workloads，于是有了各种ML
     jl top_loop
     ```
 
-    - 双层循环时，需注意弥补内外循环切换时的空泡，为外层循环也做prefetch。
+    - With doubly nested loops, you need to fill the bubbles when switching between the inner and outer loops, and also prefetch for the outer loop.
 
     ```C    
     for (i = 0; i < 100; i++) {  
     for (j = 0; j < 32; j+=8) { 
-        prefetch a[i][j+8]  // 最后一次iteration，不需要prefetch
-        computation a[i][j] // 第一次a[i+1][j]未预取，会miss
+        prefetch a[i][j+8]  // on the last iteration, no prefetch needed
+        computation a[i][j] // the first a[i+1][j] is not prefetched and will miss
     } 
     }
-    // 优化后
+    // after optimization
     for (i = 0; i < 100; i++) {  
     for (j = 0; j < 24; j+=8) {
         prefetch a[i][j+8]  
         computation a[i][j]  
     }  
-    prefetch a[i+1][0]  // 提前准备好 a[i][0]，否则会在a[i][j+8]阻塞
-    computation a[i][j] // 最后一个iteration单独处理，因为它不需要prefetch。
+    prefetch a[i+1][0]  // prepare a[i][0] ahead of time, otherwise it will stall on a[i][j+8]
+    computation a[i][j] // handle the last iteration separately, since it needs no prefetch
     }
     ```
-- 利用先进互连技术，如`CXL`。
+- Take advantage of advanced interconnect technologies, such as `CXL`.
 
 ![cxl](https://jipeng4974.github.io/img/spr-cxl.png)
 
 
-[^1]: DIMM(dual in-line memory module)，即ram stick，内存条，DDR(Double Data Rate)技术的物理具现。
+[^1]: DIMM (dual in-line memory module), i.e., a RAM stick — the physical embodiment of DDR (Double Data Rate) technology.
 [^2]: https://www.intel.com/content/www/us/en/products/sku/232592/intel-xeon-cpu-max-9480-processor-112-5m-cache-1-90-ghz/specifications.html
 [^3]: https://github.com/intel/iodlr/blob/master/large_page-c/large_page.c
 

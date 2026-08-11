@@ -1,5 +1,5 @@
 +++
-title = "Computational Consciousness"
+title = "计算意识"
 date = "2023-11-13"
 tags = ["ai", "philosophy"]
 description = "形而上学、神经科学意识论和计算意识。"

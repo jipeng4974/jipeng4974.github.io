@@ -1,6 +1,6 @@
 # LLM Serving
 
-> 本文总结LLM serving的计算形态和优化机会。
+> A summary of the computational characteristics of LLM serving and its optimization opportunities.
 
 ---
 
@@ -8,85 +8,85 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-LLM推理有别于小模型推理，更加memory-bound，输入输出也有可以利用的独特模式，自然涌现出系统层面可优化的点。我将这些系统层面的优化机会粗略分为batching优化、sampling优化、模型压缩3类。
+LLM inference differs from small-model inference: it is far more memory-bound, and its inputs and outputs exhibit unique patterns that can be exploited, naturally giving rise to system-level optimization opportunities. I roughly divide these system-level optimization opportunities into three categories: batching optimizations, sampling optimizations, and model compression.
 
-其中batching优化负责输入端将GPU等加速器的计算单元喂的更饱和、更好地利用SRAM locality[^5]，sampling优化[^6]负责输出端更快速拿到LLM的结果，模型压缩负责让大模型不要那么大。
+Batching optimizations feed the compute units of accelerators like GPUs more fully on the input side and make better use of SRAM locality[^5]; sampling optimizations[^6] deliver LLM results faster on the output side; and model compression keeps large models from being so large.
 
-## LLM Serving的计算形态
-LLM serving相比此前主流的深度模型serving，有一些独有的特性和约束：
-- 一次LLM调用中很多时间耗费在加载模型参数上（HBM->SRAM）。
-    - batching可以让一次参数加载负责多个seq的推理，显著减少了总体的模型参数加载开销。
-- Seq2Seq：变长输入、变长输出。
-    - 因此batching机制必须适应batch size，seq len皆为变量。
-- 自回归（通过若干次迭代才能处理一个请求），且为每个对话维护一个跨迭代的KV。
-    - 纯粹无状态的方法需每次重新计算所有KV，开销会大得无法接受，因此必须基于KV caching做incremental decoding。
-    - RNN也是自回归，transformer相比RNN，还有一个不同之处是每次迭代KV cache都会变大。
-    - 非自回归模型往往以request为粒度做batching，对自回归场景并不适用，后者明显更适合以iteration为粒度。
-- GPT不同于原版transformer，是decoder-only的。
-    - 此前encoder-only和encoder-decoder架构的变长batching padding策略不适用于LLM。
-- GPT多了一个前置的计算密集的prefill阶段（也叫infill），用于处理prompt。
-    - prefill阶段和增量迭代阶段的序列不好batching（计算要完全一样才好batching）。
-    - 这个阶段消化prompt，考虑到很多LLM应用都有非常巨大、内容也差不多的prompt，prefill阶段很多计算都是重复的。
-- GPT在生成token概率分布后，还有一个后置的sampling阶段：基于概率密度从vocab中选择token。
-    - token选择完成后，当前迭代选中的token还需要再作为下次迭代的forward pass输入参数。
-    - 若seq[A~A+5]在此前的迭代中已经进行了采样，在新一轮迭代中除了需要对seq[A+6]采样之外，仍然要对seq[A~A+5]再算一遍。
-    - 已处理tokens的decoding结果可以cache下来。
-    - 很多LLM应用会要求结构化输出，输出的格式比较固定。
-- Transformer的attention算子的input张量形状和已处理tokens长度有关。
-    - 不同序列，序列长度不同，attn计算的输入形状不统一，就不好做batching。
-    - 好在attn计算做不做batching影响不大，因为attn计算并不涉及任何模型权重，也就不存在一次参数加载重用于多序列推理的加速效应。
-- LLM在GPU上跑的一个关键瓶颈是将数据（请求+参数）加载进HBM的开销。LLM serving吞吐明显会受限于batch size——即一次性能放入多少数据而不至于爆显存。
-    - 在简单的静态batching实现中，seq_len * nr_seqs + 模型大小决定了显存占用。seq_len假设定的比较高，又用不完，那也会让nr_seqs缩小很多。
-    - 显存如此紧张，自然使量化、剪枝等模型压缩技术在LLM serving中变得尤为重要，比如awq, gptq, gguf, smooth quant。
+## The Computational Shape of LLM Serving
+Compared with the previously mainstream serving of deep models, LLM serving has some unique characteristics and constraints:
+- Much of the time in a single LLM call is spent loading model parameters (HBM->SRAM).
+    - Batching lets one parameter load serve the inference of multiple seqs, significantly reducing the overall parameter-loading overhead.
+- Seq2Seq: variable-length input, variable-length output.
+    - The batching mechanism must therefore cope with both batch size and seq len being variable.
+- Autoregressive (a request takes multiple iterations to process), with a cross-iteration KV maintained for each conversation.
+    - A purely stateless approach would recompute all KVs every time, an unacceptably large overhead, so incremental decoding based on KV caching is a must.
+    - RNNs are also autoregressive, but unlike RNNs, the transformer's KV cache grows with every iteration.
+    - Non-autoregressive models are typically batched at the request granularity, which does not apply to the autoregressive case; the latter is clearly better suited to iteration-granularity batching.
+- Unlike the original transformer, GPT is decoder-only.
+    - The variable-length batching padding strategies of earlier encoder-only and encoder-decoder architectures do not apply to LLMs.
+- GPT has an additional, upfront, compute-intensive prefill stage (also called infill) for processing the prompt.
+    - The prefill stage and the incremental iteration stage are hard to batch together (batching works well only when the computation is exactly the same).
+    - This stage digests the prompt. Given that many LLM applications have very large prompts with largely identical content, much of the prefill computation is redundant.
+- After generating the token probability distribution, GPT has a trailing sampling stage: selecting a token from the vocab based on probability density.
+    - Once token selection is complete, the token chosen in the current iteration must again be fed as the input to the next iteration's forward pass.
+    - If seq[A~A+5] has already been sampled in previous iterations, the new iteration must recompute seq[A~A+5] in addition to sampling seq[A+6].
+    - The decoding results of already-processed tokens can be cached.
+    - Many LLM applications require structured output with a fairly fixed format.
+- The shape of the input tensor to the transformer's attention operator depends on the length of already-processed tokens.
+    - Different sequences have different lengths, so the input shapes of the attn computation are not uniform, making batching difficult.
+    - Fortunately, whether the attn computation is batched or not does not matter much, because attn involves no model weights, and thus there is no speedup from reusing one parameter load across multiple sequences.
+- A key bottleneck of running LLMs on GPUs is the cost of loading data (requests + parameters) into HBM. LLM serving throughput is clearly bounded by batch size — that is, how much data can be fit in at once without running out of memory.
+    - In a simple static batching implementation, seq_len * nr_seqs + model size determines memory usage. If seq_len is set high but not fully used, nr_seqs shrinks considerably as a result.
+    - With memory this tight, model compression techniques such as quantization and pruning naturally become especially important for LLM serving — e.g., awq, gptq, gguf, smooth quant.
 
 ## Continuous Batching
-上文提及LLM做batching好处虽多，困难更多，并不存在特别简单、显而易见的GPT特供batching机制。
+As mentioned above, batching LLMs brings many benefits but even more difficulties; there is no particularly simple, obvious batching mechanism tailor-made for GPT.
 
-Orca[^1]首先为GPT模型的batching提出了一个完整的解决方案，在迭代层面进行调度，并通过一个必要的selective batching机制剔除不能做batching的操作（若不做剔除，两个请求整体能做batching的几率可以忽略不计），这些操作虽然不能做batching，但对整体性能提升的影响很小。
+Orca[^1] was the first to propose a complete batching solution for GPT models: it schedules at the iteration level and, through a necessary selective batching mechanism, excludes the operations that cannot be batched (without this exclusion, the probability that two requests can be batched as a whole is negligible). Although these operations cannot be batched, their impact on overall performance improvement is small.
 
 ![orca](https://jipeng4974.github.io/img/orca.png)
 
 ## Paged Attention
-Orca方案并未考虑KV cache的HBM占用，默认预分配max_seq_len。
+The Orca approach does not account for the HBM footprint of the KV cache and preallocates max_seq_len by default.
 
-但monolithic KV cache导致HBM碎片化，为每个seq预分配巨大内存进而导致并发不足也是真实瓶颈所在，vLLM中就对此进行了优化，提出了Paged Attention[^2]，一种近似页表的分块kv cache技术：
-- 在prefill阶段允许kv cache在非连续内存中以页的方式组织起来，因此不必为max_seq_len提前分配内存，运行时再分配就好。
-- 大多数seq显然不会触及max_seq_len，paged attention因此节省了大量内存，也就允许batch size大大提高。
-- vLLM的实现中并未采纳Orca的selective batching，主要是因为它的paged attention算子是自己写的cuda，可以与非attn算子一起兼容batching。vLLM将prefill和decoding分开做batching，整体上就不需要实现selective batching这么麻烦的机制了。
-    - 但这种做法也阻止了prefill和decoding step的融合。如果某个prompt过长，prefill开销太大，确实会出现block后续所有decoding batch的情形。
+But a monolithic KV cache fragments HBM, and preallocating a huge amount of memory for each seq — which in turn limits concurrency — is where the real bottleneck lies. vLLM optimizes for this by proposing Paged Attention[^2], a paged, page-table-like KV cache technique:
+- In the prefill stage, the KV cache is allowed to be organized in pages in non-contiguous memory, so there is no need to preallocate memory for max_seq_len; it can be allocated at runtime.
+- Most seqs obviously never reach max_seq_len, so paged attention saves a great deal of memory, which in turn allows the batch size to grow substantially.
+- vLLM's implementation does not adopt Orca's selective batching, mainly because its paged attention operator is custom CUDA that can be batched together with non-attn operators. vLLM batches prefill and decoding separately, so overall it does not need a mechanism as complicated as selective batching.
+    - But this also prevents fusing prefill and decoding steps. If some prompt is too long and its prefill cost too high, it can indeed block all subsequent decoding batches.
 
 ![block_table](https://jipeng4974.github.io/img/block_table.png)
 
-详见[Paged Attention](https://jipeng4974.github.io/writeups/paged-attention)。
+See [Paged Attention](https://jipeng4974.github.io/writeups/paged-attention) for details.
 
 ## Dynamic SplitFuse
-DeepSpeed-FastGen[^3]中提出了SplitFuse，也是Continuous Batching的一个演化版本。思路是切分长prompt请求成若干个小的step，这些小的step开销较低，可填充调度缝隙，同时还保证prefill(prompt generation)和decode(token generation)的steps开销一致，就可以确保不存在大小不同的workload，取得一定的吞吐提升，但最主要的优势是能稳住tail-latency，在线服务场景下下限更高。
+DeepSpeed-FastGen[^3] proposes SplitFuse, another evolution of Continuous Batching. The idea is to split long-prompt requests into several small steps. These small steps are cheap and can fill scheduling gaps, while keeping the cost of prefill (prompt generation) and decode (token generation) steps consistent, ensuring there are no workloads of different sizes. This yields some throughput improvement, but its main advantage is stabilizing tail latency — a higher floor for online serving scenarios.
 
 ![split_fuse](https://jipeng4974.github.io/img/split_fuse.png)
 
 ## Quantization and Pruning
-由于Nvidia架构上天然偏向图形负载，显存天然就给的不足，各种量化、剪枝技术除了降低计算量外，在LLM serving方向上还起到了关键性的降低显存占用的效果。
+Because Nvidia's architecture inherently favors graphics workloads, memory is naturally underprovisioned, so beyond reducing compute, various quantization and pruning techniques also play a critical role in reducing memory footprint for LLM serving.
 
-详见[Quantization and Pruning](https://jipeng4974.github.io/writeups/quantization-and-pruning)
+See [Quantization and Pruning](https://jipeng4974.github.io/writeups/quantization-and-pruning) for details.
 
 ## Radix Attention
-SGLang采用了Radix attention[^4]技术，将common prefix的KV以radix tree的形式保留下来，使kv cache的生命周期不局限于一次请求，而是真正构成跨多次请求的LRU cache，适应prompt巨大且大多有相同前缀的实际应用场景。
+SGLang adopts Radix attention[^4], which retains the KV of common prefixes in a radix tree, so the lifetime of the KV cache is no longer confined to a single request but truly forms an LRU cache spanning multiple requests — fitting the real-world scenario where prompts are huge and mostly share the same prefix.
 
 ## Flash Attention
-Continuous batching提升了非attn操作的SRAM locality，针对kv计算，Flash Attention[^8]则令attn计算内层循环fit in SRAM。
+Continuous batching improves the SRAM locality of non-attn operations; for KV computation, Flash Attention[^8] makes the inner loop of the attn computation fit in SRAM.
 
 ![fast_att](https://jipeng4974.github.io/img/fast_attention.png)
 
-详见[Flash Attention](https://jipeng4974.github.io/writeups/flash-attention)。
+See [Flash Attention](https://jipeng4974.github.io/writeups/flash-attention) for details.
 
 ## Speculative Decoding
-Speculative decoding[^7]的思路是选用tokenizer相同，大小不同的两个模型。假设大模型的latency大体上是小模型的N倍。小模型输出N个token的时间内，大模型把这N个token拿过来append到seq上形成input，再输出1个token，总计生成N+1个token。基于greedy decoding对这N+1个token进行采样，采样结果如果和小模型的结果match，就直接用了，不match就停下，在停下的地方把原本的小模型token改成大模型采样结果对应的token。整个过程中，大模型实际上只需要一个forward pass，运气好就能一下子输出N+1个token，运气差就输出1个token。
+The idea of speculative decoding[^7] is to use two models that share the same tokenizer but differ in size. Assume the large model's latency is roughly N times that of the small model. In the time it takes the small model to output N tokens, the large model takes those N tokens, appends them to the seq to form its input, and outputs 1 token — N+1 tokens generated in total. These N+1 tokens are then sampled with greedy decoding; if the sampling result matches the small model's output, it is used directly; if not, sampling stops, and at the stopping point the original small-model token is replaced with the token from the large model's sampling result. Throughout the process, the large model actually needs only one forward pass: with luck it outputs N+1 tokens in one shot; without luck it outputs 1 token.
 
 ![speculative_decoding](https://jipeng4974.github.io/img/speculative_decoding.png)
 
 
 ## Structured Decoding
-SGLang基于一个压缩有限状态机实现了structured decoding[^4]，用于对特定结构化输出（比如支持regex的JSON模板）进行加速，一次性decode多个token。假设这个结构化输出的JSON模板中总是有一个key是"top5 candidate"，那就可以把"top5 candidate"这个multi-token词组当成一个token一轮迭代处理掉。
+SGLang implements structured decoding[^4] based on a compressed finite-state machine to accelerate specific structured outputs (such as regex-enabled JSON templates), decoding multiple tokens in one go. Suppose a key in this structured output's JSON template is always "top5 candidate"; then the multi-token phrase "top5 candidate" can be treated as a single token and processed in one iteration.
 
 ![structured_decoding](https://jipeng4974.github.io/img/structured_decoding.png)
 
@@ -95,7 +95,7 @@ SGLang基于一个压缩有限状态机实现了structured decoding[^4]，用于
 [^2]: W. Kwon, et al. Efficient Memory Management for Large Language Model Serving with PagedAttention. [[pdf]](https://arxiv.org/pdf/2309.06180)
 [^3]: C. Holmes, et al. DeepSpeed-FastGen: High-throughput Text Generation for LLMs via MII and DeepSpeed-Inference. [[pdf]](https://arxiv.org/pdf/2401.08671)
 [^4]: L. Zheng, et al. SGLang: Efficient Execution of Structured Language Model Programs. [[pdf]](https://arxiv.org/pdf/2312.07104)
-[^5]: GPU/NPU/TPU等加速器需将模型参数从off-chip memory加载到on-chip SRAM才能进行底层硬件算子的计算，对较大的模型，这种加载开销往往才是瓶颈所在。因此batching不仅仅能提升加速器计算单元的利用率，还能通过一份模型参数在多个请求中重用，更好地利用SRAM locality。
-[^6]: sampling指的基于density做token-selection的过程，decoding指的是整个decoder-only transformer的inference过程。
+[^5]: Accelerators such as GPUs/NPUs/TPUs must load model parameters from off-chip memory into on-chip SRAM before the underlying hardware operators can compute; for larger models, this loading cost is often the real bottleneck. Batching therefore not only improves the utilization of accelerator compute units, but also makes better use of SRAM locality by reusing one copy of the model parameters across multiple requests.
+[^6]: Sampling refers to the token-selection process based on density; decoding refers to the entire inference process of the decoder-only transformer.
 [^7]: Y. Leviathan, et al. Fast Inference from Transformers via Speculative Decoding. [[pdf]](https://arxiv.org/pdf/2211.17192)
 [^8]: T. Dao, et al. FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness. [[pdf]](https://arxiv.org/pdf/2205.14135)

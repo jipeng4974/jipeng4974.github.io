@@ -1,4 +1,4 @@
-# Cognitive Phase Transitions
+# 认知相变
 
 > 人类智能价值穿越周期的不变量，是认知相变能力。
 

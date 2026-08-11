@@ -1,4 +1,4 @@
-# eBPF Tracing for Memory-Stalled Applications
+# 内存瓶颈应用的eBPF Tracing
 
 > 介绍eBPF——前沿的Linux系统的可观测性技术，以及基于eBPF的off-CPU性能分析。
 

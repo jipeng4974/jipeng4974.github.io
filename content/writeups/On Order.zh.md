@@ -1,5 +1,5 @@
 +++
-title = "Order Emerges from Self-Assembly of Dissipative Structures"
+title = "论秩序"
 date = "2023-11-28"
 tags = ["physics"]
 description = "秩序，涌现自耗散结构的自组织。"

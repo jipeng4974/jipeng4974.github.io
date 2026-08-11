@@ -1,4 +1,4 @@
-# A Taxonomy of Stateful Distributed Systems
+# 有状态分布式系统分类学
 
 > 本文讨论了CAP Theorem的局限性，梳理了基于一致性、可用性这两个理想属性间的权衡的更细致精确的有状态分布式系统分类学。
 

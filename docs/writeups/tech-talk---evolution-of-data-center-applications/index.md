@@ -1,6 +1,6 @@
 # Tech Talk: Evolution of Data Center Applications
 
-> Tech Talk文稿，主旨是白盒化算法理论和基础设施，给出一个对Datacenter应用，尤其是Datacenter AI演进趋势的主观理解。
+> Script of a tech talk whose theme is white-boxing algorithm theory and infrastructure, offering a subjective take on the evolution of datacenter applications, datacenter AI in particular.
 
 ---
 
@@ -8,183 +8,183 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-数据中心应用（数据库、消息队列、检索服务、参数服务器、直播服务、广告服务等）作为互联网服务的主体，位于终端应用和硬件基础设施之间，桥接了需求端和硬件端，同时还受到成本、营收、算法、法律等因素的制约。
-近期硬件侧、算法侧均有变化或变革，因而有必要反思数据中心应用的演进方向，讨论数据中心应用的近未来发展趋势、潜在的创新点和可收割的低垂果实。
+Datacenter applications (databases, message queues, retrieval services, parameter servers, live-streaming services, ad-serving services, and so on) form the bulk of internet services. They sit between end-user applications and hardware infrastructure, bridging the demand side and the hardware side, while also being constrained by factors such as cost, revenue, algorithms, and law.
+With recent changes — even revolutions — on both the hardware and algorithm fronts, it is worth rethinking where datacenter applications are headed: their near-term trends, potential points of innovation, and the low-hanging fruit waiting to be picked.
 
-## 变革中的不变量：数据中心应用能耗
-全球数据中心能耗十年来几乎没有增长，而同期的服务需求、计算、存储、数据传输总量则经历了数量级增长。作为从业者，我们对互联网的爆发式增长应该不陌生，因此全球数据中心能耗从10到18年仅涨了6%的事实略微反直觉——从能耗的角度看，这几乎是一个停滞的产业。
+## The Invariant Amid Change: Datacenter Power Consumption
+Global datacenter energy consumption has barely grown over the past decade, while service demand, compute, storage, and total data transmission have grown by orders of magnitude over the same period. As practitioners, we are no strangers to the explosive growth of the internet, so the fact that global datacenter energy consumption rose only 6% from 2010 to 2018 is mildly counterintuitive — from an energy perspective, this is almost a stagnant industry.
 
-CMOS工艺和软硬件技术的整体进步可以解释服务器能量效率上的提升，但能耗停滞的根本原因还在于互联网企业盈利的本质是对有支付能力的10亿国外人口和10亿国内人口征服务税，个别成功的初创企业可以迅速扩张，但互联网行业作为整体，在数据中心能耗上的投入增长受制于全球平民收入增长。
+Overall progress in CMOS process technology and in hardware/software techniques can explain the improvement in server energy efficiency, but the root cause of stagnant energy consumption lies elsewhere: the essence of internet companies' profitability is levying a service tax on the one billion people abroad and one billion at home who can afford to pay. Individual successful startups can expand rapidly, but the internet industry as a whole sees its spending growth on datacenter energy bounded by the income growth of ordinary people worldwide.
 
 ![DatacenterPower](https://jipeng4974.github.io/img/DatacenterPower.jpeg)
 
-当初创企业的规模扩张到互联网规模后，机器资源的增长速率应该会从爆炸式上升陡然转入停滞，进入自然汰换阶段。
-从这个角度可以得出结论，数据中心应用在规模扩张结束后，也应从能耗粗放型转为精细集约型，通过软硬件协同充分释放硬件潜力，通过算法创新减少总计算量。
+Once a startup has scaled up to internet scale, the growth rate of its machine resources should abruptly shift from explosive expansion to stagnation, entering a phase of natural turnover and replacement.
+From this angle one can conclude that, once scale expansion is over, datacenter applications should likewise shift from an extensive, energy-hungry model to an intensive, fine-grained one: fully unleashing hardware potential through hardware-software co-design, and reducing total computation through algorithmic innovation.
 
-## 算法迭代：从演绎推理到归纳推断
-算法侧的趋势是“transformers getting even more attention”。
+## Algorithmic Iteration: From Deductive Reasoning to Inductive Inference
+The trend on the algorithm side is "transformers getting even more attention."
 
-计算机理论源于符号逻辑，1930年代图灵、哥德尔、邱奇各自独立提出图灵机、广义递归函数、lambda演算，以及三者相应的可计算性。图灵机的停机问题和哥德尔不完备定律驳斥了1920年代希尔伯特计划的可行性，证明了形式化系统是不完备的，通过有限个公理和规则永远无法推导出全部的真理。
+Computer theory originated in symbolic logic. In the 1930s, Turing, Gödel, and Church independently proposed the Turing machine, general recursive functions, and lambda calculus, along with their respective notions of computability. The halting problem for Turing machines and Gödel's incompleteness theorems refuted the feasibility of the Hilbert program of the 1920s, proving that formal systems are incomplete: no finite set of axioms and rules can ever derive all truths.
 
-正如人的无知可以分为问题（可计算）和神秘（不可计算），人的理性也可以分为演绎推理和归纳推断，前者求解问题，后者分析神秘。
+Just as human ignorance can be divided into problems (computable) and mysteries (uncomputable), human rationality can be divided into deductive reasoning and inductive inference — the former solves problems, the latter analyzes mysteries.
 
-计算机程序基于图灵机模型，天然就是适合进行演绎推理的形式化系统。至今我们依然基于规则系统(人工编程进行条件控制）、信号处理（比如音频特征提取）、状态机等形式化方法实现大多数数据中心应用：比如各类数据库、检索系统、参数服务器、游戏AI。
+Computer programs are built on the Turing machine model and are therefore inherently formal systems well suited to deductive reasoning. To this day, we still implement most datacenter applications with formal methods such as rule systems (hand-written conditional control), signal processing (e.g., audio feature extraction), and state machines — think of the various databases, retrieval systems, parameter servers, and game AI.
 
-AI时代来临之后，通过更多的权重（作为公理）和由大量算子（作为规则）组成深度神经网络（从实现角度来说，仍然是形式化系统）去模拟或者说近似“归纳推断”。（纯粹贝叶斯主义的形式化表达是所罗门诺夫归纳推断法，这个方法本身是永不停机，越算越停不下来的，所以只能近似，不能用实现）这种近似无论多么粗糙、低效，归根到底还是提升了计算机语言和集成电路的表达能力，完成了推理到推断的跳跃。
+With the arrival of the AI era, we use more weights (as axioms) and deep neural networks composed of large numbers of operators (as rules) — still formal systems from an implementation standpoint — to simulate, or rather approximate, "inductive inference." (The purely Bayesian formalization is Solomonoff induction, a method that by itself never halts — the longer you run it, the less it wants to stop — so it can only be approximated, never implemented.) However crude and inefficient this approximation may be, it ultimately enhances the expressive power of computer languages and integrated circuits, completing the leap from reasoning to inference.
 
-数据中心应用多了归纳推断能力之后，就产生了对复杂现实（现实信号，如图片、语料库、音频，整体上具有高维度的同时，局部往往还存在具有高数据精致度的结构，这里精致度可以用香农信息熵或柯氏复杂性形式化定义）理解能力(pin down reality)，因此涌现出了一些基于知识的AI系统(knowledge-based AI)，比如推荐系统、广告投送、翻唱识别、聊天机器人。共同点是将现实映射到表征低维子空间上，这个子空间里的向量或者说embedding可以从某个角度有效刻画现实。Transformer做得更进一步，等价于将现实映射到多个相干性低的低维子空间上（见https://arxiv.org/abs/2306.01129），从而从多角度多层次理解现实，通过表征空间编码率与各子空间编码率之和的差值度量特征的紧凑性和判别力。
+Once datacenter applications gain inductive inference capability, they acquire the ability to understand complex reality (pin down reality) — real-world signals such as images, corpora, and audio are high-dimensional as a whole, yet locally often contain structures of high data refinement, where refinement can be formally defined via Shannon entropy or Kolmogorov complexity. Hence a crop of knowledge-based AI systems has emerged, such as recommender systems, ad targeting, cover-song recognition, and chatbots. What they share is mapping reality onto low-dimensional representation subspaces, where the vectors — or embeddings — can effectively characterize reality from some angle. Transformers go a step further: they amount to mapping reality onto multiple low-dimensional subspaces with low mutual coherence (see https://arxiv.org/abs/2306.01129), thereby understanding reality from multiple angles and levels, and measuring the compactness and discriminative power of features by the difference between the coding rate of the representation space and the sum of the coding rates of the subspaces.
 
-在游戏和博弈领域，强化学习也取得了规则系统无法企及的成就，在星际2、Dota2（固定阵容5v5，solo）、围棋等领域击败职业选手。
+In games and game theory domains, reinforcement learning has also achieved what rule systems cannot, defeating professional players in StarCraft II, Dota 2 (fixed-lineup 5v5, and solo), and Go.
 
-此外，归纳推断相比演绎推理还有一个重要特质，那就是更符合人类大脑（或推广到任意地球生物大脑，蜜蜂的3d寻路避障能力，蚊子的血管定位能力都是基于天然的贝叶斯归纳推断。也只有受过良好训练的人类才能进行缓慢的演绎推理）的思维习惯，因此人类社会的传统，人类语言的不确定性、人类的偏好都难以用形式化方法描述，却可以被概率语言描述，被归纳推断方法预测。
+Moreover, inductive inference has one more important trait compared to deductive reasoning: it better matches the thinking habits of the human brain (or, generalizing, the brain of any Earth creature — a bee's 3D path-finding and obstacle avoidance, a mosquito's blood-vessel localization, are all based on natural Bayesian inductive inference; only well-trained humans can perform slow deductive reasoning). As a result, the traditions of human society, the uncertainty of human language, and human preferences are hard to describe with formal methods, yet can be described in probabilistic language and predicted by inductive inference.
 
-算法进步的下一个课题则是研究同时具备演绎推理和归纳推断能力的模型。现有的Transformer的确展现出简单多步算术的拟合能力，但拟合出来的是一个步数相关的超复杂非线性系统，而不是简单的算术规则，所以往往正确率到八十左右就再也上不去了。对于形式化系统来说，推理步数不影响公理和规则总数，只稍稍影响计算量。但对于LLM这种归纳推断模型来说，一旦推理步数变多，计算变得更复杂，LLM的符号逻辑能力就会迅速下降，在训练数据中从未出现过相同执行路径的动态规划问题里面可以直接降到0。理论上来说，无限精度的Transformer是图灵完备的（见https://arxiv.org/abs/1901.03429），而只要不是无限精度，就不是图灵完备，实际应用中模型权重和计算的精度即使以常规计算机应用标准看也是非常低的，而模型架构又没有针对多步逻辑推理进行设计，再加上深度学习本身就是在拟合一个近似函数，三重因素叠加导致现有LLM的演绎推理能力不尽如人意。
+The next topic in algorithmic progress is models that possess both deductive reasoning and inductive inference. Existing transformers do show the ability to fit simple multi-step arithmetic, but what they fit is a step-count-dependent, hyper-complex nonlinear system rather than the simple arithmetic rule, so accuracy typically plateaus around eighty percent and never goes higher. For a formal system, the number of reasoning steps does not change the total number of axioms and rules; it only slightly increases the amount of computation. But for an inductive-inference model like an LLM, once the number of reasoning steps grows and the computation becomes more complex, the LLM's symbolic-logic ability degrades rapidly — on dynamic programming problems whose exact execution path never appeared in the training data, it can drop straight to zero. Theoretically, an infinite-precision transformer is Turing-complete (see https://arxiv.org/abs/1901.03429), but anything short of infinite precision is not. In practice, the precision of model weights and computation is very low even by ordinary computing standards, the model architecture is not designed for multi-step logical reasoning, and deep learning itself is fitting an approximate function — these three factors combined leave current LLMs' deductive reasoning ability unsatisfactory.
 
-从算法迭代角度讲，数据中心应用的发展趋势是在保证“可计算性”(字面意思，非形式化定义)的前提下，追求“人性化”(align to humanity)、“完备化”（pin down reality）这两个演绎推理手段无法达成的理想属性。智能创作、个性化推荐、聪明的Agent（助手、游戏NPC、机器人、自动驾驶），复杂系统预测（天气预报、交易系统），大模型训练（模型并行、高性能网络、C2C互连、光学I/O、异构计算）都是有前景的方向。
+From the perspective of algorithmic iteration, the development trend for datacenter applications is: while guaranteeing "computability" (in the literal sense, not the formal definition), pursue the two ideal properties that deductive methods cannot achieve — "humanization" (align to humanity) and "completeness" (pin down reality). Promising directions include intelligent content creation, personalized recommendation, smart agents (assistants, game NPCs, robots, autonomous driving), complex-system prediction (weather forecasting, trading systems), and large-model training (model parallelism, high-performance networks, C2C interconnect, optical I/O, heterogeneous computing).
 
-而那些已经能用规则系统高效解决的问题则不必强行应用归纳推断模型，那样只会增加成本和错误率，比如音乐指纹识别、关系型数据库、图片旋转变形、无损压缩。甚至某些看似“神秘”的领域，如OOD text classification，基于表征学习白盒化研究成果和信息论，也能给出直接的数学解，比如近期一个研究（“Low-Resource” Text Classification: A Parameter-Free Classification Method with Compressors）就用14行代码超过了百亿参数的bert，（后来被发现实验代码有误，实际上效果没那么好）这个论文里提出用gzip等无损压缩工具去近似文本数据的柯氏复杂性，用信息距离（原理类似马毅提出的rate reduction）做KNN，效果非常好，在音频领域也可以做类似的尝试。
+Problems that rule systems already solve efficiently should not be force-fitted with inductive-inference models — that only adds cost and error rate. Examples: music fingerprinting, relational databases, image rotation and warping, lossless compression. Even in some seemingly "mysterious" areas, such as OOD text classification, white-box representation-learning research plus information theory can yield direct mathematical solutions. A recent study ("Low-Resource" Text Classification: A Parameter-Free Classification Method with Compressors) beat a 10-billion-parameter BERT with 14 lines of code (though its experimental code was later found to be buggy, so the actual results were not that good). The paper proposes using lossless compressors like gzip to approximate the Kolmogorov complexity of text data, and running KNN over information distance (similar in principle to the rate reduction proposed by Yi Ma) — very effective, and similar attempts could be made in the audio domain.
 
-## 数据中心硬件基础设施
-先简单介绍一下常见的数据中心硬件基础设施：
-- 比较老的是Cascade Lake 14nm的24核per die的机器，一个芯片24核，两个就是48个物理核，也就是我们平时说的96核机器。也有其他套餐，最多是每个die上28核，总共112个逻辑核。
-- 比较新的Ice Lake是10nm工艺一般是32核的，对应128个逻辑核，最贵的套餐可以到40核。仍然是基于Monolithic die，巨大的晶粒上用mesh总线把40个核放到一起。
-- 最新的7nm工艺Sapphire Rapids，以及对标它的AMD Genoa今年已经量产。
-- 关于网卡，现在用的比较多的是Mellanox 25G  CX4/CX5卡，也有相当多的100G dual-port CX6卡，都是支持RDMA的，不用RDMA也能提供相当好的高速以太网性能。如果是做虚拟化的，比如AWS，阿里云，还可以把这些网卡的smartNiC能力利用起来，offload虚拟化开销。
+## Datacenter Hardware Infrastructure
+First, a brief introduction to common datacenter hardware infrastructure:
+- The older machines are Cascade Lake, 14nm, 24 cores per die — 24 cores per chip, 48 physical cores with two chips, i.e., what we usually call a 96-core machine. Other configurations exist too, up to 28 cores per die, 112 logical cores in total.
+- The newer Ice Lake, on a 10nm process, usually has 32 cores, corresponding to 128 logical cores; the most expensive configuration goes up to 40 cores. It is still based on a monolithic die, with a mesh bus putting 40 cores together on one huge die.
+- The latest 7nm Sapphire Rapids, and AMD Genoa which targets it, have both entered mass production this year.
+- As for NICs, the commonly used ones are Mellanox 25G CX4/CX5 cards, and there are also quite a few 100G dual-port CX6 cards, all RDMA-capable; even without RDMA they deliver quite good high-speed Ethernet performance. For virtualization use cases, such as AWS or Alibaba Cloud, the SmartNIC capabilities of these cards can also be leveraged to offload virtualization overhead.
 
-相对之前的Lakes，Sapphire Rapids变化非常大，此前的monolithic die路线确实走到了极限，Sapphire Rapids也进入了multi-die时代：芯片内部分为4个die，这也可以视作向chiplet方向演化。
+Compared to the previous Lakes, Sapphire Rapids changes a great deal. The monolithic-die route had indeed reached its limit, and Sapphire Rapids has entered the multi-die era: the chip is divided into 4 dies, which can also be seen as an evolution toward chiplets.
 
-Sapphire Rapids最多支持8个socket，每个芯片可以支持60核。IO技术上支持CXL 1.1、PCIe 5.0、UPI 2.0，HBM2e(optional)。
+Sapphire Rapids supports up to 8 sockets, with up to 60 cores per chip. For IO technology it supports CXL 1.1, PCIe 5.0, UPI 2.0, and HBM2e (optional).
 
 ![Xeon](https://jipeng4974.github.io/img/4th_xeon.jpeg)
 
-AMD的第四代EPYC的主力型号Genoa今年Q1也开始量产，基本上和Sapphire Rapids对标，采用5nm工艺。虽然说AVX512被很多人诟病，实用表现非常一般，但Zen4也支持了，毕竟XeongenEPYC目标客户就是音视频处理和AI workload越来越多的数据中心应用。Genoa是每个die/chiplet 8核的，12个CPU cluster die中间围绕一个IO die的设计，相当于一个芯片96核，是典型的chiplet范式设计。
+AMD's fourth-generation EPYC flagship, Genoa, also entered mass production in Q1 this year, basically going head-to-head with Sapphire Rapids on a 5nm process. Although AVX512 is criticized by many and its practical performance is mediocre, Zen4 supports it anyway — after all, the target customers for Xeon and EPYC are datacenter applications with growing audio/video processing and AI workloads. Genoa has 8 cores per die/chiplet, with 12 CPU cluster dies arranged around a central IO die — 96 cores per chip, a textbook chiplet-style design.
 
-## 芯片设计的迭代：Chipletization
-近期芯片设计领域一个显著变革是Chiplets+SiP(System in Package)范式取代die size较大的SoC+PCB合封。
-Chiplets同时受到业界和学术界的关注，被IBM research称为"what’s next in computing"，后续章节中对计算、IO、内存等技术的讨论也都涉及chiplets和co-packaging，因此我们首先讨论芯片层次的迭代。
+## Iteration in Chip Design: Chipletization
+A notable recent change in chip design is the Chiplets + SiP (System in Package) paradigm replacing large-die SoC + PCB co-packaging.
+Chiplets have drawn attention from both industry and academia, called "what's next in computing" by IBM Research. The discussions of compute, IO, and memory technologies in later sections all involve chiplets and co-packaging, so we first discuss iteration at the chip level.
 
-所谓chiplet partitioning就是将电路切分成模块化的子系统，每个子系统都是一个独立晶粒（die），即chiplet，多个chiplet用2.5D/3D技术封装成一个芯片(package)。
+Chiplet partitioning means splitting a circuit into modular subsystems, each an independent die — a chiplet — and packaging multiple chiplets into a single chip (package) using 2.5D/3D technology.
 
 ![Chiplet](https://jipeng4974.github.io/img/chiplet.png)
 
-Chiplet-reuse范式相比传统的IP-reuse（IP在芯片语境下指的是具有独立功能和成熟设计的电路模块）的优势如下：
-1. 先进CMOS制程（7nm以下）由于技术原因不太可能在大晶粒上获得高yield，die size越小成本越低。
-2. 先进CMOS制程下，不太可能同时缩小电源管理、快速IO SerDes等模拟IP，先进CMOS一般只用于处理器和加速器。
-3. 允许模块化设计，让设计者可以专注于单个模块的极致优化，并选择最合适的技术：比如CPU和GPU用先进制程，模拟模块用成熟制程，高带宽内存HBM用DRAM，AI加速器可以用非易失性内存。
-4. 允许芯片/package层次的异构集成：让通用CPU、优化后的GPU、嵌入式的FPGA、专用的机器学习电路、光学IO模组、高带宽内存等模块以合适的方式，用先进的使用硅通孔（TSV）、微凸块（micro-bumps）、甚至die-to-wafer混合键合技术的3D封装方案，像乐高积木一样搭出完整的系统。
+The advantages of the chiplet-reuse paradigm over traditional IP-reuse (in the chip context, IP refers to a circuit module with independent functionality and a mature design) are as follows:
+1. Advanced CMOS processes (below 7nm) are unlikely to achieve high yield on large dies for technical reasons; the smaller the die size, the lower the cost.
+2. On advanced CMOS processes, analog IP such as power management and high-speed IO SerDes cannot be scaled down at the same rate, so advanced CMOS is generally used only for processors and accelerators.
+3. It enables modular design, letting designers focus on the extreme optimization of a single module and choose the most suitable technology: e.g., advanced processes for CPU and GPU, mature processes for analog modules, DRAM for high-bandwidth memory (HBM), and non-volatile memory for AI accelerators.
+4. It enables heterogeneous integration at the chip/package level: general-purpose CPUs, optimized GPUs, embedded FPGAs, dedicated machine-learning circuits, optical IO modules, high-bandwidth memory, and other modules can be assembled like Lego bricks into a complete system, using advanced 3D packaging schemes based on through-silicon vias (TSV), micro-bumps, or even die-to-wafer hybrid bonding.
 
-过去我们设想的各类DSA、AI芯片、FPGA百花齐放的异构计算时代并没有如期到来，而是被NV的GPU软硬件结合且计算互连一体化的方案碾轧了，几乎只剩下TPU在继续向v5迭代。
+The era of heterogeneous computing we once envisioned — with all kinds of DSAs, AI chips, and FPGAs flourishing — did not arrive as expected; it was crushed by NVIDIA's GPU solution combining hardware and software with integrated compute and interconnect, leaving almost only TPU still iterating toward v5.
 
-但未来的服务器芯片本身就存在多样化异构共封装集成的可能性和倾向性。CPO(co-packaged optics)、HBM(high-bandwidth memory)这些神奇物种因Chipletization的契机而得以进驻其中。
+But future server chips themselves have both the possibility and the tendency toward diverse, heterogeneous co-packaged integration. Magical creatures like CPO (co-packaged optics) and HBM (high-bandwidth memory) get to move in thanks to chipletization.
 
-更多的功能也就意味着更高的可编程性。有些功能甚至可以带来革命性变革，比如光学IO带来的超高通信带宽，HBM带来的超高访存带宽，高性能offpackge互连技术（Nvlink-C2C）、多个Chiplet之间的Mesh互连(NvSwitch)，现在被Nvidia用来搭建H100，被谷歌用来搭建TPUv4，未来则可能颠覆host-centric的数据中心应用设计范式，迎来硬件资源解聚（disaggregation）的新计算体系：适应资源解聚的操作系统(LegoOS就是基于早期IB network的一个尝试)、系统语言ABI、新的高级语言、新的网络IO、存储和计算形态都有可能从中孵化而生。
+More functionality also means higher programmability. Some functionality can even bring revolutionary change: the ultra-high communication bandwidth of optical IO, the ultra-high memory bandwidth of HBM, high-performance off-package interconnect (NVLink-C2C), and mesh interconnect among multiple chiplets (NVSwitch) — now used by NVIDIA to build the H100 and by Google to build TPU v4 — may in the future overturn the host-centric design paradigm of datacenter applications and usher in a new computing architecture of hardware resource disaggregation: operating systems adapted to resource disaggregation (LegoOS was one attempt based on early IB networks), system-language ABIs, new high-level languages, and new forms of network IO, storage, and computation may all hatch from it.
 
-## 计算和内存层次的迭代：可扩展的众核NUMA架构 
-在商用服务器领域，Chiplet范式中的一部分设想已经实现了，比如AMD很早就开始应用chiplet，也部分解决了chiplet间IO问题，实现了有可扩展性的众核NUMA架构。SPR之前的Xeon物理机也是NUMA，虽然只有2个NUMA节点（目前Intel的NUMA node太大了，所以不太好称之为Chiplet）。
+## Iteration in Compute and Memory Hierarchy: Scalable Many-Core NUMA Architectures 
+In the commercial server space, part of the chiplet paradigm's vision has already been realized. AMD, for example, adopted chiplets very early and partially solved the inter-chiplet IO problem, achieving a scalable many-core NUMA architecture. Pre-SPR Xeon physical machines are also NUMA, though with only 2 NUMA nodes (Intel's NUMA nodes are currently too large, so they can't quite be called chiplets).
 
-μArch对计算/访存密集型数据中心应用的性能工程有直接影响。下图是一个6chiplet封装的96核概念机。显然当我们把集成电路的黑盒拆开，就可以看到更细粒度的组件以及它们组成的网络（Network-on-Chip）结构。这个概念机集成了各种先进设计，不仅有many-core，还支持完整的cache coherency。相比过去的多核架构，众核架构的内存层次也相应变得更深，cache miss的代价变得更高。以至于Rust的标准库用B树去实现map（而C++中众所周知是红黑树），这就是处理器和内存频率差距逐渐拉大的结果，（夸张地说）现在的内存已经慢得像是当年的磁盘了。
+The μArch has a direct impact on the performance engineering of compute- and memory-intensive datacenter applications. The figure below shows a 96-core concept machine with 6 chiplets in one package. Clearly, once we open the black box of an integrated circuit, we see finer-grained components and the network they form (Network-on-Chip). This concept machine integrates various advanced designs: not only many cores, but also full cache coherency. Compared to past multi-core architectures, the memory hierarchy of many-core architectures has grown correspondingly deeper, and the cost of a cache miss has become higher — to the point that Rust's standard library implements maps with B-trees (whereas in C++ they are famously red-black trees). This is the result of the widening gap between processor and memory frequencies: (to exaggerate a bit) memory today is as slow as disks were back then.
 
 ![IntAct](https://jipeng4974.github.io/img/IntAct.png)
 
-针对NUMA架构，系统层的Linux内核和KVM的NUMA-aware scheduler，应用层的网络框架Seastar、数据库ScyllaDB、内存数据库DragonFly等都已经注意到感知硬件拓扑能极大提升整体性能（ScyllaDB、DragonFly分别数倍领先于对标的Cassandra、Redis），提出了share-nothing高性能架构：避免锁和不必要的共享内存、避免不必要的远端内存访问、避免不必要的跨晶粒通信，设计缓存友好的数据结构，更好地利用晶粒内本地的L1 cache——考虑到目前我们用的Cascade Lake机器并非完全cache coherent，未来即使做到完全cache coherent，shared cache的coherency机制也几乎一定有开销，总之在复杂拓扑深内存层次时代，需警惕cache miss。
+For NUMA architectures, the Linux kernel and KVM at the system layer have NUMA-aware schedulers; at the application layer, the networking framework Seastar, the database ScyllaDB, the in-memory database DragonFly, and others have all noticed that being aware of hardware topology greatly improves overall performance (ScyllaDB and DragonFly outperform their counterparts Cassandra and Redis by several times respectively), and have proposed share-nothing high-performance architectures: avoid locks and unnecessary shared memory, avoid unnecessary remote memory access, avoid unnecessary cross-die communication, design cache-friendly data structures, and make better use of the L1 cache local to each die — considering that the Cascade Lake machines we currently use are not fully cache coherent, and that even when full cache coherence is achieved in the future, the coherency mechanism for shared caches will almost certainly carry overhead. In short, in the era of complex topologies and deep memory hierarchies, beware of cache misses.
 
 ![NUMA](https://jipeng4974.github.io/img/NUMA.png)
 
-## 重新遇到I/O瓶颈：先进互连再次成为HPC核心
-数据中心应用的IO占了全球IO traffic的76%，和计算一样，IO也是耗电的，而且和计算一样，数据中心IO耗电也十年没有变过，被硬件进步offset掉了。和计算一样，互连是分层级的，近期die-to-die(on-package)链路层面有UCIe标准的发布，off-package层面有基于PCIe6.0的CXL3.0，900GB/s的NvLinkC2C，inter-node层面有Infiniband NDR。这些是基于电的互连，相比而言光学互连更有前景，但也更困难，而且还在早期研发阶段。
+## Hitting the I/O Bottleneck Again: Advanced Interconnect Once Again Central to HPC
+Datacenter applications account for 76% of global IO traffic. Like computation, IO consumes power — and like computation, datacenter IO power consumption has also stayed flat for a decade, offset by hardware progress. Also like computation, interconnect is layered. Recently at the die-to-die (on-package) link layer there is the UCIe standard; at the off-package layer there is CXL 3.0 based on PCIe 6.0 and the 900GB/s NVLink-C2C; at the inter-node layer there is InfiniBand NDR. These are electrical interconnects; optical interconnects are more promising by comparison, but also harder, and still in early R&D.
 
-过去的大数据和前大模型AI时代对IO的需求较低，标准以太网足以支撑大部分数据中心应用，包括parameter servers。大模型训练产生了新的计算、IO形态，内存放不下模型，不得不做模型并行后，IO就重新成了瓶颈：H100的8个GPU每个都需要7.2Tbps的off-package带宽，相比之下，连ToR交换机都只需要10+Tbps。AI专用GPU在大模型训练场景下的带宽需求已经非常接近交换机（交换机和GPU一样，都是巨型ASIC，也都是co-packaged optics适用的领域）。在交换机领域，谷歌已经研发出了实用且收益显著的纯光学链路交换机。在GPU互连上，NV也提出过光学互连的GPU的概念系统，甚至还设计了相应的带外置激光源的GPU机架和顺便解决冷却问题的稀疏布线。
+The big-data era and the pre-LLM AI era had low IO demands; standard Ethernet sufficed for most datacenter applications, including parameter servers. Large-model training created new forms of computation and IO. Once models no longer fit in memory and model parallelism became unavoidable, IO became the bottleneck again: each of the H100's 8 GPUs needs 7.2Tbps of off-package bandwidth — for comparison, even a ToR switch only needs 10+Tbps. The bandwidth demand of AI-specific GPUs in large-model training scenarios is already very close to that of switches (switches, like GPUs, are giant ASICs and likewise a domain where co-packaged optics applies). In the switch domain, Google has already developed a practical, clearly beneficial all-optical link switch. For GPU interconnect, NVIDIA has also proposed a concept system of optically interconnected GPUs, even designing corresponding GPU racks with external laser sources and sparse cabling that happens to solve the cooling problem.
 
 ![optics](https://jipeng4974.github.io/img/optics.png)
 
-先进IO技术与HPC(高性能计算)的发展密可不分，尽管HPC或者说超算在大众的想象中一直和超强悍的处理器、加速器直接相关，但实际上恰恰相反，传统的HPC workload（建模、模拟类的科学计算）的计算用的往往是普通的商用节点，反而是互连必须用高性能的HPC interconnect技术。传统超算的异构性体现在IO技术，而非FPGA、专用ASIC的应用。
+Advanced IO technology is inseparable from the development of HPC (high-performance computing). Although HPC — or supercomputing — is always associated in the public imagination with extremely powerful processors and accelerators, the reality is actually the opposite: traditional HPC workloads (modeling- and simulation-type scientific computing) typically run on ordinary commercial nodes, while the interconnect must use high-performance HPC interconnect technology. The heterogeneity of traditional supercomputers lies in IO technology, not in the application of FPGAs or dedicated ASICs.
 
-后来到了大数据分析和AI时代，标准以太网足以支持适应当时模型参数量的AI训练负载。主流的互联网大数据应用可以完全基于商用IO技术和商用计算节点实现。而少数AI DC的异构性主要体现在加速器技术（GPU、TPU、专用AI芯片）而非IO。
+Later, in the era of big-data analytics and AI, standard Ethernet sufficed for AI training workloads matched to the model sizes of the time. Mainstream internet big-data applications could be implemented entirely on commercial IO technology and commercial compute nodes, while the heterogeneity of the few AI datacenters was mainly reflected in accelerator technology (GPUs, TPUs, dedicated AI chips) rather than IO.
 
-如今出现了大模型训练主导的异构负载，大模型参数量激增导致内存不足，不得不进行模型并行后，die-to-die带宽、off-package带宽、Inter-node带宽重新成为瓶颈。先进(异构)互连技术重新成为HPC的核心话题。
+Now heterogeneous workloads dominated by large-model training have emerged. Exploding model sizes outgrow memory, model parallelism becomes unavoidable, and die-to-die bandwidth, off-package bandwidth, and inter-node bandwidth once again become bottlenecks. Advanced (heterogeneous) interconnect technology is once again a core HPC topic.
 
-Datacenter AI重回异构IO+异构计算架构，本质是超算化，因此刚好也能适应建模+模拟类的传统HPC负载，其实给了互联网行业一个新的机会，那就是卷赢大模型训练的同时，还可以顺便进军超算行业，为高校、科研机构提供廉价、可靠、易用、随时oncall的科学计算能力，舆论上一定程度上扭转互联网公司对社会缺乏贡献的负面形象，为继续征收互联网服务税寻求合法性支撑。
+Datacenter AI's return to a heterogeneous IO + heterogeneous compute architecture is essentially supercomputer-ization, so it happens to also suit traditional modeling-and-simulation HPC workloads. This actually gives the internet industry a new opportunity: while out-competing each other in large-model training, companies can conveniently enter the supercomputing industry, providing cheap, reliable, easy-to-use, always-on-call scientific computing capability to universities and research institutions — to some extent reversing, in public opinion, the negative image of internet companies contributing little to society, and seeking legitimacy for continuing to levy the internet service tax.
 
-## I/O技术的迭代：光学IO愈发接近计算端点
-先进铜缆互连是现在，共封装光学互连则是未来。
+## Iteration in I/O Technology: Optical I/O Moves Ever Closer to Compute Endpoints
+Advanced copper interconnect is the present; co-packaged optical interconnect is the future.
 
-前文提到的Co-packaging是先进互连的关键技术，一方面将多个晶粒共封装本身就可以缩短IO链路，降低IO能耗，另一方面允许集成共封装光学模组技术CPO(co-packaged optics)。
+The co-packaging mentioned above is the key technology for advanced interconnect: on one hand, co-packaging multiple dies itself shortens IO links and reduces IO energy consumption; on the other hand, it enables the integration of co-packaged optics (CPO) modules.
 
-数据中心IO的一个演化趋势是"bring fiber closer to endpoints"。光链路相比电链路，一个明显优势是传输距离更远（受制于频率相关的衰减）。另一个优势是随着带宽增加，电信号不断变短，噪音不断变大，IB network已经逼近铜缆极限，继续发展下去只能从铜缆走向光纤。此外，高频下电互连和连接器既要接收又要发射，会经历显著的串扰，这也限制了电互连的封装密度。光纤作为信号传输介质几乎是理想的，唯一低效的地方就是两端的电光转换部分。
+One evolutionary trend of datacenter IO is "bring fiber closer to endpoints." Compared to electrical links, an obvious advantage of optical links is longer transmission distance (limited by frequency-dependent attenuation). Another advantage is that as bandwidth increases, electrical signals keep getting shorter and noise keeps growing; IB networks are already approaching the limits of copper, and further development can only go from copper to fiber. Moreover, at high frequencies, electrical interconnects and connectors both receive and transmit, experiencing significant crosstalk, which also limits the packaging density of electrical interconnect. As a signal transmission medium, fiber is nearly ideal; the only inefficiency lies in the electro-optical conversion at the two ends.
 
-现在in-racks连接主流方案是铜缆，inter-rack交换则基于以太网链路。超大数据中心里，缆线长就达到几公里，因此越来越多使用光缆——甚至短距离链路现在也越来越多地用光缆。数据中心里，fiber越来越接近endpoints，越来越接近cpus、gpus，最新的趋势是直接将光学组件集成到硅片上。CPO把光电链路结合在一起，无需intervening receive and re-transmit的过程，把光电转换(optoelectonic conversion)步骤省略了。第一代CPO是pluggable optics，第二代是On-Board Optics/Near Package Optics，第三代是2.5D CPO，第四代是3D CPO，第五代则是Integrated Laser。
+Today the mainstream in-rack connection scheme is copper cable, while inter-rack switching is based on Ethernet links. In hyperscale datacenters, cable runs reach several kilometers, so optical cable is used more and more — even short links increasingly use fiber now. In datacenters, fiber is getting closer and closer to the endpoints, closer and closer to CPUs and GPUs; the latest trend is integrating optical components directly onto the silicon die. CPO combines electrical and optical links, eliminating the intervening receive-and-retransmit process and skipping the optoelectronic conversion step. The first generation of CPO is pluggable optics, the second is On-Board Optics / Near-Package Optics, the third is 2.5D CPO, the fourth is 3D CPO, and the fifth is Integrated Laser.
 
-Google的TPUv4超算最大的创新就是4k节点上可重配置的纯光学链路的光学交换机(OCS)，节省了光电转换的能耗， Infiniband将铜缆高性能互连发展到极致，后续的roadmap也是从铜缆到光电共封装。Nvidia虽然一直在推电链路方案（Nvlink），但也和Ayar Labs签署了研发合作关系，开始支持带外激光器和硅光子互连技术的研究，毕竟NvLink本质还是NUMA，可以扩展到8GPU，16GPU，但不可能把数据中心规模的一万个GPU连起来。HP也于去年与Ayar Labs合作，试图将硅光子学引入它们的先进HPC IO产品Slignshot互连。Intel也在研究激光器嵌入芯片内部的集成方案。
+The biggest innovation of Google's TPU v4 supercomputer is its all-optical link optical circuit switch (OCS), reconfigurable across 4k nodes, which saves the energy of optoelectronic conversion. InfiniBand pushed high-performance copper interconnect to its extreme, and its subsequent roadmap also goes from copper to optoelectronic co-packaging. Although NVIDIA has been pushing electrical-link solutions (NVLink), it has also signed an R&D partnership with Ayar Labs and begun supporting research into external laser sources and silicon-photonics interconnect — after all, NVLink is essentially still NUMA: it can scale to 8 GPUs, 16 GPUs, but there's no way to connect the datacenter-scale ten thousand GPUs. HP also partnered with Ayar Labs last year, trying to bring silicon photonics into its advanced HPC IO product, the Slingshot interconnect. Intel is likewise researching integration schemes that embed lasers inside the chip.
 
-下图列出了interposer、PCB、CPO、电缆、有源光缆的耗电、成本、密度、传输距离指标。CPO的优势是显而易见的。
+The figure below lists the power consumption, cost, density, and transmission distance of interposer, PCB, CPO, copper cable, and active optical cable. CPO's advantages are obvious.
 
 ![CPO](https://jipeng4974.github.io/img/CPO.png)
 
-在当前的技术水平下，CPO仅被视为一个电光(E/O)桥的角色，以解决SiP的互连带宽密度瓶颈问题。对分布式训练等应用场景来说，电光桥，或者说bring fiber closer to endpoints已经可以大幅降低能耗，提升性能了。但CPO的潜力远不限于此，如果给CPO chiplet稍微加一些功能，就可以像协处理器、smartNiC那样offload一些CPU work，比如做一些简单的数据预处理、后处理，又如CPO无需经过CPU直接就能访问HBM，从而提供DMA能力，这对解聚架构非常有帮助，无需物理上做pooling，又比铜缆IB网络更快。
+At the current state of the art, CPO is viewed merely as an electrical-optical (E/O) bridge to solve the interconnect bandwidth-density bottleneck of SiP. For application scenarios like distributed training, an E/O bridge — or rather, bringing fiber closer to endpoints — can already greatly reduce energy consumption and improve performance. But CPO's potential goes far beyond this. If you add just a bit of functionality to a CPO chiplet, it can offload some CPU work like a coprocessor or SmartNIC — for example, simple data pre-processing and post-processing; or, CPO can access HBM directly without going through the CPU, thereby providing DMA capability. This is very helpful for disaggregated architectures: no physical pooling is required, and it is faster than copper IB networks.
 
-这意味着光学IO不仅可以解决大模型训练带来的带宽问题，还给数据中心应用从host-centric向解聚（disaggregated）架构转型提供了可能。
+This means optical IO can not only solve the bandwidth problem brought by large-model training, but also makes it possible for datacenter applications to transition from a host-centric to a disaggregated architecture.
 
-何谓解聚范式？与传统的服务器中心范式相反，解聚范式是指将作为整体的服务器掰开，拆成CPU、DRAM、磁盘、加速器等独立的硬件资源进行资源抽象和管理的数据中心应用架构设计范式。硬件解聚并非新概念。18年的USENIX OSDI最佳论文LegoOS，一句"We believe that datacenters should break monolithic servers"，充满了信念感。当年的Infiniband还没有进化到NDR版本，光学I/O也还远离数据中心内部端点，但已经足以支撑这样的宏大叙事。
+What is the disaggregation paradigm? Opposite to the traditional server-centric paradigm, disaggregation is a datacenter application architecture design paradigm that breaks the monolithic server apart into independent hardware resources — CPU, DRAM, disk, accelerators — for resource abstraction and management. Hardware disaggregation is not a new concept. The 2018 USENIX OSDI best paper, LegoOS, opened with "We believe that datacenters should break monolithic servers" — a line full of conviction. Back then, InfiniBand had not yet evolved to the NDR generation, and optical I/O was still far from datacenter-internal endpoints, yet it was already enough to support such a grand narrative.
 
-有了高性能网络，解聚架构就能有效提升数据中心应用的资源利用率，减轻物理机上CPU、加速器、内存、磁盘等资源在host-centric范式下不可避免的over-provisioning问题。
+With high-performance networks, disaggregated architectures can effectively improve the resource utilization of datacenter applications and alleviate the over-provisioning of CPU, accelerator, memory, disk, and other resources that is unavoidable under the host-centric paradigm.
 
-## 评估 GH200 Grace Hopper Superchip 
-NVIDIA宣称Grace Hopper Superchip是世界上第一个真正支持HPC和AI负载的异构加速平台。
+## Evaluating the GH200 Grace Hopper Superchip 
+NVIDIA claims the Grace Hopper Superchip is the world's first heterogeneous accelerated platform truly supporting HPC and AI workloads.
 ![GraceHopper](https://jipeng4974.github.io/img/GraceHopper.png)
-如下图所示，这个superchip是一个把Grace Arm Neoverse CPU+LPDDR5x内存和H100 Tensor Core GPU+HBM，NVLink-C2C集成合封成PCB的集成方案。
+As shown in the figure below, this superchip is an integration scheme that co-packages a Grace Arm Neoverse CPU + LPDDR5x memory and an H100 Tensor Core GPU + HBM onto a PCB via NVLink-C2C.
 ![GraceHopper](https://jipeng4974.github.io/img/GraceHopper2.png)
 ![GraceHopper](https://jipeng4974.github.io/img/GraceHopper3.png)
 
-这并不是一个创新方案，一方面悖逆Chipletization的潮流（除了HBM算是chiplet外，H100、Grace、NvSwitch都是巨型SoC/ASIC，况且即使是HBM也是PCB合封，而不是SiP），另一方面也没有进行任何CPU-GPU超融合（物理上融合至单个SoC上，逻辑上统一页表管理、内存、缓存、并发模型等）的探索或尝试（GPU设计之初就存在太多和CPU无法兼容的设计，比如缓存模型、内存模型和并发模型，如今CUDA根基已成很难回头），只是简单粗暴的将CPU、高带宽内存、H100以PCB合封的方式集成，用NVLink-C2C提供内存一致性和更高off-package的带宽（并未尝试任何先进IO技术）。软件上也没能在CUDA基础上提供更强的可编程性，仅仅提供coherent memory access，编程模型仍然是完全异构的（这也是因为CUDA自诞生之初就是个图形加速库，也没法考虑未来会出现对这种superchip的同构编程模型的需求）。
+This is not an innovative solution. On one hand it runs against the chipletization trend (apart from HBM, which counts as a chiplet, the H100, Grace, and NVSwitch are all giant SoCs/ASICs — and even HBM here is PCB co-packaged, not SiP); on the other hand, it makes no exploration or attempt at CPU-GPU hyper-convergence (physical fusion into a single SoC, logical unification of page-table management, memory, cache, and concurrency models). (GPUs were designed from the start with too many choices incompatible with CPUs — cache model, memory model, concurrency model — and with CUDA's foundation now laid, it's hard to turn back.) It simply and crudely integrates the CPU, high-bandwidth memory, and H100 via PCB co-packaging, using NVLink-C2C to provide memory coherence and higher off-package bandwidth (without trying any advanced IO technology). On the software side it also fails to provide stronger programmability on top of CUDA, offering only coherent memory access; the programming model remains fully heterogeneous (also because CUDA was born as a graphics acceleration library and could not have anticipated future demand for a homogeneous programming model for such superchips).
 
-但这是一个低风险高执行力的集成方案，正如扎克伯格所说，"Move fast and break nothing"，把原本优秀的组件原封不动地合封起来，不做侵入式修改，只要动作足够快，就能迅速占领市场，构建生态，并支撑溢价。市场上有更完美的memory coherence方案（比如AMD MI300X），更好的CPU-GPU超融合方案，也有比不得不为图形负载妥协的GPU效率更高的AI芯片，但就是没有CUDA异构编程体系，以及Grace Hooper这样把计算、内存和IO瓶颈都解决得差不多的完整解决方案。
+But it is a low-risk, high-execution integration scheme. As Zuckerberg put it, "Move fast and break nothing": co-package the already-excellent components as-is, make no invasive modifications, and as long as you move fast enough, you can quickly capture the market, build the ecosystem, and sustain a premium. There are more perfect memory-coherence solutions on the market (e.g., AMD MI300X), better CPU-GPU hyper-convergence solutions, and AI chips more efficient than GPUs that have to compromise for graphics workloads — but none of them has the CUDA heterogeneous programming system, nor a complete solution like Grace Hopper that resolves compute, memory, and IO bottlenecks reasonably well all at once.
 
-总之，NV的方案作为生态(GPU + CUDA)与生物(ChatGPT根据A100量体裁衣的训练方案)互相作用下的best-of-breed，远远没达到理想最优，甚至也不在正确的技术路线上，AMD的所谓APU以及国内的AI DSA（如Biren）仍有弯道超车的希望。
+In short, NVIDIA's solution is the best-of-breed emerging from the interaction of an ecosystem (GPU + CUDA) and an organism (ChatGPT's training recipes tailored to the A100), but it is far from the ideal optimum and not even on the right technical route. AMD's so-called APUs and domestic AI DSAs (such as Biren) still have hope of overtaking on the curve.
 
-讨论计算系统的新机会
-- （应用）端到（硬件）端的全栈优化，或者说软硬件协同。
+New opportunities in computing systems
+- Full-stack optimization from (application) end to (hardware) end, a.k.a. hardware-software co-design.
   - TVM: deep learning compiler stack for cpu, gpu and specialized accelerators
   - GPU + CUDA
-  - GH20 Grace Hopper + 新的CUDA NUMA内存API+异构编程API
-  - 司内的LavaRecord全链路优化项目，向下(LavaUOS)对接新存储硬件，试图在nvme ssd上建立高效的用户态IO软件栈。
-- 应用机器学习方法对参数空间较大的系统做auto-tuning。
-  - 存储引擎如rocksdb调参
-  - 深度学习模型在异构硬件上的auto TVM
-- 先进互连技术支持下的资源解聚架构设计。
+  - GH200 Grace Hopper + new CUDA NUMA memory APIs + heterogeneous programming APIs
+  - Our company's LavaRecord end-to-end optimization project, which interfaces downward (LavaUOS) with new storage hardware, trying to build an efficient user-space IO software stack on NVMe SSDs.
+- Applying machine learning to auto-tune systems with large parameter spaces.
+  - Parameter tuning for storage engines like rocksdb
+  - AutoTVM for deep learning models on heterogeneous hardware
+- Resource-disaggregation architecture design enabled by advanced interconnect technologies.
   - LegoOS
-  - PolarDB-X的存算分离和memory pooling
-- 计算节点上的Share-nothing架构，以及data-oriented设计。
-  - 应用框架层面已有Libtorque、DragonFly、Seastar、Scylladb等先例，主要是IO密集应用——不过只要是内存占用大的CPU应用，大多可以视为IO密集的，因为cache miss上来之后访存占比往往会远超计算。
-  - 虚拟化方向，交大IPADS实验室的CPS: A Cooperative Para-virtualized Scheduling Framework for Manycore Machines，提出协作式半虚拟化调度机制，大幅提升众核虚拟机可扩展性。
-- 基于深度模型白盒化研究和已有的数学工具，用direct math solution取代黑盒模型的近似。
-  - 例如“Low-Resource” Text Classification: A Parameter-Free Classification Method with Compressors用压缩+信息距离+KNN的简洁解决方案。
-  - 用异类不相干性、同类可压缩性（稀疏性）衡量embedding效果，不必借助某种端到端应用的指标间接衡量。
+  - PolarDB-X's storage-compute separation and memory pooling
+- Share-nothing architectures on compute nodes, and data-oriented design.
+  - At the application-framework level there are precedents like libtorque, DragonFly, Seastar, and ScyllaDB, mostly for IO-intensive applications — though in fact most CPU applications with large memory footprints can be regarded as IO-intensive, because once cache misses rise, memory access tends to account for far more than computation.
+  - In virtualization, SJTU's IPADS lab published CPS: A Cooperative Para-virtualized Scheduling Framework for Manycore Machines, proposing a cooperative para-virtualized scheduling mechanism that greatly improves the scalability of many-core virtual machines.
+- Based on white-box research of deep models and existing mathematical tools, replace black-box model approximations with direct math solutions.
+  - E.g., "Low-Resource" Text Classification: A Parameter-Free Classification Method with Compressors, with its neat solution of compression + information distance + KNN.
+  - Measuring embedding quality by inter-class incoherence and intra-class compressibility (sparsity), without resorting to indirect measurement via some end-to-end application metric.
   
 
-## 参考文献和进一步阅读
-- Learning One-hidden-layer Neural Networks with Landscape Design：即使是最简单的深度学习非凸优化场景，用数学工具（数学最优化方法）进行解释也极为困难。
-- Functionality and performance of NVLink with IBM POWER9 processors：几年前IBM Power9（美国能源部的Summit和Sierra超算系统）就在用NVLink，而且hardware cache coherence设计（以及hardware atomic ops，addr translation）已经非常完善，比Grace Hooper方案更完善。
-- Faith and Fate: Limits of Transformers on Compositionality：大语言模型涌现出演绎逻辑能力，但在多步复合问题上表现不佳，在训练样本中从未出现过计算图中相同计算路径的动态规划问题上准确率更是迅速跌落。与其他emprical study相比，这个研究更严肃，也更全面，考虑了计算图中训练时未见的splits带来的影响。我们有理由确信，大语言模型涌现的演绎推理能力会受制于transformer的天然局限。
-- Teaching Arithmetic to Small Transformers：基于transformer的小语言模型足以学习简单算术能力， 提供包含正确的计算步骤的训练数据（chain-of-thought style data）是提升算术学习能力的关键，简单粗暴地用题目和结果进行训练，单纯靠增加模型大小无法提升准确率。
-- A Survey of Large Language Models：提供了对大语言模型的up-to-date review。
-- Variantional Inference: A Review For Statisticians：提供了解释VI、理解VI的统计学家视角，讨论了VI应用于指数级模型族的特例，并给出一个贝叶斯高斯混合模型的例子，并推导出一种使用随机优化来扩展至海量数据的VI变体。
-- Training language models to follow instructions with human feedback：OpenAI的经验介绍，重点是RLHF。
-- GPT-4 Architecture, Infrastructure, Training Dataset, Costs, Vision, MoE：来自semianalysis的爆料，颇具可信度。
-- Efficiently Scale LLM Training Across a Large GPU Cluster with Alpa and Ray：LLM训练。
-- Scaling Language Model Training to a Trillion Parameters Using Megatron：Megatron（repo： https://github.com/NVIDIA/Megatron-LM ，paper： https://arxiv.org/pdf/1909.08053.pdf ）
-- https://www.youtube.com/watch?v=eqWPyaRcILQ 微软Azure硬件系统和基础设施团队的Ram Huggahalli关于Co-Packaged Optics的talk。
-- https://www.youtube.com/watch?v=Xt-GY8Pkt6g 研究光通信和先进互连技术的Tony Chan Carusone关于Co-Packaged Optics以及Evolution of IO的talk。
-- Next-generation Co-Packaged Optics for Future Disaggregated AI Systems：对共封装光学模组以及未来的解聚AI系统的洞察。
-- TPU v4: An Optically Reconfigurable Supercomputer for Machine Learning with Hardware Support for Embeddings : Google的TPUv4，重点是纯光链路交换机
-- LegoOS: A Disseminated, Distributed OS for Hardware Resource Disaggregation ：乐高OS，基于早期Infiniband高速网络做硬件资源解聚的尝试
-- https://www.hpcwire.com/2020/11/16/nvidia-mellanox-debuts-ndr-400-gigabit-infiniband-at-sc20/ Mellanox(Nvidia)的Infiniband NDR版本，以及roadmap。
-- Rack-scale disaggregated cloud data centers: The dReDBox project vision: 数据中心应用解聚架构的早期尝试。 
-- White-Box Transformers via Sparse Rate Reduction：马毅团队对transformer的白盒化解释，此前马毅已经给出了更通用的rate reduction原则： Learning Diverse and Discriminative Representations via the Principle of Maximal Coding Rate Reduction。
-- https://github.com/bgavran/Category_Theory_Machine_Learning 深度学习的范畴论解释。深度学习可解释性和逆向工作还可以参考Christopher Olah的blog: colah.github.io，Olah有许多深刻的洞察，比如https://colah.github.io/posts/2014-03-NN-Manifolds-Topology/ 流形假设的可视化和深度学习分类的解释。
-- IntAct: A 96-Core Processor With Six Chiplets 3D-Stacked on an Active Interposer With Distributed Interconnects and Integrated Power Management：先进IC设计领域的论文，给出了一个集成了chiplet范式、3d封装、完全cache coherence等先进概念的96核众核原型系统。
-- “Low-Resource” Text Classification: A Parameter-Free Classification Method with Compressors：无损压缩近似柯氏复杂性，然后计算信息距离（类似rate reduction，刻画了总体与分类之间的信息差，分类的编码长度低而总体的编码长度高，表明这种分类具有异类强区分性和同类可压缩性），依据信息距离做简单的KNN即可完成分类。这个研究的代码有错，并不能击败BERT，见https://kenschutte.com/gzip-knn-paper/。
-- M. Li and P.M.B. Vitányi, An Introduction to Kolmogorov Complexity and Its Applications 柯尔莫哥洛夫复杂性的介绍和应用
-- A Mathematical Theory of Communication 1948年香农信息论的论文原著
-- hwloc doc：hwloc的文档，hwloc是NUMA-discovery + cpu/memory-binding library。
-- https://man7.org/linux/man-pages/man2/mbind.2.html：libnuma的NUMA memory policy函数。
-- On the Turing Completeness of Modern Neural Network Architectures 证明了无限精度transformer是图灵完备的，即任意图灵机都可被无限精度transformer模拟，但只要是固定精度就不是图灵完备的。
+## References and Further Reading
+- Learning One-hidden-layer Neural Networks with Landscape Design: even for the simplest non-convex optimization scenario in deep learning, explanation with mathematical tools (mathematical optimization methods) is extremely difficult.
+- Functionality and performance of NVLink with IBM POWER9 processors: IBM Power9 (the US Department of Energy's Summit and Sierra supercomputers) was already using NVLink years ago, with a very mature hardware cache-coherence design (plus hardware atomic ops and address translation) — more mature than the Grace Hopper solution.
+- Faith and Fate: Limits of Transformers on Compositionality: large language models exhibit emergent deductive-logic ability but perform poorly on multi-step compositional problems, and their accuracy drops even faster on dynamic programming problems where the same computation path in the computation graph never appeared in training samples. Compared with other empirical studies, this one is more rigorous and comprehensive, considering the effect of splits unseen during training in the computation graph. We have reason to believe that the emergent deductive reasoning of LLMs will be constrained by the inherent limits of transformers.
+- Teaching Arithmetic to Small Transformers: small transformer-based language models suffice to learn simple arithmetic; providing training data containing correct computation steps (chain-of-thought style data) is the key to improving arithmetic learning — training crudely on problems and answers alone cannot raise accuracy by merely increasing model size.
+- A Survey of Large Language Models: an up-to-date review of large language models.
+- Variational Inference: A Review for Statisticians: a statistician's perspective for explaining and understanding VI, discussing the special case of VI applied to exponential-family models, giving an example of a Bayesian Gaussian mixture model, and deriving a VI variant that uses stochastic optimization to scale to massive data.
+- Training language models to follow instructions with human feedback: OpenAI's experience report, focused on RLHF.
+- GPT-4 Architecture, Infrastructure, Training Dataset, Costs, Vision, MoE: a leak from SemiAnalysis, quite credible.
+- Efficiently Scale LLM Training Across a Large GPU Cluster with Alpa and Ray: LLM training.
+- Scaling Language Model Training to a Trillion Parameters Using Megatron: Megatron (repo: https://github.com/NVIDIA/Megatron-LM , paper: https://arxiv.org/pdf/1909.08053.pdf )
+- https://www.youtube.com/watch?v=eqWPyaRcILQ — a talk on Co-Packaged Optics by Ram Huggahalli of Microsoft Azure's hardware systems and infrastructure team.
+- https://www.youtube.com/watch?v=Xt-GY8Pkt6g — a talk on Co-Packaged Optics and the Evolution of IO by Tony Chan Carusone, who researches optical communication and advanced interconnect technologies.
+- Next-generation Co-Packaged Optics for Future Disaggregated AI Systems: insights into co-packaged optics and future disaggregated AI systems.
+- TPU v4: An Optically Reconfigurable Supercomputer for Machine Learning with Hardware Support for Embeddings: Google's TPU v4, with emphasis on the all-optical link switch.
+- LegoOS: A Disseminated, Distributed OS for Hardware Resource Disaggregation: LegoOS, an attempt at hardware resource disaggregation based on early InfiniBand high-speed networks.
+- https://www.hpcwire.com/2020/11/16/nvidia-mellanox-debuts-ndr-400-gigabit-infiniband-at-sc20/ — Mellanox (NVIDIA)'s InfiniBand NDR generation, and its roadmap.
+- Rack-scale disaggregated cloud data centers: The dReDBox project vision: an early attempt at disaggregated datacenter architectures. 
+- White-Box Transformers via Sparse Rate Reduction: the white-box explanation of transformers by Yi Ma's team; Yi Ma had earlier given the more general rate reduction principle: Learning Diverse and Discriminative Representations via the Principle of Maximal Coding Rate Reduction.
+- https://github.com/bgavran/Category_Theory_Machine_Learning — a category-theory account of deep learning. For deep-learning interpretability and reverse engineering, also see Christopher Olah's blog: colah.github.io. Olah has many profound insights, e.g. https://colah.github.io/posts/2014-03-NN-Manifolds-Topology/ — visualization of the manifold hypothesis and an explanation of deep-learning classification.
+- IntAct: A 96-Core Processor With Six Chiplets 3D-Stacked on an Active Interposer With Distributed Interconnects and Integrated Power Management: a paper in advanced IC design, presenting a 96-core many-core prototype system integrating advanced concepts such as the chiplet paradigm, 3D packaging, and full cache coherence.
+- "Low-Resource" Text Classification: A Parameter-Free Classification Method with Compressors: lossless compression to approximate Kolmogorov complexity, then computing information distance (similar to rate reduction — it characterizes the information gap between the whole and the classes: if a class has low coding length while the whole has high coding length, the classification has strong inter-class discrimination and intra-class compressibility), and simple KNN over information distance completes the classification. This study's code has bugs and does not actually beat BERT; see https://kenschutte.com/gzip-knn-paper/.
+- M. Li and P.M.B. Vitányi, An Introduction to Kolmogorov Complexity and Its Applications: an introduction to Kolmogorov complexity and its applications.
+- A Mathematical Theory of Communication: Shannon's original 1948 information-theory paper.
+- hwloc doc: documentation for hwloc, a NUMA-discovery + cpu/memory-binding library.
+- https://man7.org/linux/man-pages/man2/mbind.2.html: libnuma's NUMA memory policy functions.
+- On the Turing Completeness of Modern Neural Network Architectures: proves that infinite-precision transformers are Turing-complete — i.e., any Turing machine can be simulated by an infinite-precision transformer — but any fixed precision is not Turing-complete.

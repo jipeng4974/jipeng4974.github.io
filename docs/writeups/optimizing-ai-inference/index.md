@@ -1,6 +1,6 @@
 # Optimizing AI Inference
 
-> 总结AI工程中的推理优化问题。
+> A summary of inference optimization problems in AI engineering.
 
 ---
 
@@ -8,77 +8,77 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-## 优化的几个抽象层次
-应用侧的AI Engineering大致上可以分为MLOps和推理优化。推理优化又可以分为几个抽象层次：
-1. 最高层是模型优化（详见[^13]）：量化、知识蒸馏、参数剪枝、通道剪枝。
-2. 中间层是图优化和通用优化：operator fusion/reconstruction、loop interchanges、data layout rewrites。
-3. 底层是硬件算子：最优化的底层算子必然是最特化的（tensor-specific + hardware-specific + framework-agnostic），因此需将中层IR绑定到硬件算子（即后端算子选择），这些硬件算子往往需要根据设备信息，充分利用vectorization、parallelism、locality，做显式cache管理，通过合理的指令重排隐藏memory latency, 利用SIMD/AMX/DSP/GPGPU架构做memory tiling和minibatch block gemm。
-4. 最底层还有LLVM层面的low-level codegen优化，负责最终生成优化的机器码。
+## Levels of Abstraction in Optimization
+AI engineering on the application side can be roughly divided into MLOps and inference optimization. Inference optimization itself can be further divided into several levels of abstraction:
+1. At the highest level is model optimization (see [^13]): quantization, knowledge distillation, parameter pruning, channel pruning.
+2. The middle layer is graph optimization and general-purpose optimization: operator fusion/reconstruction, loop interchanges, data layout rewrites.
+3. The lower layer is hardware operators: the most optimized low-level operators are necessarily the most specialized (tensor-specific + hardware-specific + framework-agnostic), so the mid-level IR must be bound to hardware operators (i.e., backend operator selection). These hardware operators typically need to exploit vectorization, parallelism, and locality based on device information, perform explicit cache management, hide memory latency through sensible instruction reordering, and use SIMD/AMX/DSP/GPGPU architectures for memory tiling and minibatch block GEMM.
+4. At the very bottom there are also LLVM-level low-level codegen optimizations, responsible for finally generating optimized machine code.
 
-第一层的模型优化减少了模型本身的总计算量，与底层优化正交。第二、第三层的推理优化归根到底都是硬件使能，只不过二层对几乎所有硬件都有效，三层则根据设备信息细化。从实现方法上讲，二、三层优化又可分为基于AI编译器的优化和手工优化。
+The first level, model optimization, reduces the model's total amount of computation and is orthogonal to the lower-level optimizations. The second- and third-level inference optimizations are ultimately both about hardware enablement — except that the second level works for nearly all hardware, while the third level is refined according to device information. In terms of implementation, the second- and third-level optimizations can be further divided into AI-compiler-based optimization and manual optimization.
 
-## 基于编译的优化
-编译，或者说DSLs + Optimizing Compilers，是解决领域问题优化的一个通用解法，为不同硬件提供可移植的优化。比如十年前就有Halide为图像和张量的并行计算提供了一个DSL+编译器，将算法规格本身和优化细节解耦。甚至更底层的gcc/llvm本身也是将算法和优化解耦的例子，在machine code codegen层面做的优化。
+## Compilation-Based Optimization
+Compilation — or DSLs + optimizing compilers — is a general solution to domain-specific optimization problems, providing portable optimizations for different hardware. A decade ago, Halide already offered a DSL + compiler for parallel computation on images and tensors, decoupling the algorithm specification itself from the optimization details. Even gcc/llvm, at an even lower level, are examples of decoupling algorithms from optimizations, doing optimization at the machine code codegen level.
 
-### ML Compilers的优势和劣势
-如今的ML compilers是这种基于编译的思路的延续[^2]，其优势在于：
-- 可移植性：硬件一方面在不断迭代更新，另一方面也不断有新硬件、新架构涌现。端边侧的设备要繁杂的多。Datacenter场景还好，但也面临N卡禁运，国产替代的问题，国产GPGPU还没有形成明确的一两家独大的格局[^10]，因此适配新硬件是近未来必需解决的事情。
-- 将算法与优化清晰解耦：工程上可以提效，也有助于降低因复杂度爆炸而注入缺陷、使得项目逐渐失控、无法维护的风险。
+### Strengths and Weaknesses of ML Compilers
+Today's ML compilers are a continuation of this compilation-based approach[^2]. Their strengths are:
+- Portability: on the one hand, hardware keeps iterating and updating; on the other hand, new hardware and new architectures keep emerging. Devices on the edge side are far more diverse. The datacenter scenario is better off, but it still faces the NVIDIA export ban and the domestic-substitution question; the domestic Chinese GPGPU market has not yet settled into a clear one-or-two-winners landscape[^10], so adapting to new hardware is something that must be solved in the near future.
+- Clean decoupling of algorithms from optimizations: this improves engineering efficiency, and also helps reduce the risk of injecting defects as complexity explodes — a risk that would let the project gradually spiral out of control and become unmaintainable.
 
-其劣势在于：
-- 不完备：在处理大多数场景、常规问题时性能不错，但总会遇到一些预料之外的edge cases，fallback to the slow path，性能骤然劣化，很难通过tweak DSL code生成更优的代码。
-- 不灵活：考虑到编译器codegen产物往往不那么human-readble，工程上针对edge cases、ad-hoc需求做灵活的手工优化就比较困难。
-- 难以真正击败专家手动优化：正如至今不存在能在性能上击败C/C++的函数式语言编译器，ML compiler也只是给出足够好的解，通常不及专家充分优化的C/C++实现。
+Their weaknesses are:
+- Incompleteness: performance is good when handling most scenarios and routine problems, but there are always unexpected edge cases that fall back to the slow path, where performance degrades abruptly, and it is hard to generate better code by tweaking the DSL code.
+- Inflexibility: given that compiler codegen output is often not very human-readable, it is difficult in practice to do flexible manual optimization for edge cases and ad-hoc requirements.
+- Hard to truly beat expert manual optimization: just as there is still no functional-language compiler that can beat C/C++ in performance, an ML compiler only produces a good-enough solution, usually inferior to a fully expert-optimized C/C++ implementation.
 
-### ML Compilers的工作流程
-ML编译器的工作流是高层抽象到底层抽象的``lowering``过程。ML编译器后端包含各种``passes``，所谓pass就是lowering规则。最终会根据设备信息，形成一种硬件特化、张量特化的硬件算子描述，这种描述在TVM里叫做``schedule``，在Triton里叫做``plan``。再进一步CodeGen阶段，是从ML编译器自己的语言翻译到language compiler后端，比如LLVM IR，然后交由LLVM编译成可执行的machine code。
+### The ML Compiler Workflow
+An ML compiler's workflow is a ``lowering`` process from high-level abstraction to low-level abstraction. The ML compiler backend contains various ``passes``; a pass is simply a lowering rule. Based on device information, it ultimately forms a hardware-specialized, tensor-specialized hardware operator description — called a ``schedule`` in TVM and a ``plan`` in Triton. The further CodeGen stage translates from the ML compiler's own language into a language compiler backend such as LLVM IR, which is then handed to LLVM to compile into executable machine code.
 
-MLIR中``dialects``可对passes进行分层或分类，一个典型的dialects分层(见[^1])自上而下如是：
+In MLIR, ``dialects`` can layer or categorize passes. A typical dialect layering (see [^1]), from top to bottom, looks like this:
 ```
 OpGraph -> TSOWB(e.g. late hlo) -> CGASel -> HHO(e.g. Linalg) -> MHA(e.g. stripe/affine) -> HLTSIR(e.g. vector dialects) -> TSIR(e.g. llvm)
 ```
 
-Triton的大致流程如下：
+Triton's rough pipeline is as follows:
 ```
-面向用户的Python/C++的kernel代码
---> [ML Compiler前端，有时候可能只是某种动转静工具，forward一次，然后转写]
-设备无关的 High-level IR
---> [ML Compiler后端Passes，图优化+算子选择+内存优化]
-硬件特化的 Low-level IR [Schedule/Plan]
---> [ML Compiler后端Passes，把自己内部的Schedule/Plan翻译到LLVM IR]
+User-facing Python/C++ kernel code
+--> [ML Compiler frontend; sometimes possibly just a dynamic-to-static tool: run forward once, then transcribe]
+Device-agnostic high-level IR
+--> [ML Compiler backend passes: graph optimization + operator selection + memory optimization]
+Hardware-specialized low-level IR [Schedule/Plan]
+--> [ML Compiler backend passes: translate the internal Schedule/Plan to LLVM IR]
 LLVM IR 
---> [LLVM's NVPTX back-end，进入Language Compilation层面]
+--> [LLVM's NVPTX back-end, entering the language compilation layer]
 PTX
 --> [CUDA ptxas assembler]
 CUBIN
 ```
 
-Intel MLIR graph compiler的lowering pipeline如下：
+The lowering pipeline of Intel's MLIR graph compiler is as follows:
 
-Computation Graphs -> linalg [^4] -> layout propagation [^7] -> tiling [^3] -> fusion [^8] -> micro kernel [^9] -> vector [^10] -> bufferization [^12] -> memory planning -> LLVM IR -> 交由LLVM处理。
+Computation Graphs -> linalg [^4] -> layout propagation [^7] -> tiling [^3] -> fusion [^8] -> micro kernel [^9] -> vector [^10] -> bufferization [^12] -> memory planning -> LLVM IR -> handed over to LLVM.
 
-上述lowering pipeline又可分为tensor-land和memref-land两个大的区块，bufferization之前都是tensor-land。在tensor-land，所有tensor操作都默认不是in-place的，哪怕是明显可以in-place的relu。在memref-land才会考虑内存访问的进一步优化。
+The above lowering pipeline can also be divided into two large regions: tensor-land and memref-land; everything before bufferization is tensor-land. In tensor-land, all tensor operations are by default not in-place — even relu, which obviously could be in-place. Only in memref-land are further optimizations of memory access considered.
 
-## 手工优化
-很多时候，目标模型的架构是确定的，目标机器的架构也就固定几种，ML compilers的可移植性优势——自动算子绑定/算子选择的优势——就近乎不存在了。
+## Manual Optimization
+In many cases, the target model's architecture is fixed, and there are only a few fixed target machine architectures, so the portability advantage of ML compilers — the advantage of automatic operator binding/operator selection — virtually disappears.
 
-典型的例子是llama.cpp，和支撑它的ggml，llama.cpp+ggml通过一个人类可读的最小化C/C++项目，实现了各种精度的量化、自动微分、AVX/AVX2优化、Metal优化、flashatt算子、Multi-GPU pipeline并行等各个抽象层次上最直接有效的优化机制，最终也达成相当好的效果，尤其是在本地设备上。
+A typical example is llama.cpp, and the ggml that underpins it. Through a human-readable, minimal C/C++ project, llama.cpp+ggml implements the most direct and effective optimization mechanisms at every level of abstraction: quantization at various precisions, automatic differentiation, AVX/AVX2 optimizations, Metal optimizations, the flash-attention operator, multi-GPU pipeline parallelism, and so on — and it ultimately achieves quite good results, especially on local devices.
 
-这种手动优化的系统优势在于系统是透明的，程序员可以读懂整个系统，精准定位到涉及某个问题的代码行，从而具备ML编译方案中不具备的灵活性，适合应对ad-hoc需求，适用于模型架构和硬件设备稳定的场景。
+The strength of such a manually optimized system is that the system is transparent: programmers can read the entire system and pinpoint the exact line of code involved in a given problem, giving it a flexibility that ML compilation solutions lack. It is well suited to ad-hoc requirements and to scenarios where the model architecture and hardware devices are stable.
 
-手动优化的劣势是一旦出现新架构、新设备，就需要重写代码。
+The weakness of manual optimization is that once a new architecture or new device appears, the code has to be rewritten.
 
 
 [^1]: [Linalg Dialect Rationale: The Case For Compiler-Friendly Custom Operations](https://mlir.llvm.org/docs/Rationale/RationaleLinalgDialect/)
-[^2]: TVM可以视为Halide在ML领域的
-[^3]: 算子分块，或者说矩阵乘法分块层，属于scf dialect，即structured control flow，之前叫LoopOps。
+[^2]: TVM can be regarded as Halide's ... in the ML domain
+[^3]: Operator tiling — or the matmul tiling layer — belongs to the scf dialect, i.e., structured control flow; it was previously called LoopOps.
 [^4]: ``Linalg`` is a DSL(a high-level MLIR dialect) for expressing linear algebra operations in MLIR, designed to solve the High-level Hierarchical Optimization (HHO box) in MLIR and to interoperate nicely within a Mixture Of Expert Compilers environment (i.e. the CGSel box). 
 [^5]: [MLIR — Lowering through LLVM](https://www.jeremykun.com/2023/11/01/mlir-lowering-through-llvm/)
 [^6]: [A friendly introduction to machine learning compilers and optimizers](https://huyenchip.com/2021/09/07/a-friendly-introduction-to-machine-learning-compilers-and-optimizers.html)
-[^7]: 把layout调整好，比如$M\times N$调成$32\times 32$分块。
-[^8]: 算子融合，比如elementwise+reduce的op fusion。
-[^9]: micro kernel一般是手写的，比如分块后的最小粒度的matmul，一般是64*64的，直接交给编译器是做不好的，要对不同硬件要用不同指令，不同顺序，不同寄存器。
-[^10]: 国产AI芯片处于混战阶段：华为Atlas系列、壁仞BR100、瑞芯微rk NPU、百度昆仑芯XPU、比特大陆（bm-se/sc）、寒武纪MLU、海光DCU、燧原GCU等。
-[^11]: 各种vector操作，具体又可分为GPU dialect，Arm-Neon dialect、x86vector dialect（AVX，AVX512）、第四代Xeon的AMX dialect等。
-[^12]: Bufferization in MLIR is the process of converting ops with tensor semantics to ops with memref semantics. 这一阶段会尽可能尝试将一些tensor计算的内存占用in-place化，终极目标是用更少的内存，减少copy次数。
+[^7]: Adjust the layout — e.g., tile $M\times N$ into $32\times 32$ blocks.
+[^8]: Operator fusion, e.g., elementwise+reduce op fusion.
+[^9]: Micro kernels are usually handwritten — for example, the smallest-granularity matmul after tiling, typically 64*64. Handing it directly to the compiler does not work well: different hardware requires different instructions, different orderings, and different registers.
+[^10]: Domestic Chinese AI chips are in a free-for-all stage: Huawei's Atlas series, Biren BR100, Rockchip RK NPU, Baidu Kunlunxin XPU, Bitmain (bm-se/sc), Cambricon MLU, Hygon DCU, Enflame GCU, etc.
+[^11]: Various vector operations, which can be further divided into the GPU dialect, the Arm-Neon dialect, the x86vector dialect (AVX, AVX512), the AMX dialect for 4th-gen Xeon, and so on.
+[^12]: Bufferization in MLIR is the process of converting ops with tensor semantics to ops with memref semantics. At this stage, the compiler tries as much as possible to make the memory usage of some tensor computations in-place; the ultimate goal is to use less memory and reduce the number of copies.
 [^13]: [Quantization and Pruning](https://jipeng4974.github.io/writeups/quantization-and-pruning)

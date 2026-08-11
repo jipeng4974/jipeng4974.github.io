@@ -1,5 +1,5 @@
 +++
-title = "Optimizing AI Inference"
+title = "AI推理优化"
 date = "2024-08-28"
 tags = ["sys", "ai"]
 description = "总结AI工程中的推理优化问题。"

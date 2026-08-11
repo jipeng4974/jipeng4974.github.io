@@ -1,6 +1,6 @@
 # Distributed Computing Systems At Scale
 
-> 纷乱的分布式现象、繁琐的工程实践容易遮蔽对分布式计算系统本质的理解，遂做梳理。
+> Messy distributed phenomena and tedious engineering practice can easily obscure the essence of distributed computing systems, so here is a systematic overview.
 
 ---
 
@@ -9,38 +9,38 @@ LLMS index: [llms.txt](/llms.txt)
 ---
 
 # Distributed Computing Systems At Scale
-分布式计算系统完成规模化的跳跃后，核心挑战是正确性和系统效率。前者对应共识抽象，后者对应性能工程。
+Once a distributed computing system makes the leap to scale, its core challenges are correctness and system efficiency. The former corresponds to consensus abstraction, the latter to performance engineering.
 
 ## Consensus Abstraction
-分布式系统的正确性实际上蕴含了稳定性、一致性、可用性等理想属性。
-分布式天然意味着并发执行、进程失败、不可靠的消息传输，这些因素都使正确性在各种常见的分布式应用语境下变得极为困难：
-- 并发意味着执行轨迹空间维度爆炸，和(进程数*步数)的阶乘成正比。很难保证每个执行路径都是对的。
-- 进程失败可分为：崩溃（进程没了，网卡或CPU故障）、丢请求（没崩，网络阻塞或服务降级导致临时不可用）、恢复后崩溃（反复重启，最终恢复到正确状态，往往基于日志）、拜占庭失败（不可预料，来自宇宙射线或恶意攻击）。
-- 消息传输面临篡改、丢包、重传、乱序等风险，即使是可靠网络协议也不完全可靠。
+The correctness of a distributed system actually subsumes ideal properties such as stability, consistency, and availability.
+Distribution inherently means concurrent execution, process failures, and unreliable message delivery — all of which make correctness extremely hard in common distributed application contexts:
+- Concurrency means the execution-trace space explodes dimensionally, proportional to the factorial of (number of processes × number of steps). It is very hard to guarantee that every execution path is correct.
+- Process failures can be classified into: crashes (the process is gone — NIC or CPU failure), dropped requests (no crash, but network congestion or service degradation causes temporary unavailability), crash-after-recovery (repeated restarts before eventually recovering to a correct state, usually based on logs), and Byzantine failures (unpredictable, arising from cosmic rays or malicious attacks).
+- Message delivery faces risks such as tampering, packet loss, retransmission, and reordering; even reliable network protocols are not completely reliable.
 
-共识是指多个进程就某个问题（2-general问题、复制状态机保证全局序的问题、分布式事务）最终形成一致决定。理想的共识算法应具备安全性(safety)和活性(liveliness)。安全性包括validity（只有一个提议值被选择）、agreement（正确的节点保持一致）、integrity（每个节点最多选一次）。活性则是指可终止，每个正确节点最终总会选择一个值，而不是hang住。
+Consensus means that multiple processes eventually reach a common decision on some problem (the 2-general problem, the global ordering guaranteed by a replicated state machine, distributed transactions). An ideal consensus algorithm should have safety and liveness. Safety includes validity (only a proposed value may be chosen), agreement (correct nodes stay consistent), and integrity (each node chooses at most once). Liveness means termination: every correct node eventually chooses some value instead of hanging.
 
-如果不考虑安全性的话，TCP其实就是一个最简单、粗糙、有效的共识协议，TCP协议本质是让通信的两个进程对连接的状态达成了共识，才能可靠地通信。比如进程关闭连接，就会把本地状态改为TIME_WAIT，等几分钟后才真正释放资源，以确保对方收到ACK，用简单的等待，达成高概率的共识，避免双方开始下一轮连接后收到旧报文而出错。
+If safety is set aside, TCP is actually the simplest, crudest, yet effective consensus protocol: at its core, TCP lets the two communicating processes reach consensus on the state of the connection so they can communicate reliably. For example, when a process closes a connection, it sets its local state to TIME_WAIT and waits a few minutes before truly releasing resources, to make sure the peer receives the ACK — using a simple wait to achieve a high-probability consensus, avoiding errors from receiving stale packets after both sides have started the next connection.
 
-如果追求完全安全，简单的场景是只对一个值进行商议和决策，即单值共识。
+If full safety is required, the simple case is negotiating and deciding on a single value — single-value consensus.
 
-单值共识前提下的最简场景则是拥有完美失败检测能力，泛洪共识（只有获得所有进程提议才做出决定）、等级统一共识就是这种场景下的简单解决方案。
+The simplest scenario under single-value consensus assumes perfect failure detection; flooding consensus (decide only after collecting proposals from all processes) and uniform hierarchical consensus are simple solutions for this scenario.
 
-若只具备最终失败检测能力，则需引入代次变更概念，用代次共识（往往是Paxos变种）去解决。Paxos是唯一已知的completely-safe & largely-live的容错共识算法。2PC其实也是一种代次共识，不过2PC里协调者宕机就会全局阻塞，是safe but not live的典型。Paxos甚至可以通过将代次(round)的偏序关系从<改成整除，来实现多维的先后代次，从而兼具2PC的功能。
+With only eventual failure detection, the notion of epoch change must be introduced, and the problem is solved with epoch-based consensus (usually a Paxos variant). Paxos is the only known completely-safe & largely-live fault-tolerant consensus algorithm. 2PC is also a form of epoch-based consensus, except that in 2PC a coordinator crash blocks the whole system — the classic example of safe but not live. Paxos can even implement multi-dimensional successive epochs by changing the partial order on rounds from < to divisibility, thereby also covering the functionality of 2PC.
 
-如果再把单值共识推广到序列共识（在分布式存储中更常用，因为log-structured store的写操作是一个append-only序列，而非单值），则从Paxos进化为某种Multi-Paxos，或Raft。Raft本质上解决了复制状态机问题，而序列共识问题恰好可以归约为复制状态机问题。
+If we further generalize single-value consensus to sequence consensus (more common in distributed storage, because writes to a log-structured store are an append-only sequence rather than a single value), Paxos evolves into some form of Multi-Paxos, or Raft. Raft essentially solves the replicated state machine problem, and the sequence consensus problem happens to reduce to the replicated state machine problem.
 
-如果再考虑拜占庭失败，则需BFT、PBFT、PoW。
+If Byzantine failures are also considered, then BFT, PBFT, or PoW are required.
 
 ## Performance Engineering
-性能的重要性毋庸置疑，端上应用（语音识别、智能客服）的延迟够不够低直接决定项目是否成立，而大规模的IDC应用(搜广推、存储、在线推理、训练)的吞吐性能则直接和金钱与环保挂钩。
+The importance of performance is beyond doubt: whether the latency of on-device applications (speech recognition, intelligent customer service) is low enough directly determines whether a project is viable at all, while the throughput of large-scale IDC applications (search, ads and recommendation, storage, online inference, training) is directly tied to money and environmental impact.
 
-计算系统的性能与分布式密不可分。因为几乎所有计算系统都是分布式的，包括单机，单卡，单设备，因为单机（in-node）仍然有网络结构，比如NVLink和NVSwitch，甚至Xeon CPU都是众核通过总线连起来的，网卡、SSD等设备，拆开来看都是网联设备（networked device）。通过分区、并行、软硬件协同、减少不必要的分层获取性能的方法是普适的。
+The performance of computing systems is inseparable from distribution, because almost every computing system is distributed — including a single machine, a single GPU, or a single device. A single machine (in-node) still has a network structure, such as NVLink and NVSwitch; even a Xeon CPU is many cores connected by a bus, and devices like NICs and SSDs, once opened up, are all networked devices. The methods for gaining performance through partitioning, parallelism, hardware-software co-design, and removing unnecessary layers are universal.
 
-如果存在基线，性能工程的主要工作就是优化、迭代，和渐进式创新。
-当基线不够好时，性能工程(performance engineering)是发散的：跨越层次的，不同抽象层次、不同的模块都有可能成为瓶颈，不应存在优化盲点，必要时还需反分层，比如将整个IO路径放到用户态，比如暴露hypervisor状态给vm以便高效调度。
-当基线已经非常好时，性能路径(performance path)则是收敛的：明确指向软硬件协同，毕竟性能最终来源于对硬件资源的量体裁衣和极限压榨，如果协同也足够好，那就只能指向硬件更新：更大更强的N卡、TPUv4这样的DSA、OCS这样的光学路由以及更进一步的AI DC建设。
+If a baseline exists, the main work of performance engineering is optimization, iteration, and incremental innovation.
+When the baseline is not good enough, performance engineering is divergent: it spans layers — bottlenecks can appear at any abstraction level, in any module, so there should be no optimization blind spots; when necessary, de-layering is required, such as moving the entire IO path into userspace, or exposing hypervisor state to the VM for efficient scheduling.
+When the baseline is already very good, the performance path converges: it points clearly at hardware-software co-design. After all, performance ultimately comes from tailoring to hardware resources and squeezing them to the limit; if co-design is also good enough, the only direction left is hardware upgrades: bigger and stronger NVIDIA cards, DSAs like TPUv4, optical routing like OCS, and further AI DC build-out.
 
-如果是全新的问题，或对已有问题产生了非凡洞察，对其施加更有效结构，就产生了新的架构，新的计算和IO形态：
-- 大模型时代来临后，模型参数本身就已经放不进顶级的GPU，更不用说神经网络计算所需的额外内存了，这就使原本在系统效率和正确性之间平衡的非常好的Parameter Server架构面临挑战，不得不用全新的架构和策略解决大模型训练的问题：Node内（8卡组一个Node）的权重切分和模型并行，算子内的数据和指令并行，子图切分、算子摆布和流水线并行（8个Node做8级流水）、16组8*8做Batch16的数据并行，于是产生了Alpa over Ray训练大模型的解决方案。这又间接导致带宽需求激增，以至于需要Google的光学交换机OCS这样的网络解决方案，避免光电模块和解析报文计算的开销——光交换劣势在于切换慢，但训练周期里数据交换的主要流量路由是固定的，用来建设AI DC正好规避了这个缺点。
-- KVM的作者根据hypervisor在NUMA系统上的性能瓶颈的经验，很容易就发现应用层共享内存的并行模型是有缺陷的，在众核时代尤其严重，因此创造了seastar。利用hardware locality，避免线程切换、数据拷贝、NUMA远端内存访问，对访存密集型CPU-bound应用来说，是非常重要的性能路径。
+If the problem is brand new, or someone gains an extraordinary insight into an existing problem and imposes a more effective structure on it, a new architecture — a new form of computation and IO — is born:
+- After the advent of the large-model era, the model parameters alone no longer fit into a top-tier GPU, let alone the extra memory required for neural network computation. This challenged the Parameter Server architecture, which had struck a very good balance between system efficiency and correctness, and forced entirely new architectures and strategies for large-model training: weight sharding and model parallelism within a Node (8 GPUs forming one Node), data and instruction parallelism within operators, subgraph partitioning, operator placement and pipeline parallelism (8 Nodes forming an 8-stage pipeline), and data parallelism with Batch16 across 16 groups of 8×8 — which produced the Alpa-over-Ray solution for training large models. This in turn indirectly caused bandwidth demand to surge, to the point of requiring network solutions like Google's optical circuit switch OCS, which avoids the overhead of optical-electrical modules and packet-parsing computation — the downside of optical switching is slow reconfiguration, but during a training cycle the main traffic routes for data exchange are fixed, so building an AI DC with it neatly sidesteps this weakness.
+- Based on experience with hypervisor performance bottlenecks on NUMA systems, the author of KVM readily saw that the application-layer shared-memory parallel model is flawed — especially severe in the many-core era — and therefore created seastar. Exploiting hardware locality and avoiding thread switching, data copies, and NUMA remote memory access is a critical performance path for memory-access-intensive, CPU-bound applications.

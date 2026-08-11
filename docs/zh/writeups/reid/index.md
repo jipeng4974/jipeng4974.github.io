@@ -1,4 +1,4 @@
-# Semantic Depth & Music Re-ID
+# 语义深度和音乐识别
 
 > 本文提出语义深度指标，从归纳偏置、数据驱动、性能工程、级联排序等角度讨论Music Re-ID。
 

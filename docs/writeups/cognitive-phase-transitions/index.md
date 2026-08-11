@@ -1,6 +1,6 @@
 # Cognitive Phase Transitions
 
-> 人类智能价值穿越周期的不变量，是认知相变能力。
+> The invariant of human intelligence's value across cycles is the capacity for cognitive phase transitions.
 
 ---
 
@@ -8,66 +8,66 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-## 为什么谈论usefulness？
-当我们讨论智能系统时，如果热衷于谈论usefulness，似乎太过功利冷酷刻薄，优绩主义，缺乏人文关怀。
-但完全不谈论usefulness，对客观度量人类智能和LLM讳莫如深，更是一种怯懦畏战。
+## Why talk about usefulness?
+When we discuss intelligent systems, being enthusiastic about usefulness seems overly utilitarian, cold, and harsh — meritocratic, lacking humanistic care.
+But refusing to talk about usefulness at all, being evasive about objectively measuring human intelligence and LLMs, is even more a form of cowardice.
 
-LLM是否有意识，主观体验是否可能产生于硅基计算过程、甚至抽象计算过程等命题，无法回答，也不可知。
+Whether LLMs are conscious, whether subjective experience can arise from silicon-based computation or even from abstract computation — these propositions cannot be answered and are unknowable.
 
-甚至我们无法100%确定其他人类是否真正拥有意识，也无法确定自己的主观体验是事后解释性的还是具有自主决策能力的，甚至无法严格证明昨天的自己和今天的自己拥有连续的主观体验。
+We cannot even be 100% certain that other humans truly possess consciousness, cannot determine whether our own subjective experience is post-hoc rationalization or has autonomous decision-making power, and cannot even rigorously prove that yesterday's self and today's self share a continuous subjective experience.
 
-我们能100%确定的是无论是人类智能，还是LLM，抑或是未来某种世界模型，都某种程度上是有用的。
+What we can be 100% certain of is that human intelligence, LLMs, or some future world model are all, to some degree, useful.
 
-Usefulness 是我们唯一能够跨 substrate、跨 consciousness、跨 architecture 直接观察和比较的量。
+Usefulness is the only quantity we can directly observe and compare across substrate, across consciousness, across architecture.
 
-因此不妨把绑定伦理包袱的意识问题和智能评估问题分离，用usefulness这一客观指标评估人类智能。
+So we might as well separate the consciousness question — with all its ethical baggage — from the question of intelligence evaluation, and assess human intelligence with the objective metric of usefulness.
 
-## 理解是不连续的
+## Understanding is discontinuous
 
-无论是人脑还是 LLM，对复杂系统的理解都不是不连续的，时而跳变，时而撞墙放弃。
+Whether it is the human brain or an LLM, understanding of complex systems is never smooth and continuous — it jumps at times, and at times it hits a wall and gives up.
 
-比如学 Rust，没办法囫囵吞枣，也无法严格循序渐进——所有权、生命周期、借用检查、`unsafe`、async 运行时、宏系统这些机制彼此纠缠，必须同时把它们都推进到某个临界深度，才会"boom"一下进入掌握状态。研究音乐检索时也一样：信息检索、表征学习、信号处理、对比学习几条线相互咬合，sampler、triplet loss、数据增强的设计互为约束，把它们拆开单独看，意义就消失了——它们只在作为整体服务于同一个目标时，才显示出存在的理由。投资、创业、战争、地缘政治，亦然。
+Take learning Rust: you cannot swallow it whole, nor can you proceed strictly step by step — ownership, lifetimes, the borrow checker, `unsafe`, the async runtime, the macro system are all entangled with one another, and you must push every one of them past some critical depth simultaneously before — boom — you enter a state of mastery. The same was true when I was researching music retrieval: information retrieval, representation learning, signal processing, and contrastive learning interlock; the design of samplers, triplet loss, and data augmentation constrain one another. Pulled apart and examined in isolation, their meaning vanishes — they only justify their existence when serving the same goal as a whole. Investing, entrepreneurship, war, geopolitics — the same holds.
 
-> 行百里者半九十。当你实际上已经熟悉 90% 的子系统时，对系统整体的掌握可能才到 50%；但只要再往前走一步，就会有 aha moment。
+> He who walks a hundred li counts ninety as only halfway. When you are already familiar with 90% of the subsystems, your grasp of the system as a whole may still be at only 50%; but take one more step forward, and the aha moment arrives.
 
-这是理解的相变特征：临界点之前，投入的努力几乎不产生可观测的能力提升；越过临界点，能力以非线性的方式跳变。对人类来说，君子豹变既需要一定天资，更需要投入大量能量和时间。对 LLM 来说，AGI不仅意味着算力、数据规模scale up，还需要模型架构、训练方法、存算/互连硬件上的革新乃至革命——而革新和革命本身，天然具有不连续性。
+This is the phase-transition character of understanding: before the critical point, the effort you invest produces almost no observable gain in capability; past the critical point, capability jumps nonlinearly. For humans, such a leopard-like transformation requires a certain natural aptitude, and even more, an enormous investment of energy and time. For LLMs, AGI means not only scaling up compute and data, but also innovation — even revolution — in model architecture, training methods, and memory/interconnect hardware — and innovation and revolution are inherently discontinuous.
 
-无论智能的载体是碳还是硅，"理解的不连续性"都是根本约束。
+Whether the substrate of intelligence is carbon or silicon, the discontinuity of understanding is a fundamental constraint.
 
-我们可能会看到，在经过漫长的绝望之野后，LLM路线涌现出AGI、ASI。也有可能会逐渐意识到，跨越这绝望之野所需的能源、物质基础，超越了地球文明能供养的上限。
+We may see AGI and ASI emerge from the LLM route after a long wilderness of despair. Or we may gradually come to realize that the energy and material foundation required to cross that wilderness exceeds the upper limit of what Earth's civilization can sustain.
 
-## 命定的认知孤峰化
+## Cognition is destined to form solitary peaks
 
-理解的不连续性，决定了智能体之间在复杂命题上极易产生认知鸿沟。而跨越鸿沟，会撞上第二条根本约束：沟通本身极其低效。
+The discontinuity of understanding dictates that agents easily develop cognitive gulfs between them on complex problems. And crossing the gulf runs into a second fundamental constraint: communication itself is extremely inefficient.
 
-相比理解的速度，人类向外输出信息的方式 comically 原始——打字、说话，每秒传出的有效比特，比头脑中每秒流过的比特低了好几个数量级。这是发送端的硬上限。
+Compared to the speed of understanding, the ways humans output information are comically primitive — typing, speaking; the effective bits transmitted per second are orders of magnitude lower than the bits flowing through the mind each second. This is a hard ceiling on the sending side.
 
-接收端更糟。无法保证每个接收者都有足够的前置理解、足够的意愿、足够的耐心去重建你想传达的那个结构。在神经典型主导的环境中，你还得审慎地包装、克制地批判，不能毫无保留地忠于事实和逻辑——这又额外吃掉一部分带宽。
+The receiving side is worse. There is no guarantee that each receiver has sufficient prerequisite understanding, sufficient willingness, and sufficient patience to reconstruct the structure you are trying to convey. And in environments dominated by the neurotypical, you must also package your words carefully and criticize with restraint — you cannot be unreservedly faithful to facts and logic — which eats up yet another portion of the bandwidth.
 
-比发送、接收更离谱的是，**复杂认知结构的序列化成本极高**，知识体系本来就是纠缠不清，难以用文字表示的。
+More absurd than sending and receiving: **the serialization cost of complex cognitive structures is extremely high**. Bodies of knowledge are inherently tangled and difficult to express in words.
 
-三者叠加的结果是：不存在高效的认知同步，也不存在高效的知识迁移。复杂系统、尖端技术的理解和内化，命定是孤峰化的。
+The three factors compound into this result: there is no efficient cognitive synchronization, and no efficient knowledge transfer. Understanding and internalizing complex systems and cutting-edge technology is destined to be a solitary-peak affair.
 
-## 认知孤峰不会被 LLM 抹平
+## LLMs will not flatten the solitary cognitive peaks
 
-很多人对 AI 抱有的隐含期待是：模型足够强之后，人与人之间、人与系统之间的认知差距会被抹平，知识会像水一样流动。
+Many people hold an implicit expectation about AI: once models are strong enough, the cognitive gaps between people, and between people and systems, will be flattened, and knowledge will flow like water.
 
-但前两节的论证指向相反的结论。理解的不连续性使认知鸿沟天然存在；沟通带宽的物理上限使鸿沟无法靠"多解释几遍"弥合。LLM 改变了信息检索、coding、影视创作工作流，却没有改变这两条底层约束——它甚至放大了第二条：当生成内容的边际成本趋近于零，接收端的注意力反而成了更稀缺的资源，知识的转化率进一步下降。
+But the arguments of the previous two sections point to the opposite conclusion. The discontinuity of understanding makes cognitive gulfs a natural given; the physical ceiling on communication bandwidth makes them impossible to bridge by "explaining a few more times." LLMs have changed the workflows of information retrieval, coding, and film and video creation, but they have not changed these two underlying constraints — they have even amplified the second one: when the marginal cost of generated content approaches zero, the receiver's attention becomes an even scarcer resource, and the conversion rate of knowledge drops further.
 
-认知孤峰，不会随 LLM 的普及而展平。它们会以新的形态继续存在，甚至更陡峭。
+The solitary cognitive peaks will not be flattened by the spread of LLMs. They will persist in new forms — perhaps even steeper.
 
-## 百折不挠的学习者们不必沮丧
-很多学生或学习者这两年是沮丧的：模型几秒钟就能写出他们一学期才学会写的东西，AI Agent几分钟就能搞定原本几个月才能搭好的系统，不仅自己的努力像是在贬值，人类智能也像是贬值——个体的意义感塌陷和群体的大军团溃退共鸣。
+## Persistent learners need not despair
+Many students and learners have been discouraged these past two years: a model writes in seconds what took them a whole semester to learn to write, and an AI Agent finishes in minutes a system that would originally have taken months to build. Not only does their own effort seem to be depreciating — human intelligence itself seems to be depreciating. The collapse of an individual's sense of meaning resonates with the rout of the collective legions.
 
-但这种沮丧的前提是错的。学习的价值，不在于"我能不能比模型更快地产出某个工件，解决某个已知问题"，而是"我能不能让自己成为一座认知孤峰"，在时空坐标系中，和其他孤峰遥相呼应，在此世被后世被一言以蔽之时，成为一个特征点，而非噪点。
+But the premise behind this discouragement is wrong. The value of learning does not lie in "can I produce some artifact or solve some known problem faster than a model," but in "can I make myself a solitary cognitive peak" — echoing with other peaks from afar in the spacetime coordinate system, and when this world and posterity sum you up in a single phrase, becoming a feature point rather than a noise point.
 
-本世代模型能逼近平均水平，但越靠近已知世界的边界，训练数据越稀薄、监督信号越嘈杂、错误越难被发现——边界附近，模弱，人强。
+Current-generation models can approach the average level, but the closer you get to the boundary of the known world, the sparser the training data, the noisier the supervision signal, and the harder errors are to detect — near the boundary, models are weak and humans are strong.
 
-## 人类智能价值穿越周期的不变量
-在一个 LLM "看起来什么都会"的世界里，人类智能真正稀缺、持续构成护城河的那部分可以归纳为：
+## The invariant of human intelligence's value across cycles
+In a world where LLMs "seem to know everything," the part of human intelligence that is truly scarce and continues to constitute a moat can be summarized as:
 
-- 能探索已知和神秘之间的临界区域：在LLM统治大地和海洋后，人类要征服制高点，飞向天空，创造新的知识。
-- 能在低带宽信道上高效保真地传递知识：虽然绝对意义上的高效知识迁移不存在，但相对意义上的优秀知识传递者仍极其稀缺。
-- 能将认知高度与商业世界的真实价值结构绑定：让有用的认知系统稳定、有效地发挥作用。
+- The ability to explore the critical region between the known and the mysterious: after LLMs come to rule the land and the sea, humans must conquer the commanding heights, fly into the sky, and create new knowledge.
+- The ability to transmit knowledge efficiently and with high fidelity over low-bandwidth channels: although absolutely efficient knowledge transfer does not exist, relatively excellent transmitters of knowledge remain extremely scarce.
+- The ability to bind cognitive height to the real value structures of the commercial world: letting useful cognitive systems function stably and effectively.
 
-这么归纳下来仍显得拖沓冗余，无美感趣味可言，最后暴力压缩成一句：**人类智能价值穿越周期的不变量，是认知相变能力。**
+Summarized this way, it still feels verbose and redundant, without any aesthetic elegance — so let me violently compress it into one sentence: **The invariant of human intelligence's value across cycles is the capacity for cognitive phase transitions.**

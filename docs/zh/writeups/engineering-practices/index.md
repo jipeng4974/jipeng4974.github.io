@@ -1,4 +1,4 @@
-# Idiomatic Practices in C++ Systems Engineering
+# C++系统工程范式
 
 > 本文总结当下我认为比较好的C++系统工程范式。
 

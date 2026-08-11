@@ -1,5 +1,5 @@
 +++
-title = "Recommender Systems"
+title = "推荐系统"
 date = "2025-01-22"
 tags = ["ai", "sys", "ai-assisted"]
 description = "借助DeepSeek R1读论文，梳理推荐系统。"

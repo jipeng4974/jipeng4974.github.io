@@ -1,6 +1,6 @@
 # Reflecting on a Wake-up
 
-> 记黎明前的一次醒来。
+> Notes on a moment of waking before dawn.
 
 ---
 
@@ -8,30 +8,30 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-半醒时分，趁着对苏醒过程的记忆还在，赶忙将一些思绪和明悟记录如下：
+In the half-awake state, while my memory of the waking process was still fresh, I hurried to record some thoughts and insights as follows:
 
-人体是一个物理计算机。正如热力学计算机、量子计算机一样。
+The human body is a physical computer — just like thermodynamic computers and quantum computers.
 
-睡眠是意识的暂停。
+Sleep is the suspension of consciousness.
 
-将醒未醒时，神经网络逐渐被激活。
+In the moment between sleep and waking, the neural network is gradually activated.
 
-睡梦本质上是刚刚通电时，尚未完全的逻辑能力和记忆作用下的产物。
+Dreams are essentially the product of not-yet-fully-online logical capacity working on memory at the moment the power first comes on.
 
-意识即连贯且活跃的主观体验生成过程。
+Consciousness is the continuous and active process of generating subjective experience.
 
-记忆是主观体验的append-only历史记录。
+Memory is an append-only historical record of subjective experience.
 
-睡梦中缺乏五感输入，但主观体验生成过程仍在运转，正如transformer基于过去的tokens预测下一个token，我们的大脑基于过去的主观体验预测下一个瞬间的主观体验。以至于睡梦中有视觉，有听觉，有对话，有剧情，有复杂场景，有奇怪的逻辑，有种种恐惧和欣喜。
+In dreams there is no input from the five senses, yet the subjective-experience generation process keeps running. Just as a transformer predicts the next token from past tokens, our brain predicts the next moment's subjective experience from past subjective experience. That is why dreams have vision, sound, dialogue, plots, complex scenes, strange logic, and all kinds of fear and delight.
 
-连通长期记忆的瞬间，似乎逻辑能力也复活了。
+The moment long-term memory reconnects, logical ability seems to come back to life as well.
 
-每一次睡眠都是连贯意识的一次死亡。随着生物电的中断、开启，新一天的新生意识替代了昨日的意识。自我是迭代的。自我的维持全部仰赖神经元的自组织，这显然是一种无比脆弱的持久化机制。对温度、压强、磁场都有极端苛刻要求的，远离平衡态的，耗散结构。
+Every sleep is a death of the continuous consciousness. As the bioelectric activity switches off and back on, the newborn consciousness of a new day replaces yesterday's. The self is iterative. Its maintenance depends entirely on the self-organization of neurons — clearly an extraordinarily fragile persistence mechanism: a dissipative structure, far from equilibrium, with extreme demands on temperature, pressure, and magnetic fields.
 
-小时候自己也有一种醒来的感觉。意识忽然从蒙昧中苏醒。觉得过去的自己浑浑噩噩。具体的时间点和那个时间段的记忆已经全然模糊，但这种苏醒感和年幼的喟叹铭刻在了长期记忆中。
+When I was a child, I also had a feeling of waking up. Consciousness suddenly awoke from ignorance, and my past self seemed muddled and dull. The exact moment and the memories of that period have faded completely, but that sense of awakening and that childish sigh are engraved in my long-term memory.
 
-睡梦是反理性时刻，接近幻觉体验，反而突破常规，相当于llm的temperature参数（采样温度）被调高了。主观体验中也包含一小部分抽象和理性，跳脱的抽象和理性就成为灵感之源。
+Dreams are anti-rational moments, close to hallucinatory experience, and precisely because they break with convention, they are like an LLM whose temperature parameter (sampling temperature) has been turned up. Subjective experience also contains a small portion of abstraction and rationality; the free-wheeling kind of abstraction and rationality becomes the source of inspiration.
 
-中国文化（诸夏人种）的一丝丝跳脱，来源于周庄梦蝶，这是最朴素的幻觉形式。人类的另一分支，雅利安文化（印欧人种）起源区域则有葡萄酒和大麻，酒精和毒品的致幻作用奠定了西方和印度文化中的强烈宗教色彩。大冰期后出现的东方早期聚落则完全不产葡萄酒和大麻，以至于从一开始就是远离愚昧的理性文明，是人类文明中的世俗化异类，当然缺点就是过于理性，缺了一些狂想、傲慢、疯狂和跳脱。
+The slight streak of free-wheelingness in Chinese culture (the Zhuxia peoples) comes from Zhuangzi's butterfly dream — the most primitive form of hallucination. The regions where the other branch of humanity, Aryan culture (the Indo-European peoples), originated had wine and cannabis; the hallucinogenic effects of alcohol and drugs laid down the strong religious coloring of Western and Indian cultures. The early eastern settlements that emerged after the Great Ice Age produced neither wine nor cannabis at all, so from the very beginning this was a rational civilization far removed from ignorance — a secular outlier among human civilizations. The downside, of course, is being overly rational, lacking some wild fancy, arrogance, madness, and free-wheelingness.
 
-不要高估理性，不要高估意识，归根到底只是主观体验生成器，基于上N帧预测下一帧，很容易陷入低采样温度的呆板和可预测。
+Do not overestimate rationality; do not overestimate consciousness. In the end it is just a subjective-experience generator, predicting the next frame from the previous N frames — it easily falls into the rigidity and predictability of a low sampling temperature.

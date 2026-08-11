@@ -1,6 +1,6 @@
 # DSpark
 
-> DSpark：低秩bigram赎回块内依赖，置信度head给验证长度做admission control。
+> DSpark: a low-rank bigram table buys back intra-block dependencies, and a confidence head applies admission control to verification length.
 
 ---
 
@@ -8,76 +8,76 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-投机解码的每个token平均延迟是$L = (T_{draft} + T_{verify}) / \tau$，$\tau$是每轮接受的token数。DSpark的工作[^1]（代码在DeepSpec[^2]）围绕公式中的三个变量展开：它修正了并行drafter的依赖缺失（提$\tau$而不涨$T_{draft}$），又把验证长度从静态超参变成了一个每步求解的资源分配问题（降有效$T_{verify}$）。后者本质上是把serving系统的负载信息反馈进了算法层。
+The average per-token latency of speculative decoding is $L = (T_{draft} + T_{verify}) / \tau$, where $\tau$ is the number of tokens accepted per round. The DSpark paper[^1] (code in DeepSpec[^2]) is organized around the three variables in this formula: it fixes the missing dependency modeling of parallel drafters (raising $\tau$ without increasing $T_{draft}$), and turns verification length from a static hyperparameter into a resource-allocation problem solved at every step (lowering the effective $T_{verify}$). The latter essentially feeds load information from the serving system back into the algorithm layer.
 
-## 两难
+## The Dilemma
 
-自回归drafter（EAGLE系[^3]）逐token串行起draft，$T_{draft} \propto \gamma$，像一条很短但级数不可省的串行流水线。只能用小$\gamma$，为补偿接受率又引入tree attention验证，大量候选token白白占用target的batch容量。
+Autoregressive drafters (the EAGLE family[^3]) draft serially, token by token, so $T_{draft} \propto \gamma$ — like a very short serial pipeline whose stages cannot be skipped. You are forced into a small $\gamma$, and to compensate for the acceptance rate you bring in tree-attention verification, where large numbers of candidate tokens occupy the target's batch capacity for nothing.
 
-并行drafter（Medusa[^4]/DFlash[^5]系）单次前向输出全部$\gamma$个位置，$T_{draft}$与块长无关。但各位置独立预测、块内无依赖建模，产生multi-modal collision：context同时允许"of course"和"no problem"时，并行预测可能拼出"of problem"。表现为接受率沿块快速衰减（suffix decay），$\gamma$越大浪费越多。
+Parallel drafters (the Medusa[^4]/DFlash[^5] family) emit all $\gamma$ positions in a single forward pass, so $T_{draft}$ is independent of block length. But each position is predicted independently, with no intra-block dependency modeling, which produces multi-modal collisions: when the context admits both "of course" and "no problem", parallel prediction can stitch together "of problem". The symptom is an acceptance rate that decays rapidly along the block (suffix decay) — the larger $\gamma$, the greater the waste.
 
-还有一个被忽视的系统维度：固定长度验证在真实serving下不是最优。最优验证长度沿两个轴变化——
+There is also a neglected systems dimension: fixed-length verification is not optimal under real serving. The optimal verification length varies along two axes —
 
-- 数据轴：code的接受率天然高于开放式chat；
-- 系统轴：轻载时多验证几个token近乎免费；重载时验证注定被拒的token会挤占其他请求的batch容量。生产上MTP只用1个token，原因正在于此。
+- the data axis: code naturally has a higher acceptance rate than open-ended chat;
+- the system axis: under light load, verifying a few extra tokens is nearly free; under heavy load, verifying tokens that are doomed to be rejected steals batch capacity from other requests. This is exactly why MTP uses only 1 token in production.
 
-## 半自回归
+## Semi-Autoregressive
 
-DSpark的draft分两阶段。Parallel stage是DFlash的骨架：5层块并行backbone，输入`[anchor_token, mask×(γ-1)]`，单次前向、块内双向注意力（`is_causal=False`），产出全部$\gamma$个位置的hidden和base logits。关键机制是KV injection：prefill时取target多个中间层hidden states拼接投影，注入每层draft注意力的K/V——context位置的K/V由target特征算出而非draft自身历史，相当于把target的中间表征线性读出后当作draft的外置记忆。draft与target共享embedding和LM head，均冻结。
+DSpark's draft has two stages. The parallel stage is DFlash's skeleton: a 5-layer block-parallel backbone that takes `[anchor_token, mask×(γ-1)]` as input, runs a single forward pass with bidirectional intra-block attention (`is_causal=False`), and produces the hidden states and base logits for all $\gamma$ positions. The key mechanism is KV injection: at prefill time, hidden states from several intermediate layers of the target are concatenated, projected, and injected into the K/V of every draft attention layer — the K/V at context positions is computed from target features rather than from the draft's own history, which amounts to linearly reading out the target's intermediate representations and using them as external memory for the draft. The draft shares the embedding and LM head with the target; both are frozen.
 
-Sequential stage是一个低秩Markov head，在base logits上叠加依赖已采样前缀的转移bias：
+The sequential stage is a low-rank Markov head that adds a transition bias, conditioned on the already-sampled prefix, on top of the base logits:
 
 $$p_k(v \mid x_0, x_{<k}) = \mathrm{softmax}\bigl(U_k(v) + B(x_{k-1}, v)\bigr), \qquad B = W_1 W_2,\; r=256$$
 
-推理时从左到右走$\gamma$步廉价循环：每步用上一个采出的token查`W_1[x_{k-1}]`算bias、修正logits、采样。逐token概率仍是精确softmax——这是rejection sampling无损性的前提，也是它和CRF-NAT（全局配分函数给不出精确per-token概率）、CTC（只能greedy）的分界线。
+At inference time it runs a cheap left-to-right loop of $\gamma$ steps: each step looks up `W_1[x_{k-1}]` with the previously sampled token to compute the bias, adjusts the logits, and samples. The per-token probabilities are still exact softmaxes — this is the precondition for the losslessness of rejection sampling, and the dividing line between it and CRF-NAT (whose global partition function cannot yield exact per-token probabilities) and CTC (greedy only).
 
-效果：重型依赖建模只并行做一次，串行依赖被压成一张$V \times V$低秩bigram表。$T_{draft}$几乎不变（实测比DFlash仅+0.2%-1.3%整轮延迟），suffix decay显著缓解。论文还给了一个GRU式RNN head，仅长proposal有边际收益，部署默认Markov——这个取舍很工程。
+The effect: heavy dependency modeling is done once, in parallel, and the serial dependency is compressed into a low-rank $V \times V$ bigram table. $T_{draft}$ barely changes (measured at only +0.2%-1.3% whole-round latency over DFlash), and suffix decay is significantly mitigated. The paper also provides a GRU-style RNN head, which brings only marginal gains on long proposals; deployment defaults to Markov — a very engineering-minded trade-off.
 
-## 置信度即准入
+## Confidence as Admission
 
-Confidence head就是单个线性层，每位置输出标量$c_k$，建模条件存活概率（前$k-1$个全被接受的条件下第$k$个被接受的概率）。监督信号是解析的：逐步接受率恰好等于$1 - \tfrac{1}{2}\|p_d - p_t\|_1$，直接BCE训练，无需额外标注。神经置信度系统性过自信，post-hoc用逐位置温度缩放（STS）校准累积乘积的ECE，从3%-8%降到1%；温度缩放保序，不破坏token排序。
+The confidence head is a single linear layer that outputs a scalar $c_k$ per position, modeling the conditional survival probability (the probability that the $k$-th token is accepted given that all of the previous $k-1$ were accepted). The supervision signal is analytic: the per-step acceptance rate is exactly $1 - \tfrac{1}{2}\|p_d - p_t\|_1$, so it is trained directly with BCE, no extra labeling needed. Neural confidence is systematically overconfident, so post-hoc per-position temperature scaling (STS) calibrates the ECE of the cumulative product, from 3%-8% down to 1%; temperature scaling is order-preserving and does not disturb the token ranking.
 
-调度侧，问题被形式化为全局吞吐最大化。$R$个活跃请求，前缀存活概率$a_{r,j} = \prod_{i \le j} c_{r,i}$，验证batch token数$B = \sum_r (1+\ell_r)$，期望接受数$\tau = \sum_r (1 + \sum_j a_{r,j})$。引擎初始化时profile一次实测SPS(B)（steps/s vs batch size，一张轻量cost table），目标是
+On the scheduling side, the problem is formalized as global throughput maximization. With $R$ active requests, prefix survival probabilities $a_{r,j} = \prod_{i \le j} c_{r,i}$, verification batch token count $B = \sum_r (1+\ell_r)$, and expected accepted tokens $\tau = \sum_r (1 + \sum_j a_{r,j})$. At engine startup, SPS(B) is profiled once (steps/s vs. batch size — a lightweight cost table), and the objective is
 
 $$\max\; \Theta = \tau \cdot \mathrm{SPS}(B)$$
 
-——多验证一个token的期望收益，和batch变大后SPS下降的边际成本，放进同一个目标里权衡。算法：全部候选token按置信度全局降序贪心准入，$\Theta$不再提升时early-stop。
+— the expected benefit of verifying one more token and the marginal cost of SPS declining as the batch grows are weighed inside a single objective. The algorithm: greedily admit all candidate tokens in globally descending order of confidence, and early-stop when $\Theta$ no longer improves.
 
-对我这种做系统出身的人来说，这就是admission control：带收益模型的准入决策，cost function是实测的SPS曲线，每个decode step做一次轻量的全局资源分配。DFlash/EAGLE之争则是宽而浅的单发射对窄而深的多发射，DSpark用低秩表把串行依赖的代价压到了接近零。
+To someone from a systems background like me, this is admission control: admission decisions with a revenue model, a cost function given by the measured SPS curve, and a lightweight global resource allocation performed once per decode step. The DFlash/EAGLE debate, meanwhile, is wide-and-shallow single-issue versus narrow-and-deep multi-issue, and DSpark uses a low-rank table to push the cost of serial dependency to nearly zero.
 
-## 因果屏障
+## The Causality Barrier
 
-$c_{k+1}$依赖已采样token $x_k$的具体取值，所以"是否验证第$k+1$个token"的决策若泄漏了$x_k$的取值就会引入selection bias。附录A给了具体反例：构造下回顾式调度使输出分布从$(0.7, 0.3)$变成$(0.85, 0.15)$，不再lossless。Early-stopping使截断决策只依赖决策点之前的前缀信息（non-anticipating），恢复严格无损。
+$c_{k+1}$ depends on the actual value of the sampled token $x_k$, so a decision about whether to verify the $(k+1)$-th token that leaks the value of $x_k$ introduces selection bias. Appendix A gives a concrete counterexample: a constructed hindsight-based scheduler shifts the output distribution from $(0.7, 0.3)$ to $(0.85, 0.15)$, no longer lossless. Early-stopping makes the truncation decision depend only on prefix information available before the decision point (non-anticipating), restoring strict losslessness.
 
-生产部署（DeepSeek-V4）还有一层异步改造：理论算法假设SPS平滑单峰，真实SPS(B)是离散阶梯，且Zero-Overhead Scheduling要求当前step结束前已知下一step的batch size。做法是用两步之前的置信度估计验证容量$K$，转化为dynamic top-K选择，去掉break做全局搜索以跨越SPS悬崖。决策只基于两步前的历史，天然形成因果屏障，无损性得以保留。变长验证kernel则把batch内所有token flatten成独立元素统一处理，序列内依赖通过sparse attention里的marker tensor传达，只需改index-attention和compress两个kernel。
+The production deployment (DeepSeek-V4) adds an asynchronous adaptation: the theoretical algorithm assumes SPS is smooth and unimodal, but real SPS(B) is a discrete staircase, and Zero-Overhead Scheduling requires the next step's batch size to be known before the current step ends. The approach is to estimate the verification capacity $K$ using confidence from two steps earlier, turning the problem into dynamic top-K selection, and to drop the break in favor of a global search so it can cross SPS cliffs. Decisions are based only on history from two steps back, which naturally forms a causality barrier and preserves losslessness. The variable-length verification kernel flattens all tokens in the batch into independent elements processed uniformly; intra-sequence dependencies are conveyed through a marker tensor in the sparse attention, requiring changes to only two kernels: index-attention and compress.
 
-## target不进GPU
+## The Target Never Touches the GPU
 
-训练侧的一个漂亮取舍：target全程冻结且不在GPU上。先离线跑target抓多层hidden states写target cache（自定义二进制格式，mmap随机读，4B模型默认配置约38TB磁盘），训练只读cache；target分布由target最后一层hidden过共享lm_head重建。
+An elegant trade-off on the training side: the target stays frozen throughout and is never on the GPU. The target is first run offline to capture multi-layer hidden states into a target cache (a custom binary format, randomly read via mmap, about 38TB of disk for a 4B model with the default configuration), and training only reads the cache; the target distribution is reconstructed by passing the target's last-layer hidden states through the shared lm_head.
 
-每条序列随机采512个anchor位置，各构造7-token块，pack成稠密batch；注意力mask用flex_attention的`create_block_mask`表达：块内双向、跨块隔离、可attend各自anchor之前的context。三项loss按位置指数衰减加权$w_k = \exp(-(k-1)/\gamma)$：
+Each sequence randomly samples 512 anchor positions, builds a 7-token block for each, and packs them into a dense batch; the attention mask is expressed with flex_attention's `create_block_mask`: bidirectional within a block, isolated across blocks, and able to attend to the context before its own anchor. The three losses are weighted by a position-wise exponential decay $w_k = \exp(-(k-1)/\gamma)$:
 
-- CE（0.1）：teacher-forcing逐位置交叉熵；
-- L1蒸馏（0.9）：$\|p_d - p_t\|_1$，直接优化接受率；
-- confidence BCE（1.0）：软标签是detach的$1 - \tfrac{1}{2}\|p_d - p_t\|_1$。
+- CE (0.1): teacher-forcing per-position cross-entropy;
+- L1 distillation (0.9): $\|p_d - p_t\|_1$, directly optimizing the acceptance rate;
+- confidence BCE (1.0): the soft label is the detached $1 - \tfrac{1}{2}\|p_d - p_t\|_1$.
 
-一个实现上的观察：DFlash在DeepSpec代码里不是独立模型，而是DSpark的配置特例（`markov_rank=0`、`confidence_head_alpha=0`、纯CE loss）。
+An implementation observation: in the DeepSpec codebase, DFlash is not a separate model but a special configuration of DSpark (`markov_rank=0`, `confidence_head_alpha=0`, pure CE loss).
 
-## 链式拒绝采样
+## Chain Rejection Sampling
 
-标准speculative sampling，没有tree：target对draft+1个token一次前向，`accept_prob = clamp(p_t/p_d, 1)`做cumprod得接受前缀，拒绝处从残差分布`norm(max(p_t - p_d, 0))`采样修正token，全接受则采bonus token。KV cache处理：target侧crop回滚被拒token；draft侧每轮block前向后立即crop掉noise token的K/V，只保留已接受context部分（K/V由target hidden算出，增量追加）。
+Standard speculative sampling, no tree: the target runs a single forward pass over the draft+1 tokens; `accept_prob = clamp(p_t/p_d, 1)` is cumprod-ed to obtain the accepted prefix; at the first rejection, a corrected token is sampled from the residual distribution `norm(max(p_t - p_d, 0))`; if all are accepted, a bonus token is sampled. KV cache handling: on the target side, crop rolls back the rejected tokens; on the draft side, the K/V of noise tokens is cropped immediately after each round's block forward, keeping only the accepted-context portion (K/V computed from target hidden states, appended incrementally).
 
-## 性能提升与局限
+## Performance Gains and Limitations
 
-离线（Qwen3-4B/8B/14B、Gemma4-12B，9个benchmark，平均接受长度$\tau$）：相对Eagle3 +27%-31%，相对DFlash +16%-18%；2层DSpark即超5层DFlash；$\gamma$越大优势越大，$\gamma=15$时领先DFlash 22%-30%。逐位置看，并行骨架给了很高的首位置接受率（chat 0.72 vs Eagle3 0.53——prefix-matching中首token杠杆最大），Markov head压制了后缀衰减。
+Offline (Qwen3-4B/8B/14B, Gemma4-12B, 9 benchmarks, average acceptance length $\tau$): +27%-31% over Eagle3, +16%-18% over DFlash; a 2-layer DSpark already beats a 5-layer DFlash; the larger $\gamma$, the bigger the advantage — at $\gamma=15$ it leads DFlash by 22%-30%. Position by position, the parallel backbone delivers a very high first-position acceptance rate (chat 0.72 vs. Eagle3 0.53 — the first token has the most leverage in prefix matching), while the Markov head suppresses suffix decay.
 
-在线（DeepSeek-V4-Flash/Pro preview，真实流量，对比生产基线MTP-1）：80 tok/s/user SLA下聚合吞吐+51%；吞吐匹配时单用户速度+60%-85%。负载自适应符合预期：中低并发时验证预算从静态2 token扩到4-6 token，并发饱和时平滑收缩。论文里+661%，better take it with a grain of salt[^6]。
+Online (DeepSeek-V4-Flash/Pro preview, real traffic, compared against the production baseline MTP-1): +51% aggregate throughput under an 80 tok/s/user SLA; +60%-85% single-user speed at matched throughput. The load adaptation behaves as expected: at low-to-medium concurrency the verification budget expands from a static 2 tokens to 4-6 tokens, and it shrinks smoothly as concurrency saturates. As for the +661% in the paper, better take it with a grain of salt[^6].
 
-局限同样清楚。Prefix scheduler只减少验证浪费，并行backbone生成整块的计算是沉没成本，对接受率极低的查询无法回收——论文自己提了difficulty-aware early exit作为未来方向。Early-stopping贪心的全局最优性依赖$\Theta$单峰，真实SPS锯齿状，靠异步两步前估计绕过。SPS(B)假设忽略context长度对decode延迟的影响，这个假设依赖"平均context远小于1M + PD分离负载均衡"的前提。
+The limitations are equally clear. The prefix scheduler only reduces verification waste; the parallel backbone's compute for generating the whole block is a sunk cost that cannot be recovered for queries with extremely low acceptance rates — the paper itself lists difficulty-aware early exit as future work. The global optimality of the early-stopping greedy algorithm depends on $\Theta$ being unimodal, while real SPS is sawtooth-shaped, which is worked around with the asynchronous two-steps-ahead estimate. The SPS(B) assumption ignores the effect of context length on decode latency, and this assumption rests on the premise of "average context far below 1M + PD-disaggregated load balancing".
 
 [^1]: DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation. [[arxiv]](https://arxiv.org/abs/2607.05147)
-[^2]: DeepSeek. DeepSpec: draft模型训练/评测库，含Eagle3、DFlash、DSpark. [[github]](https://github.com/deepseek-ai/DeepSpec)
+[^2]: DeepSeek. DeepSpec: a training/evaluation library for draft models, including Eagle3, DFlash, and DSpark. [[github]](https://github.com/deepseek-ai/DeepSpec)
 [^3]: EAGLE-3. [[arxiv]](https://arxiv.org/abs/2503.01840)
 [^4]: Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads. [[arxiv]](https://arxiv.org/abs/2401.10774)
 [^5]: DFlash. [[arxiv]](https://arxiv.org/abs/2602.06036)
-[^6]: 该数字出现在120 tok/s/user的严格SLA点上，此时MTP-1基线已进入低并发退化区、只能维持很小并发。论文自己也注明这应解读为"扩展了可行交互前沿"而非代表性加速比。吞吐匹配时单用户速度+60%-85%才是更诚实的数字。
+[^6]: This number appears at the strict 120 tok/s/user SLA point, where the MTP-1 baseline has already entered the low-concurrency degradation zone and can only sustain very small concurrency. The paper itself notes that this should be read as "expanding the feasible interaction frontier" rather than a representative speedup. The +60%-85% single-user speed at matched throughput is the more honest number.

@@ -1,4 +1,4 @@
-# Knowledge is Embeddings of Reality
+# 知识是现实的Embedding
 
 > 现实无限广博，无限深邃，将其嵌入我们有限的认知空间后，就形成了知识。
 

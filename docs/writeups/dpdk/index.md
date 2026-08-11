@@ -1,6 +1,6 @@
 # DPDK is All You Need
 
-> 对于访存密集的数据中心应用来说，DPDK提供了非常好的性能工程范式。
+> For memory-intensive datacenter applications, DPDK offers an excellent performance engineering paradigm.
 
 ---
 
@@ -8,43 +8,43 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-对于访存密集的数据中心应用来说，DPDK提供了非常好的性能工程范式。本文只是浅尝辄止，汇集其中一部分值得借鉴的思想。
+For memory-intensive datacenter applications, DPDK offers an excellent performance engineering paradigm. This post only scratches the surface, gathering a few of its ideas worth borrowing.
 
-## EAL：用户空间库
-EAL(Envionmemt Abstraction Layer)是DPDK面向用户的用户空间库，提供了各种有用的工具，比如：运行时对CPU特性进行检测，更适合现代硬件的内存管理，绑核和指定任务在某个核上运行。
+## EAL: The Userspace Library
+EAL (Envionmemt Abstraction Layer) is DPDK's user-facing userspace library, providing a variety of useful tools, such as runtime CPU feature detection, memory management better suited to modern hardware, and CPU pinning to run a task on a specific core.
 
-`rte_eal_init()`是初始化EAL的函数，有多平台的实现：Linux、FreeBSD、Windows。以它为例，可大致了解DPDK EAL做了哪些工作。
+`rte_eal_init()` is the function that initializes the EAL, with implementations for multiple platforms: Linux, FreeBSD, and Windows. Taking it as an example gives a rough idea of what DPDK's EAL actually does.
 
-`rte_eal_init()`是一个冗长的初始化过程，包含下列步骤：检查CPU类型是否是DPDK支持的、设置日志等级、检测各个socket上的各个cpu、enable每个逻辑核、初始化插件（加载共享库，比如一些PMD drivers）、初始化[tracing机制](https://doc.dpdk.org/guides/prog_guide/trace_lib.html)、解析各个设备的配置选项、初始化全局配置（主核id、逻辑核数、numa nodes数、iova模式[^1]、内存拓扑配置）、初始化中断处理机制、初始化多进程通用channel、扫描所有总线上的设备、初始化malloc heap、注册多进程action callbacks（热插拔支持）、初始化巨页信息[^9]、初始化内存和memzone、初始化HPET/TSC计时器[^8]、检查本地socket上的内存、创建主线程和子线程的通信信道、创建工作线程、绑核、在工作线程上启动dummy function、初始化服务、嗅探所有总线上的设备和驱动、启动服务、开启telemetry（提供ethdev stats、ethdev port list、eal parameters等状态查询）。
+`rte_eal_init()` is a lengthy initialization procedure that includes the following steps: checking whether the CPU type is supported by DPDK, setting the log level, detecting the CPUs on each socket, enabling every logical core, initializing plugins (loading shared libraries, such as some PMD drivers), initializing the [tracing mechanism](https://doc.dpdk.org/guides/prog_guide/trace_lib.html), parsing configuration options for each device, initializing the global configuration (main core id, number of logical cores, number of NUMA nodes, IOVA mode[^1], memory topology configuration), initializing the interrupt handling mechanism, initializing the multi-process common channel, scanning devices on all buses, initializing the malloc heap, registering multi-process action callbacks (for hotplug support), initializing hugepage information[^9], initializing memory and memzones, initializing the HPET/TSC timers[^8], checking the memory on the local socket, creating the communication channel between the main thread and child threads, spawning worker threads, pinning cores, starting a dummy function on the worker threads, initializing services, probing devices and drivers on all buses, starting services, and enabling telemetry (which provides status queries such as ethdev stats, ethdev port list, and EAL parameters).
 
-## 切割需要权限的工作
-DPDK程序跑在用户态的一个前提是有内核驱动帮忙处理一些硬件设备注册、中断映射的事情。Linux上有几个可用的内核驱动，比如``vfio-pci``、``igb_uio``、``uio_pci_generic``。它们是泛用的PCI内核驱动模块，对所有PCI设备均适用。``igb_uio``基于Linux UIO提供所有类型的中断支持，比较古老，也比较简单，不支持IOMMU，因此IOVA mode只能用PA mode。``uio_pci_generic``和``igb_uio``类似，不过不支持MSI和MSI-X中断。``vfio-pci``支持基于IOMMU做IOVA映射，兼容VA mode和PA mode，如果能用`vfio`，就用`vfio`，目前`uio`基本处于半废弃状态。
+## Carving Out the Privileged Work
+A prerequisite for running a DPDK program in userspace is having a kernel driver that helps with things like hardware device registration and interrupt mapping. Linux offers several usable kernel drivers, such as ``vfio-pci``, ``igb_uio``, and ``uio_pci_generic``. These are generic PCI kernel driver modules that work with any PCI device. ``igb_uio`` builds on Linux UIO to provide all types of interrupt support; it is fairly old and fairly simple, does not support IOMMU, and therefore can only use PA mode for IOVA mode. ``uio_pci_generic`` is similar to ``igb_uio``, except that it does not support MSI and MSI-X interrupts. ``vfio-pci`` supports IOVA mapping based on the IOMMU and is compatible with both VA mode and PA mode. If you can use `vfio`, use `vfio` — `uio` is now largely semi-deprecated.
 
-大多数设备需先从Linux内核驱动上解绑，然后再绑定到DPDK的内核驱动上。需用户在运行DPDK程序前，用`usertools`目录下的``dpdk-devbind.py``脚本做好设备和内核模块的解绑和绑定——这种需要root权限的准备工作也从用户态库中剥离了。
+Most devices must first be unbound from the Linux kernel driver and then bound to the DPDK kernel driver. Before running a DPDK program, the user needs to use the ``dpdk-devbind.py`` script in the `usertools` directory to unbind and bind devices to and from kernel modules — this kind of preparatory work that requires root privileges is likewise stripped out of the userspace library.
 
-## 利用巨页，毕竟4KB已是古老时代的残响
-DPDK基于mmap在hugetlbfs中进行巨页物理内存申请。使用更大的内存页相比4KB默认页(在x86上，DPDK目前支持2MB或1GB的巨页[^7])，所需的page table entry总数大大减少，可显著减小page table size和tlb size、降低tlb miss和page table walk开销，提升内存分配的连续性和内存访问的局部性，这些都有助于提升内存带宽。
+## Use Hugepages — 4KB Is a Relic of a Bygone Era
+DPDK uses mmap to allocate hugepage physical memory from hugetlbfs. Compared with the default 4KB pages (on x86, DPDK currently supports 2MB or 1GB hugepages[^7]), using larger memory pages drastically reduces the total number of page table entries required, which significantly shrinks the page table size and TLB size, lowers the cost of TLB misses and page table walks, and improves the contiguity of memory allocation and the locality of memory access — all of which help improve memory bandwidth.
 
-## 尊重NUMA Node拓扑
-DPDK的每个操作都是NUMA-aware的，提供的API默认是NUMA node亲和的，这让用户很难写出远端内存访问的代码。
+## Respect the NUMA Node Topology
+Every operation in DPDK is NUMA-aware, and the APIs it provides are NUMA node-affine by default, which makes it hard for users to accidentally write code that performs remote memory accesses.
 
-## 尊重内存的硬件拓扑
-DPDK的内存分配做得非常精细，利用了内存硬件拓扑等内存配置。
+## Respect the Hardware Topology of Memory
+DPDK's memory allocation is extremely meticulous, taking advantage of memory configurations such as the hardware topology of memory.
 
-内存配置中有两个影响应用层的重要概念：内存通道（memory channels）、内存列（memory ranks）。
+Two concepts in memory configuration matter to the application layer: memory channels and memory ranks.
 
-内存通道是CPU和内存之间的通信通道，理论上来讲内存带宽和通道数成正比，单个通道位宽64bit，2个就是128bit。内存通道数往往等于单socket支持的DIMM[^3]数，毕竟足够多的内存还需足够多的通道才能保证和CPU的互连。
+A memory channel is the communication channel between the CPU and memory; in theory, memory bandwidth is proportional to the number of channels. A single channel is 64 bits wide, so two channels give 128 bits. The number of memory channels usually equals the number of DIMMs[^3] supported per socket — after all, having enough memory also requires enough channels to guarantee its interconnect with the CPU.
 
-CPU和内存之间是64bit接口，但单个内存颗粒（DRAM chips）的位宽可能是4bit、16bit，需要多个内存颗粒并联形成一个64bit的内存列，连接到同一组chip select上，从而保证各内存颗粒可被同时访问。内存模组必须至少形成一个内存列，才能和CPU通信。内存标签上的2R×8就是指列数为2，颗粒位宽8bit，一共16个颗粒。
+The interface between the CPU and memory is 64 bits wide, but an individual DRAM chip may be only 4 or 16 bits wide, so multiple DRAM chips are ganged together to form a single 64-bit memory rank, connected to the same chip select, ensuring that all the chips can be accessed simultaneously. A memory module must form at least one rank to communicate with the CPU. The "2R×8" on a memory stick's label means 2 ranks with 8-bit-wide chips, for a total of 16 chips.
 
 > Depending on memory configuration on x86 arch, objects addresses are spread between channels and ranks in RAM
 
-x86架构下内存通道和内存列在内存地址上interleaving，即均匀分布且递增，因此RAM可视作由$n_{chan}\times n_{rank}$个block组成的，其DIMM架构如下图。
+On the x86 architecture, memory channels and memory ranks are interleaved across memory addresses — that is, evenly distributed and increasing — so RAM can be viewed as consisting of $n_{chan}\times n_{rank}$ blocks, with a DIMM architecture as shown in the figure below.
 ![2chan4rank](https://jipeng4974.github.io/img/2chan4rank.svg)
 
-如图所示，内存池最好不要让对象的起始地址反复命中同一个channel或同一个rank，而是要充分利用不同内存通道、不同内存列，避免通道、列之间的负载不均，提升访存带宽。
+As the figure shows, a memory pool should avoid letting object start addresses repeatedly hit the same channel or the same rank; instead, it should make full use of different memory channels and different memory ranks, avoiding load imbalance across channels and ranks to improve memory access bandwidth.
 
-DPDK的`mempool`给对象大小加恰当的padding，令内存池中的下一个对象的起始地址分布在不同内存通道和列中。具体实现可参考下面的代码，其中64B[^4]是x86的`cache line size`，也恰恰是一个`block size`，或`memory bus width`、`channel width`。无论如何，内存池里的地址都要首先保证是64B的整数倍，能整齐地放入cache，做到cache-friendly——事实上也是block friendly、memory bus width friendly，然后才是保证下一个对象的`block id`和$n_{chan}\times n_{rank}$互质。
+DPDK's `mempool` adds appropriate padding to the object size so that the start address of the next object in the pool lands on a different memory channel and rank. See the code below for the concrete implementation, where 64B[^4] is the `cache line size` on x86 — and, as it happens, also exactly one `block size`, or `memory bus width`, or `channel width`. Either way, addresses in the memory pool must first be aligned to a multiple of 64B so they fit neatly into the cache, making them cache-friendly — in fact also block friendly and memory bus width friendly — and only then is the next object's `block id` made coprime with $n_{chan}\times n_{rank}$.
 
 ```C 
 static unsigned int arch_mem_object_align(unsigned int obj_size)
@@ -58,25 +58,25 @@ static unsigned int arch_mem_object_align(unsigned int obj_size)
 }
 ```
 
-## IOVA和VA模式的连续性
-硬件不知VA，用户空间不知PA，DPDK的作用之一是bridge物理地址（PA）和虚拟地址（VA），因此给出一种IOVA(IO Virtual Address)是自然而然的设计。
+## The Contiguity of IOVA and VA Modes
+Hardware doesn't know VAs, and userspace doesn't know PAs. One of DPDK's roles is to bridge physical addresses (PA) and virtual addresses (VA), so providing an IOVA (IO Virtual Address) is a natural design.
 
-DPDK的IOVA模式有两种：PA mode和VA mode。如果用了PA mode，则分配给DPDK的所有IOVA地址都是物理地址，或者说，也是IO虚拟地址，只不过这个IO虚拟地址的内存布局与物理地址完全相同。PA mode的缺点是需要root权限以读取页表，且可能会继承物理内存的碎片性。因此DPDK引入了新的VA mode，一方面无需root权限，另一方面基于IOMMU[^2]做物理内存的重映射，保证IO虚拟地址的连续性，并使其编码布局和一般虚拟地址在格式上做到匹配，这样就允许大片连续IOVA内存的申请。无论是硬件视角下，还是用户空间视角下，VA mode下IOVA内存区都是连续的。
+DPDK has two IOVA modes: PA mode and VA mode. With PA mode, every IOVA address assigned to DPDK is a physical address — or rather, it is also an IO virtual address, just one whose memory layout is exactly identical to the physical addresses. The downsides of PA mode are that it requires root privileges to read the page tables, and it may inherit the fragmentation of physical memory. DPDK therefore introduced the new VA mode, which on one hand needs no root privileges, and on the other hand remaps physical memory through the IOMMU[^2], guaranteeing the contiguity of IO virtual addresses and matching their encoding layout to the format of ordinary virtual addresses — which permits allocating large swaths of contiguous IOVA memory. From the hardware's perspective as well as from userspace's, the IOVA memory region under VA mode is contiguous.
 
 ![iova](https://jipeng4974.github.io/img/iova.png)
 
-## 固定物理地址刚好宜用DMA
-尊重NUMA拓扑、尊重内存布局、IOVA的VA模式、使用巨页这些特性叠加起来，天然就决定了DPDK设计中，用户态进程用到的所有虚拟地址的underlying物理地址都是固定不变的——也就是说，这些地址是可以用于DMA的。DPDK用户态程序可不必涉足IO事务，让硬件自主代劳，通过固定不变的物理地址上的DMA事务完成。
+## Fixed Physical Addresses Are Just Right for DMA
+Respecting NUMA topology, respecting memory layout, VA mode for IOVA, and using hugepages — these features stacked together naturally dictate that in DPDK's design, the underlying physical addresses behind every virtual address used by a userspace process are fixed and immutable — in other words, those addresses can be used for DMA. A DPDK userspace program need not get involved in IO transactions at all; it lets the hardware do the work autonomously, via DMA transactions on those fixed physical addresses.
 
-## 多进程范式
-DPDK还特别为多进程做了支持，允许一个主进程管理所有DPDK资源，多个子进程共享资源访问权。DPDK的额外努力在于它保证了子进程视野中的地址和peer进程、主进程视野中的地址是完全一样的，也就是说连指针都能跨进程传递——这听起来就相当危险，但性能肯定比各种安全的通信协作机制强。此外，DPDK还支持跨进程的全局锁，使多进程编程更接近多线程编程。
+## The Multi-Process Paradigm
+DPDK also offers dedicated multi-process support, allowing one primary process to manage all DPDK resources while multiple secondary processes share access to them. DPDK's extra effort lies in guaranteeing that the addresses a secondary process sees are exactly the same as those seen by peer processes and the primary process — meaning even pointers can be passed across processes. That sounds rather dangerous, but the performance certainly beats all the safe communication and coordination mechanisms. In addition, DPDK supports cross-process global locks, making multi-process programming feel closer to multi-threaded programming.
 
 [^1]: [Memory in DPDK Part 2: Deep Dive into IOVA](https://www.intel.com/content/www/us/en/developer/articles/technical/memory-in-dpdk-part-2-deep-dive-into-iova.html)
-[^2]: IOMMU是连接在DMA-capable IO总线和主存之间，将设备的物理地址映射到虚拟地址空间的专用硬件。物理机通常都支持IOMMU，以Intel为例，IOMMU技术即Vt-d：Intel® Virtualization Technology for Directed I/O。
-[^3]: DIMM(dual in-line memory module)，即ram stick，内存条，DDR(Double Data Rate)技术的物理具现。
-[^4]: 无论是i686还是x86_64，cache size都是64B，不过有些场景下合理的cache padding size是128，因为prefetcher一次取两个cacheline。
+[^2]: An IOMMU is dedicated hardware sitting between the DMA-capable IO bus and main memory that maps devices' physical addresses into the virtual address space. Physical machines generally support an IOMMU; on Intel, for example, the IOMMU technology is VT-d: Intel® Virtualization Technology for Directed I/O.
+[^3]: DIMM (dual in-line memory module), i.e., a RAM stick — the physical embodiment of DDR (Double Data Rate) technology.
+[^4]: On both i686 and x86_64, the cache line size is 64B, though in some scenarios a sensible cache padding size is 128, because the prefetcher fetches two cache lines at a time.
 [^5]: [Memory in DPDK Part 4: 18.11 and Beyond](https://www.intel.com/content/www/us/en/developer/articles/technical/memory-in-dpdk-part-4-1811-and-beyond.html)
 [^6]: [Memory in DPDK Part 3: 17.11 and Earlier Releases](https://www.intel.com/content/www/us/en/developer/articles/technical/memory-in-dpdk-part-4-1811-and-beyond.html)
 [^7]: [Memory in DPDK Part 1: General Concepts](https://www.intel.com/content/www/us/en/developer/articles/technical/memory-in-dpdk-part-1-general-concepts.html)
-[^8]: EAL通过`mmap`从用户空间访问HPET内核时间计数，暴露高精度计时器接口给服务层。
-[^9]: EAL用`mmap`分配巨页物理内存，并将这些物理内存再通过内存池API暴露给服务层。
+[^8]: The EAL accesses the HPET kernel time counter from userspace via `mmap`, exposing a high-precision timer interface to the service layer.
+[^9]: The EAL uses `mmap` to allocate hugepage physical memory and exposes that physical memory to the service layer through the memory pool API.

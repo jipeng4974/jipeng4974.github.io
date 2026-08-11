@@ -1,6 +1,6 @@
-# 镜头与编码器的同构性
+# The Isomorphism Between Lenses and Encoders
 
-> 相机镜头和编码器呈现惊人的同构性。
+> Camera lenses and encoders exhibit a striking isomorphism.
 
 ---
 
@@ -9,9 +9,9 @@ LLMS index: [llms.txt](/llms.txt)
 ---
 
 ## Lens $\cong$ Encoder
-相机镜头和图片、音频的编码器是同构的，本质都是以高维物理现实为输入的降维函数：$$ f: \mathbb{R}^n \to \mathbb{R}^d, d \ll n$$
+A camera lens and an image or audio encoder are isomorphic; both are fundamentally dimensionality-reduction functions that take high-dimensional physical reality as input: $$ f: \mathbb{R}^n \to \mathbb{R}^d, d \ll n$$
 
-镜头将无穷光场压缩成相机传感器上的像素矩阵：
+A lens compresses an infinite light field into a pixel matrix on the camera sensor:
 ```
  3D Scene
     ↓
@@ -20,7 +20,7 @@ LLMS index: [llms.txt](/llms.txt)
 2D Sensor Image
 ```
 
-Encoder将无限物理现实的某种人工采样压缩成低维向量：
+An encoder compresses some artificial sampling of infinite physical reality into a low-dimensional vector:
 ```
  Waveform
     ↓
@@ -29,22 +29,22 @@ Encoder将无限物理现实的某种人工采样压缩成低维向量：
  Embedding
 ```
 
-## 像散&彗差 $\cong$ 各向异性
+## Astigmatism & Coma $\cong$ Anisotropy
 
-我新买了一个rf28mm f2.8 pancake，发现它用了形状特殊的非球面树脂镜片，树脂材质天然不均匀，因此有像散（垂直和水平方向分辨率不同）和彗差（斜向误差）。这个过程简直和表征学习中模型“材质”的天然不均匀以及模型输出的天然各向异性有一模一样的结构。我意识到人类的种种活动，在更高维存在眼中或许都是一回事。佳能的光学设计师设计镜头，和我尝试做一个audio encoder，本质上都是要把高维物理现实经过一个非线性变换投射到一个低维表示上。
+I recently bought an RF 28mm f/2.8 pancake lens and found that it uses aspherical resin elements with a special shape. Resin is naturally non-uniform, so the lens exhibits astigmatism (different resolution in the vertical and horizontal directions) and coma (off-axis error). This is structurally identical to the natural non-uniformity of a model's "material" in representation learning and the natural anisotropy of its outputs. It occurred to me that, in the eyes of a higher-dimensional being, all of humanity's various activities might be one and the same thing. A Canon optical designer designing a lens and me trying to build an audio encoder are fundamentally doing the same thing: projecting high-dimensional physical reality onto a low-dimensional representation through a nonlinear transformation.
 
-树脂镜片的不均匀性导致了最终输出中必然存在各向异性。我们的各种表征模型也一样，输出的embedding几乎一定具有强烈的各向异性性。
+The non-uniformity of resin elements makes anisotropy in the final output inevitable. The same holds for our representation models: the embeddings they produce are almost certainly strongly anisotropic.
 
-## 克服各向异性
-一个独立于任何具体下游任务的优化目标自然而然地出现了——各向同性。光学和ML工程师都在克服各向异性，试图做到各向同性。
+## Overcoming Anisotropy
+An optimization objective independent of any specific downstream task emerges naturally — isotropy. Optics engineers and ML engineers alike are fighting anisotropy, striving for isotropy.
 
-- 如果光学工程师换更高级的玻璃镜片，用上种种补偿元件，则可接近各向同性。最终像平面上就不会因彗差出现彗星形光斑和纵向横向清晰度不同的问题。从而让镜头可以冠上红圈L头之名。
-- 如果ML工程师用SIGReg正则等手段约束模型输出各个维度更均匀的embeddings，那么这些embeddings的应用场景就更泛化，不局限于loss+sampler设计时关注的单一supervised场景，也能用在跨模态对齐、聚类等场景，从而让模型可以冠上foundation model之名。
+- If an optics engineer switches to higher-grade glass elements and employs various compensation elements, the lens can approach isotropy. The final image plane will then show no comet-shaped light spots from coma and no difference in sharpness between the longitudinal and transverse directions — earning the lens the red-ring L-badge name.
+- If an ML engineer uses regularization such as SIGReg to constrain a model to produce embeddings that are more uniform across dimensions, those embeddings generalize to a wider range of applications — not limited to the single supervised setting targeted by the loss+sampler design, but also usable in cross-modal alignment, clustering, and other scenarios — earning the model the foundation model name.
 
-## 适应各向异性
-另一个思路则是接受各向异性的事实，利用它降本。相机矫正算法/固件工程师和大规模向量检索系统的HPC工程师都在适应各向异性。
+## Adapting to Anisotropy
+Another approach accepts anisotropy as a fact and exploits it to cut costs. Camera correction algorithm/firmware engineers and HPC engineers working on large-scale vector retrieval systems are both adapting to anisotropy.
 
-- 比如佳能相机的数字矫正技术和镜头设计就是相辅相成的，rf28 2.8用了树脂镜片反而可以节省成本。
-- 又如Google的工程师接受了大多数模型的embedding不那么“圆”的事实，提出了scann各向异性量化，做到了更激进的ANNS性能优化。
+- For example, Canon's digital correction technology and lens design complement each other: using resin elements in the RF 28mm f/2.8 actually saves cost.
+- Similarly, Google's engineers accepted the fact that most models' embeddings are not so "round" and proposed ScaNN's anisotropic quantization, achieving more aggressive ANNS performance optimization.
 
-这种思路固然在工程上有效，却缺乏鲁棒性和泛化性。一旦失去机内校正（假设我们可以将它强行移植到一个奇怪的机身上），rf28mmf2.8的成像就会显著劣化。一旦用在非ANNS场景，各向异性量化也无法发挥出向量检索时的最小化误差。
+This approach is effective in engineering, but it lacks robustness and generality. Once the in-camera correction is lost (suppose we force-mount the lens onto some strange camera body), the RF 28mm f/2.8's image quality degrades noticeably. And once applied outside ANNS scenarios, anisotropic quantization can no longer deliver the minimal error it achieves in vector retrieval.

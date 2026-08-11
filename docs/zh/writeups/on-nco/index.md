@@ -1,4 +1,4 @@
-# On NCO
+# 非凸优化
 
 > 非凸优化(non-convex optimization)，more like art
 

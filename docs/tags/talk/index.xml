@@ -1,70 +1,9 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Talk on jipeng4974.github.io</title><link>https://jipeng4974.github.io/tags/talk/</link><description>Recent content in Talk on jipeng4974.github.io</description><generator>Hugo</generator><language>en-US</language><lastBuildDate>Thu, 22 Feb 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://jipeng4974.github.io/tags/talk/index.xml" rel="self" type="application/rss+xml"/><item><title>Tech Talk: Wall is Coming</title><link>https://jipeng4974.github.io/writeups/tech-talk---wall-is-coming/</link><pubDate>Thu, 22 Feb 2024 00:00:00 +0000</pubDate><guid>https://jipeng4974.github.io/writeups/tech-talk---wall-is-coming/</guid><description>&lt;h1 id="内存墙和登纳德定律失效"&gt;内存墙和登纳德定律失效&lt;/h1&gt;
-&lt;p&gt;“内存墙（the Memory Wall）”和“登纳德定律失效（the break down of Dennard Scaling）”是计算生态演化中的两个核心矛盾。&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Talk on jipeng4974.github.io</title><link>https://jipeng4974.github.io/tags/talk/</link><description>Recent content in Talk on jipeng4974.github.io</description><generator>Hugo</generator><language>en-US</language><lastBuildDate>Tue, 11 Aug 2026 18:17:33 +0800</lastBuildDate><atom:link href="https://jipeng4974.github.io/tags/talk/index.xml" rel="self" type="application/rss+xml"/><item><title>Tech Talk: Wall is Coming</title><link>https://jipeng4974.github.io/writeups/tech-talk---wall-is-coming/</link><pubDate>Thu, 22 Feb 2024 00:00:00 +0000</pubDate><guid>https://jipeng4974.github.io/writeups/tech-talk---wall-is-coming/</guid><description>&lt;h1 id="the-memory-wall-and-the-breakdown-of-dennard-scaling"&gt;The Memory Wall and the Breakdown of Dennard Scaling&lt;/h1&gt;
+&lt;p&gt;The &amp;ldquo;Memory Wall&amp;rdquo; and the &amp;ldquo;breakdown of Dennard Scaling&amp;rdquo; are the two core contradictions in the evolution of the computing ecosystem.&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;为了对抗Dennard Scaling的失效，计算硬件的架构从单核向多核、众核突围。&lt;/li&gt;
-&lt;li&gt;为了掩盖内存墙问题，内存层级（memory hierarchy）变得越来越深，off-chip互连带宽不得不迅速提高。&lt;/li&gt;
+&lt;li&gt;To counter the breakdown of Dennard Scaling, compute hardware architecture broke out from single-core toward multi-core and many-core.&lt;/li&gt;
+&lt;li&gt;To mask the memory wall problem, the memory hierarchy has grown deeper and deeper, and off-chip interconnect bandwidth has had to increase rapidly.&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;起初单核到多核是巨变，逼迫软件架构进行痛苦重构，并发编程问题木秀于林，因此被近20年的工业界实践+学术界研究集火秒了——如今我们有多线程编程范式、异步回调范式、goroutine式的有栈协程、C++/Rust的async/await无栈协程、lockfree/waitfree数据结构等诸多工具。
-相较而言，这几十年来内存墙问题由于其隐蔽性、不紧急性、棘手性，不仅没得到妥善解决，反而根深蒂固，愈发遮掩不住，暴露在软件工程师面前，因此这次分享的重点是内存墙。&lt;/p&gt;
-&lt;p&gt;不过在进入正题之前，还需先介绍一下数据中心硬件和微处理器架构演化的些许背景。&lt;/p&gt;
-&lt;h1 id="21世纪数据中心硬件的演化简史"&gt;21世纪数据中心硬件的演化简史&lt;/h1&gt;
-&lt;h2 id="00scommodity-computing时代"&gt;00s，Commodity Computing时代&lt;/h2&gt;
-&lt;p&gt;远古时期我们并不会说“数据中心硬件”，因为还不存在现代意义上的互联网产业，也就没有现代意义上的数据中心。自然也就没有“for 大数据/云/Edge/AI”的营销话术，更多的是强调用廉价、不可靠、大规模的commodity hardware搭建分布式有状态系统，Google在这方面做了开创性的尝试。&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;相对IBM mainframe、super computer而言，当年x86的廉价是一目了然的。Google草创之初用的是奔腾2。
-银行业、DAPRA成就了IBM power系列，如今Power9/10机器虽然被Xeon/EPYC完爆，仍然可以靠银行软件的祖宗之法不可变和政府订单苟延残喘，保有一份niche市场。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;&lt;img src="https://jipeng4974.github.io/img/commodity_computing.png" alt="commodity_computing"&gt;&lt;/p&gt;
-&lt;p&gt;10s之前是x86微处理器完全不具备多核可扩展性的年代。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;FSB&lt;/code&gt;(front-side bus)是罪魁祸首。下图架构中，内存总线和PCIe总线需共享一个&lt;code&gt;FSB&lt;/code&gt;才能与CPU相连，导致&lt;code&gt;FSB&lt;/code&gt;成为瓶颈，CPU数量不具备横向扩展性。&lt;/li&gt;
-&lt;li&gt;当年的&lt;code&gt;PCIe&lt;/code&gt;还是1.0（03年初代&lt;code&gt;PCIe&lt;/code&gt;），带宽和lane数都相当有限，即使强上多核，网络IO、磁盘IO也跟不上。
-&lt;img src="https://jipeng4974.github.io/img/fsb.png" alt="fsb"&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;零零年代恰逢摩尔定律逐渐在单核语境失效，专注提升芯片性能在2004年后不再可行，硬件厂商不得不在架构上向多核方向突围。
-&lt;img src="https://jipeng4974.github.io/img/clock.png" alt="clock"&gt;&lt;/p&gt;
-&lt;h2 id="一零年代初多核时代"&gt;一零年代初，多核时代&lt;/h2&gt;
-&lt;p&gt;2012年的Intel Xeon E5-2600 V1 32nm Sandy Bridge是里程碑式的服务器产品，移除&lt;code&gt;FSB&lt;/code&gt;（这个实际上在09年的Nehalem机器上就已经做了）、引入&lt;code&gt;QPI&lt;/code&gt;/&lt;code&gt;DMI&lt;/code&gt;取代&lt;code&gt;FSB&lt;/code&gt;、PCIe2.0，使微架构获取多核可扩展性。&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;E5 family算是耳熟能详，虽然普遍要到寿命极限，但至今应该仍有很多公司在用。
-当年买电脑时，所谓二代i3/i5/i7就是&lt;code&gt;SandyBridge&lt;/code&gt;，和一代i5/i7的&lt;code&gt;Nehalem&lt;/code&gt;有代差。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;&lt;code&gt;Sandy Bridge&lt;/code&gt;之后是&lt;code&gt;Haswell&lt;/code&gt;，变化不大。&lt;code&gt;Haswell&lt;/code&gt;之后是&lt;code&gt;Broadwell&lt;/code&gt;，环状拓扑&lt;code&gt;Broadwell Ring&lt;/code&gt;即得名于此。
-&lt;img src="https://jipeng4974.github.io/img/broadwell_ring.png" alt="clock"&gt;
-再后面就是Skylake，开始冠上Scalable之名了，从多核走向众核，从近代走到现代。&lt;/p&gt;
-&lt;h2 id="一零年代末二零年代初众核时代"&gt;一零年代末~二零年代初，众核时代&lt;/h2&gt;
-&lt;p&gt;17年Intel推出了1st gen Xeon Scalable，&lt;code&gt;Skylake&lt;/code&gt;，采用了Mesh Architecture。见Things are getting meshy
-同时期AMD也推出了ENYC 7001，算是打破了Xeon的垄断局面。在US-TTP机房我们就有不少AMD机器。&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;Skylake&lt;/code&gt;的升级版&lt;code&gt;Ice Lake&lt;/code&gt;并未顺利孵化，因为18年出了Meltdown/Spectre的大新闻（speculative execution的安全漏洞），于是在&lt;code&gt;Skylake&lt;/code&gt;上修了漏洞，19年推出&lt;code&gt;Cascade Lake&lt;/code&gt;作为2nd-Gen Xeon。原本的顺位继承者&lt;code&gt;Ice Lake&lt;/code&gt;在21年姗姗来迟，变成了第三代。&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;Cooper Lake&lt;/code&gt;和&lt;code&gt;Ice Lake&lt;/code&gt;同代，都被称为第三代，但实际上架构和&lt;code&gt;Ice Lake&lt;/code&gt;不同，是基于&lt;code&gt;Skylake&lt;/code&gt;改的，专为多socket(4~8s)设计，相比general-purpose的&lt;code&gt;Ice Lake&lt;/code&gt;， &lt;code&gt;Cooper Lake&lt;/code&gt;稍稍超出commodity hardware范畴，估计是想卖给特定的专用计算领域，用来替代老旧的UNIX系统，比如&lt;code&gt;Oracle Solaris&lt;/code&gt;，&lt;code&gt;IBM AIX&lt;/code&gt;。互联网场景下我们还是倾向于横向扩容而不是纵向扩容。&lt;/p&gt;</description></item><item><title>Tech Talk: Evolution of Data Center Applications</title><link>https://jipeng4974.github.io/writeups/tech-talk---evolution-of-data-center-applications/</link><pubDate>Sat, 05 Aug 2023 00:00:00 +0000</pubDate><guid>https://jipeng4974.github.io/writeups/tech-talk---evolution-of-data-center-applications/</guid><description>&lt;p&gt;数据中心应用（数据库、消息队列、检索服务、参数服务器、直播服务、广告服务等）作为互联网服务的主体，位于终端应用和硬件基础设施之间，桥接了需求端和硬件端，同时还受到成本、营收、算法、法律等因素的制约。
-近期硬件侧、算法侧均有变化或变革，因而有必要反思数据中心应用的演进方向，讨论数据中心应用的近未来发展趋势、潜在的创新点和可收割的低垂果实。&lt;/p&gt;
-&lt;h2 id="变革中的不变量数据中心应用能耗"&gt;变革中的不变量：数据中心应用能耗&lt;/h2&gt;
-&lt;p&gt;全球数据中心能耗十年来几乎没有增长，而同期的服务需求、计算、存储、数据传输总量则经历了数量级增长。作为从业者，我们对互联网的爆发式增长应该不陌生，因此全球数据中心能耗从10到18年仅涨了6%的事实略微反直觉——从能耗的角度看，这几乎是一个停滞的产业。&lt;/p&gt;
-&lt;p&gt;CMOS工艺和软硬件技术的整体进步可以解释服务器能量效率上的提升，但能耗停滞的根本原因还在于互联网企业盈利的本质是对有支付能力的10亿国外人口和10亿国内人口征服务税，个别成功的初创企业可以迅速扩张，但互联网行业作为整体，在数据中心能耗上的投入增长受制于全球平民收入增长。&lt;/p&gt;
-&lt;p&gt;&lt;img src="https://jipeng4974.github.io/img/DatacenterPower.jpeg" alt="DatacenterPower"&gt;&lt;/p&gt;
-&lt;p&gt;当初创企业的规模扩张到互联网规模后，机器资源的增长速率应该会从爆炸式上升陡然转入停滞，进入自然汰换阶段。
-从这个角度可以得出结论，数据中心应用在规模扩张结束后，也应从能耗粗放型转为精细集约型，通过软硬件协同充分释放硬件潜力，通过算法创新减少总计算量。&lt;/p&gt;
-&lt;h2 id="算法迭代从演绎推理到归纳推断"&gt;算法迭代：从演绎推理到归纳推断&lt;/h2&gt;
-&lt;p&gt;算法侧的趋势是“transformers getting even more attention”。&lt;/p&gt;
-&lt;p&gt;计算机理论源于符号逻辑，1930年代图灵、哥德尔、邱奇各自独立提出图灵机、广义递归函数、lambda演算，以及三者相应的可计算性。图灵机的停机问题和哥德尔不完备定律驳斥了1920年代希尔伯特计划的可行性，证明了形式化系统是不完备的，通过有限个公理和规则永远无法推导出全部的真理。&lt;/p&gt;
-&lt;p&gt;正如人的无知可以分为问题（可计算）和神秘（不可计算），人的理性也可以分为演绎推理和归纳推断，前者求解问题，后者分析神秘。&lt;/p&gt;
-&lt;p&gt;计算机程序基于图灵机模型，天然就是适合进行演绎推理的形式化系统。至今我们依然基于规则系统(人工编程进行条件控制）、信号处理（比如音频特征提取）、状态机等形式化方法实现大多数数据中心应用：比如各类数据库、检索系统、参数服务器、游戏AI。&lt;/p&gt;
-&lt;p&gt;AI时代来临之后，通过更多的权重（作为公理）和由大量算子（作为规则）组成深度神经网络（从实现角度来说，仍然是形式化系统）去模拟或者说近似“归纳推断”。（纯粹贝叶斯主义的形式化表达是所罗门诺夫归纳推断法，这个方法本身是永不停机，越算越停不下来的，所以只能近似，不能用实现）这种近似无论多么粗糙、低效，归根到底还是提升了计算机语言和集成电路的表达能力，完成了推理到推断的跳跃。&lt;/p&gt;
-&lt;p&gt;数据中心应用多了归纳推断能力之后，就产生了对复杂现实（现实信号，如图片、语料库、音频，整体上具有高维度的同时，局部往往还存在具有高数据精致度的结构，这里精致度可以用香农信息熵或柯氏复杂性形式化定义）理解能力(pin down reality)，因此涌现出了一些基于知识的AI系统(knowledge-based AI)，比如推荐系统、广告投送、翻唱识别、聊天机器人。共同点是将现实映射到表征低维子空间上，这个子空间里的向量或者说embedding可以从某个角度有效刻画现实。Transformer做得更进一步，等价于将现实映射到多个相干性低的低维子空间上（见https://arxiv.org/abs/2306.01129），从而从多角度多层次理解现实，通过表征空间编码率与各子空间编码率之和的差值度量特征的紧凑性和判别力。&lt;/p&gt;
-&lt;p&gt;在游戏和博弈领域，强化学习也取得了规则系统无法企及的成就，在星际2、Dota2（固定阵容5v5，solo）、围棋等领域击败职业选手。&lt;/p&gt;
-&lt;p&gt;此外，归纳推断相比演绎推理还有一个重要特质，那就是更符合人类大脑（或推广到任意地球生物大脑，蜜蜂的3d寻路避障能力，蚊子的血管定位能力都是基于天然的贝叶斯归纳推断。也只有受过良好训练的人类才能进行缓慢的演绎推理）的思维习惯，因此人类社会的传统，人类语言的不确定性、人类的偏好都难以用形式化方法描述，却可以被概率语言描述，被归纳推断方法预测。&lt;/p&gt;
-&lt;p&gt;算法进步的下一个课题则是研究同时具备演绎推理和归纳推断能力的模型。现有的Transformer的确展现出简单多步算术的拟合能力，但拟合出来的是一个步数相关的超复杂非线性系统，而不是简单的算术规则，所以往往正确率到八十左右就再也上不去了。对于形式化系统来说，推理步数不影响公理和规则总数，只稍稍影响计算量。但对于LLM这种归纳推断模型来说，一旦推理步数变多，计算变得更复杂，LLM的符号逻辑能力就会迅速下降，在训练数据中从未出现过相同执行路径的动态规划问题里面可以直接降到0。理论上来说，无限精度的Transformer是图灵完备的（见https://arxiv.org/abs/1901.03429），而只要不是无限精度，就不是图灵完备，实际应用中模型权重和计算的精度即使以常规计算机应用标准看也是非常低的，而模型架构又没有针对多步逻辑推理进行设计，再加上深度学习本身就是在拟合一个近似函数，三重因素叠加导致现有LLM的演绎推理能力不尽如人意。&lt;/p&gt;
-&lt;p&gt;从算法迭代角度讲，数据中心应用的发展趋势是在保证“可计算性”(字面意思，非形式化定义)的前提下，追求“人性化”(align to humanity)、“完备化”（pin down reality）这两个演绎推理手段无法达成的理想属性。智能创作、个性化推荐、聪明的Agent（助手、游戏NPC、机器人、自动驾驶），复杂系统预测（天气预报、交易系统），大模型训练（模型并行、高性能网络、C2C互连、光学I/O、异构计算）都是有前景的方向。&lt;/p&gt;
-&lt;p&gt;而那些已经能用规则系统高效解决的问题则不必强行应用归纳推断模型，那样只会增加成本和错误率，比如音乐指纹识别、关系型数据库、图片旋转变形、无损压缩。甚至某些看似“神秘”的领域，如OOD text classification，基于表征学习白盒化研究成果和信息论，也能给出直接的数学解，比如近期一个研究（“Low-Resource” Text Classification: A Parameter-Free Classification Method with Compressors）就用14行代码超过了百亿参数的bert，（后来被发现实验代码有误，实际上效果没那么好）这个论文里提出用gzip等无损压缩工具去近似文本数据的柯氏复杂性，用信息距离（原理类似马毅提出的rate reduction）做KNN，效果非常好，在音频领域也可以做类似的尝试。&lt;/p&gt;
-&lt;h2 id="数据中心硬件基础设施"&gt;数据中心硬件基础设施&lt;/h2&gt;
-&lt;p&gt;先简单介绍一下常见的数据中心硬件基础设施：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;比较老的是Cascade Lake 14nm的24核per die的机器，一个芯片24核，两个就是48个物理核，也就是我们平时说的96核机器。也有其他套餐，最多是每个die上28核，总共112个逻辑核。&lt;/li&gt;
-&lt;li&gt;比较新的Ice Lake是10nm工艺一般是32核的，对应128个逻辑核，最贵的套餐可以到40核。仍然是基于Monolithic die，巨大的晶粒上用mesh总线把40个核放到一起。&lt;/li&gt;
-&lt;li&gt;最新的7nm工艺Sapphire Rapids，以及对标它的AMD Genoa今年已经量产。&lt;/li&gt;
-&lt;li&gt;关于网卡，现在用的比较多的是Mellanox 25G CX4/CX5卡，也有相当多的100G dual-port CX6卡，都是支持RDMA的，不用RDMA也能提供相当好的高速以太网性能。如果是做虚拟化的，比如AWS，阿里云，还可以把这些网卡的smartNiC能力利用起来，offload虚拟化开销。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;相对之前的Lakes，Sapphire Rapids变化非常大，此前的monolithic die路线确实走到了极限，Sapphire Rapids也进入了multi-die时代：芯片内部分为4个die，这也可以视作向chiplet方向演化。&lt;/p&gt;
-&lt;p&gt;Sapphire Rapids最多支持8个socket，每个芯片可以支持60核。IO技术上支持CXL 1.1、PCIe 5.0、UPI 2.0，HBM2e(optional)。&lt;/p&gt;
-&lt;p&gt;&lt;img src="https://jipeng4974.github.io/img/4th_xeon.jpeg" alt="Xeon"&gt;&lt;/p&gt;
-&lt;p&gt;AMD的第四代EPYC的主力型号Genoa今年Q1也开始量产，基本上和Sapphire Rapids对标，采用5nm工艺。虽然说AVX512被很多人诟病，实用表现非常一般，但Zen4也支持了，毕竟XeongenEPYC目标客户就是音视频处理和AI workload越来越多的数据中心应用。Genoa是每个die/chiplet 8核的，12个CPU cluster die中间围绕一个IO die的设计，相当于一个芯片96核，是典型的chiplet范式设计。&lt;/p&gt;</description></item></channel></rss>
+&lt;p&gt;At first, the move from single-core to multi-core was a seismic shift: it forced painful restructuring of software architecture, and concurrent programming problems stood out like a tree above the forest — so they got focus-fired and taken down by nearly 20 years of industry practice plus academic research. Today we have plenty of tools: multithreading paradigms, async callback paradigms, goroutine-style stackful coroutines, C++/Rust async/await stackless coroutines, lockfree/waitfree data structures, and so on.
+By contrast, over these decades the memory wall problem — owing to its hidden, non-urgent, and intractable nature — has not only failed to be properly solved but has become deeply entrenched, and it can no longer be concealed: it is now exposed right in front of software engineers. So the focus of this talk is the memory wall.&lt;/p&gt;</description></item><item><title>Tech Talk: Evolution of Data Center Applications</title><link>https://jipeng4974.github.io/writeups/tech-talk---evolution-of-data-center-applications/</link><pubDate>Sat, 05 Aug 2023 00:00:00 +0000</pubDate><guid>https://jipeng4974.github.io/writeups/tech-talk---evolution-of-data-center-applications/</guid><description>&lt;p&gt;Datacenter applications (databases, message queues, retrieval services, parameter servers, live-streaming services, ad-serving services, and so on) form the bulk of internet services. They sit between end-user applications and hardware infrastructure, bridging the demand side and the hardware side, while also being constrained by factors such as cost, revenue, algorithms, and law.
+With recent changes — even revolutions — on both the hardware and algorithm fronts, it is worth rethinking where datacenter applications are headed: their near-term trends, potential points of innovation, and the low-hanging fruit waiting to be picked.&lt;/p&gt;</description></item></channel></rss>
