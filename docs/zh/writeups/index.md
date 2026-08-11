@@ -29,7 +29,7 @@ Section pages:
 - [Flash Attention](/zh/writeups/flash-attention/): Flash Attention，一言以蔽之：tiling + selective gradient checkpointing。
 - [CAT02: Resources](/zh/writeups/category-theory-2---resources/): 第二篇 CAT 笔记讨论资源的范畴论形式化，以及如何将一组资源转化为另一组资源。内容涵盖 monoidal preorder（幺半预序）、wiring diagram（接线图）、monoidal monotone map 和 V-category。
 - [Diffusion Probabilistic Models](/zh/writeups/dpm/): 本文是对朱军教授的分享——“用于生成高维数据的扩散模型”的笔记。值得注意的是DPM实践中巧妙使用了解析解，无论是前向过程的closed form $q(x_N|x_0)$，还是逆向过程中解析形式的方差估计，都大大提升了训练性能，体现了数学的精妙。
-- [再窥推荐系统](/zh/writeups/revisiting-recomender-systems/): 本文是对孙爱欣教授的分享——“推荐系统研究现状的理解”的笔记，对大致内容进行了摘要，并收集了提及文献的链接——可以一窥推荐系统领域学术研究的现状，精辟，有趣，令人震撼。
+- [笔记：推荐系统研究现状的理解](/zh/writeups/revisiting-recomender-systems/): 本文是对孙爱欣教授的分享——“推荐系统研究现状的理解”的笔记，对大致内容进行了摘要，并收集了提及文献的链接——可以一窥推荐系统领域学术研究的现状。
 - [Reflecting on a Wake-up](/zh/writeups/reflecting-on-a-wake-up/): 记黎明前的一次醒来。
 - [错误处理](/zh/writeups/error-handling/): 本文讨论现代C++的错误处理问题。
 - [Linkers & Loaders](/zh/writeups/linkers-and-loaders/): 《Linkers & Loaders》填补了一个niche知识域——链接和加载。
