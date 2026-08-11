@@ -1,0 +1,18 @@
+# jipeng4974.github.io
+
+> Personal site of jipeng4974 — writeups on systems, AI, math, and more
+
+## Site index
+
+- [Home page](https://jipeng4974.github.io/index.md)
+- [Writeups](https://jipeng4974.github.io/writeups/index.md): Long-form notes on systems, AI, math, and everything in between
+- [Games](https://jipeng4974.github.io/games/index.md): Small games and engine experiments
+- [Photographs](https://jipeng4974.github.io/photographs/index.md): Selected photographs
+- [Projects](https://jipeng4974.github.io/projects/index.md): Things I build and maintain
+- [Publications](https://jipeng4974.github.io/publications/index.md): Papers and formal writing
+- [About](https://jipeng4974.github.io/about/index.md): About me and this site
+
+## Site locales
+
+- [English](https://jipeng4974.github.io/index.md)
+- [简体中文](https://jipeng4974.github.io/zh/index.md)

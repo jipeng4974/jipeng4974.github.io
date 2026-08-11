@@ -1,0 +1,181 @@
+title: jipeng4974.github.io
+enableRobotsTXT: true
+enableGitInfo: true
+enableEmoji: true
+defaultContentLanguage: en
+
+ignoreLogs:
+  - warning-frontmatter-params-overrides # cSpell:disable-line
+
+# Allow iframe-hosted custom themes to load during local previews.
+# These headers are only used by `hugo server`; they do not affect generated production files.
+server:
+  headers:
+    - for: /**
+      values:
+        Access-Control-Allow-Origin: '*'
+
+outputs:
+  home: [HTML, markdown, LLMS]
+  page: [HTML, markdown]
+  section: [HTML, RSS, print, markdown]
+
+imaging:
+  resampleFilter: CatmullRom # cSpell:disable-line
+
+languages:
+  en:
+    label: English
+    locale: en-US
+    weight: 1
+    title: jipeng4974.github.io
+    params:
+      description: Writeups on systems, AI, math, and everything in between
+  zh:
+    label: 简体中文
+    locale: zh-CN
+    weight: 2
+    title: jipeng4974.github.io
+    params:
+      description: 关于系统、AI、数学与其他主题的随笔
+      time_format_blog: 2006年1月2日
+      time_format_default: 2006年1月2日
+      links:
+        user:
+          - name: 随笔
+            url: /zh/writeups/
+            icon: fa-solid fa-pen-nib
+            desc: 阅读全部文章
+          - name: 标签
+            url: /zh/tags/
+            icon: fa-solid fa-tags
+            desc: 按主题浏览随笔
+          - name: GitHub
+            url: https://github.com/jipeng4974
+            icon: fa-brands fa-github
+            desc: 我的 GitHub 主页
+        developer:
+          - name: 项目
+            url: /zh/projects/
+            icon: fa-solid fa-diagram-project
+            desc: 正在进行的项目
+          - name: 关于
+            url: /zh/about/
+            icon: fa-solid fa-user
+            desc: 关于我
+
+markup:
+  tableOfContents:
+    endLevel: 4
+  goldmark:
+    parser:
+      attribute:
+        block: true
+    extensions:
+      passthrough:
+        enable: true
+        delimiters:
+          block: [['\[', '\]'], ['$$', '$$']]
+          inline: [['\(', '\)'], ['$', '$']]
+    renderer:
+      unsafe: true
+  highlight:
+    noClasses: false # Required for dark-mode
+
+params:
+  logo: logo.png
+
+  hugoMinVersion: &hugoMinVersion 0.160.1
+  productionURL: &productionURL https://jipeng4974.github.io
+  copyright:
+    authors: '[jipeng4974](https://github.com/jipeng4974)'
+    from_year: 2022
+    to_year: present
+  github_repo: https://github.com/jipeng4974/jipeng4974.github.io
+  github_subdir: ''
+  time_format_blog: Monday, January 02, 2006
+  time_format_default: January 2, 2006
+  rss_sections: [writeups]
+  offlineSearch: true
+  offlineSearchIndex: summary
+  offlineSearchSummaryLength: 70
+  offlineSearchMaxResults: 10
+  prism_syntax_highlighting: false
+  page_width: normal
+  comments:
+    enable: false
+  ui:
+    quick_links: [writeups, projects]
+    page_context_menu:
+      enable: true
+      links: []
+    showLightDarkModeMenu: true
+    sidebar_menu_compact: true
+    sidebar_menu_foldable: true
+    sidebar_search_disable: false
+    sidebar_root_enabled: true
+    sidebar_root_menu: true
+    sidebar_width_min: 220
+    sidebar_width_max: 480
+    sidebar_item_overflow: ellipsis
+    sidebar_menu_truncate: 2000
+    ul_show: 2
+    scrollSpy:
+      disable: true
+    feedback:
+      enable: false
+    readingtime:
+      enable: false
+  links:
+    user:
+      - name: Writeups
+        url: /writeups/
+        icon: fa-solid fa-pen-nib
+        desc: Read all the writeups
+      - name: Tags
+        url: /tags/
+        icon: fa-solid fa-tags
+        desc: Browse writeups by topic
+      - name: GitHub
+        url: https://github.com/jipeng4974
+        icon: fa-brands fa-github
+        desc: My GitHub profile
+    developer:
+      - name: Projects
+        url: /projects/
+        icon: fa-solid fa-diagram-project
+        desc: Things I build and maintain
+      - name: About
+        url: /about/
+        icon: fa-solid fa-user
+        desc: About me
+
+  plantuml:
+    enable: true
+    theme: default
+    svg_image_url: https://www.plantuml.com/plantuml/svg/
+    svg: false
+  print:
+    disable_toc: false
+  markmap:
+    enable: true
+  drawio:
+    enable: true
+    drawio_server: https://embed.diagrams.net/
+
+baseURL: *productionURL
+
+taxonomies:
+  tag: tags
+
+module:
+  imports:
+    - path: github.com/pgsty/oink
+  hugoVersion:
+    extended: true
+    min: *hugoMinVersion
+  mounts:
+    # English sources and colocated .zh.md translations.
+    - source: content
+      target: content
+      sites: { matrix: { languages: [en, zh] } }

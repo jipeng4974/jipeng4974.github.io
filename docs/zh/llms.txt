@@ -1,0 +1,18 @@
+# jipeng4974.github.io
+
+> jipeng4974 的个人站点——关于系统、AI、数学等主题的随笔
+
+## Site index
+
+- [Home page](https://jipeng4974.github.io/zh/index.md)
+- [随笔](https://jipeng4974.github.io/zh/writeups/index.md): 关于系统、AI、数学与其他主题的长文笔记
+- [游戏](https://jipeng4974.github.io/zh/games/index.md): 小游戏与引擎实验
+- [摄影](https://jipeng4974.github.io/zh/photographs/index.md): 精选照片
+- [项目](https://jipeng4974.github.io/zh/projects/index.md): 我在构建或维护的东西
+- [出版物](https://jipeng4974.github.io/zh/publications/index.md): 论文与正式写作
+- [关于](https://jipeng4974.github.io/zh/about/index.md): 关于我和本站
+
+## Site locales
+
+- [English](https://jipeng4974.github.io/index.md)
+- [简体中文](https://jipeng4974.github.io/zh/index.md)

@@ -1,0 +1,24 @@
+<!doctype html>
+{{/* Homepage redirect: shadows the theme's layouts/index.html via Hugo module
+     mounts, sending / (and /zh/) straight to the writeups section. */ -}}
+{{- $writeups := .Site.GetPage "/writeups" -}}
+{{- $target := "/writeups/" -}}
+{{- with $writeups -}}{{ $target = .RelPermalink }}{{ end -}}
+<html lang="{{ .Site.Language.Lang }}">
+  <head>
+    <meta charset="utf-8">
+    <title>Redirecting&hellip;</title>
+    <link rel="canonical" href="{{ $target | absURL }}">
+    <meta name="robots" content="noindex">
+    <meta http-equiv="refresh" content="0; url={{ $target }}">
+  </head>
+  <body>
+    <p>
+      Redirecting to
+      <a href="{{ $target }}">{{ with $writeups }}{{ .Title }}{{ else }}Writeups{{ end }}</a>&hellip;
+    </p>
+    <script>
+      location.replace("{{ $target }}");
+    </script>
+  </body>
+</html>

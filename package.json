@@ -1,0 +1,13 @@
+{
+  "name": "jipeng4974.github.io",
+  "description": "Personal site of jipeng4974, built with Hugo and the OINK theme",
+  "repository": "github:jipeng4974/jipeng4974.github.io",
+  "homepage": "https://jipeng4974.github.io",
+  "private": true,
+  "scripts": {
+    "build": "hugo --cleanDestinationDir --logLevel info -e dev -DFE --printPathWarnings --baseURL \"${BASE_URL:-http://localhost}\"",
+    "build:production": "hugo --cleanDestinationDir --logLevel info --minify",
+    "serve": "hugo server --cleanDestinationDir --logLevel info -e dev -DFE --printPathWarnings --disableFastRender --renderToMemory --minify --bind 127.0.0.1",
+    "clean": "rm -Rf public"
+  }
+}

@@ -1,0 +1,90 @@
+# Homepage composition: remove, reorder, or disable any entry.
+sections:
+  - hero
+  - gallery
+  - cta
+
+hero:
+  eyebrow: jipeng4974
+  title: Impose **structure** on unstructured realities.
+  desc: Personal writeups on systems, AI, math, and whatever else refuses to stay unstructured.
+  note: Built with Hugo and the OINK theme.
+  actions:
+    - label: Read the writeups
+      url: writeups/
+      icon: fa-solid fa-pen-nib
+      style: primary
+    - label: About me
+      url: about/
+      icon: fa-solid fa-user
+      style: ghost
+
+gallery:
+  eyebrow: Sections
+  title: What's here
+  desc: Six first-level tabs, one quiet corner of the internet.
+  columns: 3
+  link_label: Open
+  items:
+    - title: Writeups
+      badge: Blog
+      icon: fa-solid fa-pen-nib
+      desc: Long-form notes on systems, AI, math, and philosophy.
+      url: writeups/
+    - title: Games
+      badge: Demo
+      icon: fa-solid fa-gamepad
+      desc: Small games and engine experiments.
+      url: games/
+    - title: Photographs
+      badge: Gallery
+      icon: fa-solid fa-camera
+      desc: Selected shots, when there is something worth showing.
+      url: photographs/
+    - title: Projects
+      badge: Work
+      icon: fa-solid fa-diagram-project
+      desc: Things I build or maintain.
+      url: projects/
+    - title: Publications
+      badge: Papers
+      icon: fa-solid fa-scroll
+      desc: Papers and formal writing.
+      url: publications/
+    - title: About
+      badge: Me
+      icon: fa-solid fa-user
+      desc: Who I am and how to reach me.
+      url: about/
+
+cta:
+  title: Start with the writeups.
+  desc: The notes are the point of this site; everything else is scaffolding.
+  label: Browse writeups
+  url: writeups/
+  style: primary
+
+footer:
+  brand:
+    name: jipeng4974
+    tagline: Impose Structure on Unstructured Realities
+    slogan: Personal site — writeups, projects, and demos
+  columns:
+    - title: Content
+      links:
+        - { label: Writeups, url: writeups/ }
+        - { label: Tags, url: tags/ }
+        - { label: Publications, url: publications/ }
+    - title: More
+      links:
+        - { label: Games, url: games/ }
+        - { label: Photographs, url: photographs/ }
+        - { label: Projects, url: projects/ }
+    - title: About
+      links:
+        - { label: About me, url: about/ }
+        - {
+            label: GitHub,
+            url: 'https://github.com/jipeng4974',
+            external: true,
+          }

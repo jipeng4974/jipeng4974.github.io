@@ -1,0 +1,16 @@
+/*
+Project style overrides. This file shadows the theme's placeholder
+`_styles_project.scss` via Hugo module mounts.
+For details, see:
+https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
+*/
+
+// Brand wordmark: the site title is long, so render it in the regular body
+// sans instead of the theme's wide display font (Chakra Petch), slightly
+// smaller and with normal letter spacing.
+.td-shell-wordmark {
+  font-family: var(--bs-font-sans-serif);
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  margin-inline-end: -0.02em; // Compensate for trailing letter spacing.
+}
