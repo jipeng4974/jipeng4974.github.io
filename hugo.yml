@@ -55,10 +55,10 @@ languages:
             icon: fa-brands fa-github
             desc: 我的 GitHub 主页
         developer:
-          - name: 项目
-            url: /zh/projects/
-            icon: fa-solid fa-diagram-project
-            desc: 正在进行的项目
+          # - name: 项目  # restore when the projects section is re-enabled
+          #   url: /zh/projects/
+          #   icon: fa-solid fa-diagram-project
+          #   desc: 正在进行的项目
           - name: 关于
             url: /zh/about/
             icon: fa-solid fa-user
@@ -105,7 +105,7 @@ params:
   comments:
     enable: false
   ui:
-    quick_links: [writeups, projects]
+    quick_links: [writeups] # add `projects` back when the projects section is re-enabled
     page_context_menu:
       enable: true
       links: []
@@ -141,10 +141,10 @@ params:
         icon: fa-brands fa-github
         desc: My GitHub profile
     developer:
-      - name: Projects
-        url: /projects/
-        icon: fa-solid fa-diagram-project
-        desc: Things I build and maintain
+      # - name: Projects  # restore when the projects section is re-enabled
+      #   url: /projects/
+      #   icon: fa-solid fa-diagram-project
+      #   desc: Things I build and maintain
       - name: About
         url: /about/
         icon: fa-solid fa-user
@@ -167,6 +167,22 @@ baseURL: *productionURL
 
 taxonomies:
   tag: tags
+
+# ---------------------------------------------------------------------------
+# Hidden sections: publications and projects are kept in the repo but not
+# built into the site (no papers / OSS projects to publish for now).
+# To re-enable: delete this cascade block, restore `projects` in
+# params.ui.quick_links, and restore the commented-out Projects link entries
+# under params.links.developer (en) and languages.zh.params.links.developer.
+cascade:
+  - _target: { path: /projects }
+    build: { list: never, render: never }
+  - _target: { path: /projects/** }
+    build: { list: never, render: never }
+  - _target: { path: /publications }
+    build: { list: never, render: never }
+  - _target: { path: /publications/** }
+    build: { list: never, render: never }
 
 module:
   imports:

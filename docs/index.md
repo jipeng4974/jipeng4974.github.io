@@ -13,7 +13,5 @@ Section pages:
 - [About](/about/): About me and this site
 - [Games](/games/): Small games and engine experiments
 - [Photographs](/photographs/): Selected photographs
-- [Projects](/projects/): Things I build and maintain
-- [Publications](/publications/): Papers and formal writing
 - [Search Results](/search/)
 - [Writeups](/writeups/): Long-form notes on systems, AI, math, and everything in between

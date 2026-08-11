@@ -8,8 +8,6 @@
 - [Writeups](https://wujipeng.com/writeups/index.md): Long-form notes on systems, AI, math, and everything in between
 - [Games](https://wujipeng.com/games/index.md): Small games and engine experiments
 - [Photographs](https://wujipeng.com/photographs/index.md): Selected photographs
-- [Projects](https://wujipeng.com/projects/index.md): Things I build and maintain
-- [Publications](https://wujipeng.com/publications/index.md): Papers and formal writing
 - [About](https://wujipeng.com/about/index.md): About me and this site
 
 ## Site locales
