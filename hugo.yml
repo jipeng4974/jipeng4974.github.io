@@ -1,4 +1,4 @@
-title: jipeng4974.github.io
+title: Jipeng's Footprints
 enableRobotsTXT: true
 enableGitInfo: true
 enableEmoji: true
@@ -28,14 +28,14 @@ languages:
     label: English
     locale: en-US
     weight: 1
-    title: jipeng4974.github.io
+    title: Jipeng's Footprints
     params:
       description: Writeups on systems, AI, math, and everything in between
   zh:
     label: 简体中文
     locale: zh-CN
     weight: 2
-    title: jipeng4974.github.io
+    title: 时俗工巧，鸿爪雪泥
     params:
       description: 关于系统、AI、数学与其他主题的随笔
       time_format_blog: 2006年1月2日
@@ -86,7 +86,7 @@ params:
   logo: logo.png
 
   hugoMinVersion: &hugoMinVersion 0.160.1
-  productionURL: &productionURL https://jipeng4974.github.io
+  productionURL: &productionURL https://wujipeng.com
   copyright:
     authors: '[jipeng4974](https://github.com/jipeng4974)'
     from_year: 2022
