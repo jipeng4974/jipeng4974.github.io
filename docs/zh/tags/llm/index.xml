@@ -82,7 +82,9 @@
 &lt;h2 id="continuous-batching"&gt;Continuous Batching&lt;/h2&gt;
 &lt;p&gt;上文提及LLM做batching好处虽多，困难更多，并不存在特别简单、显而易见的GPT特供batching机制。&lt;/p&gt;
 &lt;p&gt;Orca&lt;sup id="fnref:3"&gt;&lt;a href="#fn:3" class="footnote-ref" role="doc-noteref"&gt;3&lt;/a&gt;&lt;/sup&gt;首先为GPT模型的batching提出了一个完整的解决方案，在迭代层面进行调度，并通过一个必要的selective batching机制剔除不能做batching的操作（若不做剔除，两个请求整体能做batching的几率可以忽略不计），这些操作虽然不能做batching，但对整体性能提升的影响很小。&lt;/p&gt;
-&lt;p&gt;&lt;img src="https://wujipeng.com/img/orca.png" alt="orca"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://wujipeng.com/img/orca.png"
+ alt="orca"&gt;
+&lt;/p&gt;
 &lt;h2 id="paged-attention"&gt;Paged Attention&lt;/h2&gt;
 &lt;p&gt;Orca方案并未考虑KV cache的HBM占用，默认预分配max_seq_len。&lt;/p&gt;
 &lt;p&gt;但monolithic KV cache导致HBM碎片化，为每个seq预分配巨大内存进而导致并发不足也是真实瓶颈所在，vLLM中就对此进行了优化，提出了Paged Attention&lt;sup id="fnref:4"&gt;&lt;a href="#fn:4" class="footnote-ref" role="doc-noteref"&gt;4&lt;/a&gt;&lt;/sup&gt;，一种近似页表的分块kv cache技术：&lt;/p&gt;
@@ -95,14 +97,22 @@
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img src="https://wujipeng.com/img/block_table.png" alt="block_table"&gt;&lt;/p&gt;</description></item><item><title>Paged Attention</title><link>https://wujipeng.com/zh/writeups/paged-attention/</link><pubDate>Tue, 30 Jul 2024 00:00:00 +0000</pubDate><guid>https://wujipeng.com/zh/writeups/paged-attention/</guid><description>&lt;p&gt;在LLM serving场景，通过恰当的batching积攒足够多的请求，可提升LLM吞吐。但每个请求对应的KV Cache非常巨大——在原始实现中，KV Cache需要为&lt;code&gt;max_tokens&lt;/code&gt;预留内存，但每个请求实际上携带的tokens数目普遍远小于&lt;code&gt;max_tokens&lt;/code&gt;，造成大量内存浪费和反复的动态内存分配。&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://wujipeng.com/img/block_table.png"
+ alt="block_table"&gt;
+&lt;/p&gt;</description></item><item><title>Paged Attention</title><link>https://wujipeng.com/zh/writeups/paged-attention/</link><pubDate>Tue, 30 Jul 2024 00:00:00 +0000</pubDate><guid>https://wujipeng.com/zh/writeups/paged-attention/</guid><description>&lt;p&gt;在LLM serving场景，通过恰当的batching积攒足够多的请求，可提升LLM吞吐。但每个请求对应的KV Cache非常巨大——在原始实现中，KV Cache需要为&lt;code&gt;max_tokens&lt;/code&gt;预留内存，但每个请求实际上携带的tokens数目普遍远小于&lt;code&gt;max_tokens&lt;/code&gt;，造成大量内存浪费和反复的动态内存分配。&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;PagedAttention&lt;/code&gt;&lt;sup id="fnref:1"&gt;&lt;a href="#fn:1" class="footnote-ref" role="doc-noteref"&gt;1&lt;/a&gt;&lt;/sup&gt;的目标就是消除这种内存浪费、在请求内部和请求之间灵活共享一些KV cache。vLLM通过&lt;code&gt;PagedAttention&lt;/code&gt;达到此前sota的&lt;code&gt;FasterTransformer&lt;/code&gt;和&lt;code&gt;Orca&lt;/code&gt;的2~4倍吞吐。&lt;/p&gt;
 &lt;p&gt;此前，朴素的KV Cache实现如下图所示，简短的prompt和并不长的当前iteration只占据了7+4个slots，剩余2038个slots不得不预留在内存里以支撑最大序列长达2048的承诺（采样结束才能知道实际tokens数目），在这之后才能是下一个请求的slots，中间预留的部分就完全浪费掉了。&lt;/p&gt;
-&lt;p&gt;&lt;img src="https://wujipeng.com/img/naive_kv_cache.png" alt="naive_kv_cache"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://wujipeng.com/img/naive_kv_cache.png"
+ alt="naive_kv_cache"&gt;
+&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;PagedAttention&lt;/code&gt;把连续的kv存在不连续的内存空间上，借用类似页表的机制（引入一个block_table）规避内存碎片化问题。具体来讲，&lt;code&gt;PagedAttention&lt;/code&gt;把KV cache分区成若干个K blocks和V blocks，每个K/V block容纳固定数量tokens所对应的K/V向量，因此attention计算也被转化为blockwise计算。这和&lt;code&gt;FlashAttention&lt;/code&gt;有点像，不过应用的尺度不同，前者是为了大规模serving时克服碎片化、按需取用，后者是为了单次self-attention计算能全部fit in SRAM。&lt;/p&gt;
-&lt;p&gt;&lt;img src="https://wujipeng.com/img/block_table.png" alt="block_table"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://wujipeng.com/img/block_table.png"
+ alt="block_table"&gt;
+&lt;/p&gt;
 &lt;p&gt;这个物理kv blocks显然是支持多个请求复用的。如下图所示，为每个请求维护一个小的block table即可。&lt;/p&gt;
-&lt;p&gt;&lt;img src="https://wujipeng.com/img/vllm_two_requests.png" alt="vllm_two_requests"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://wujipeng.com/img/vllm_two_requests.png"
+ alt="vllm_two_requests"&gt;
+&lt;/p&gt;
 &lt;div class="footnotes" role="doc-endnotes"&gt;
 &lt;hr&gt;
 &lt;ol&gt;

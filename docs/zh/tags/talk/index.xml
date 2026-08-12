@@ -14,15 +14,21 @@
 &lt;p&gt;相对IBM mainframe、super computer而言，当年x86的廉价是一目了然的。Google草创之初用的是奔腾2。
 银行业、DAPRA成就了IBM power系列，如今Power9/10机器虽然被Xeon/EPYC完爆，仍然可以靠银行软件的祖宗之法不可变和政府订单苟延残喘，保有一份niche市场。&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;&lt;img src="https://wujipeng.com/img/commodity_computing.png" alt="commodity_computing"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://wujipeng.com/img/commodity_computing.png"
+ alt="commodity_computing"&gt;
+&lt;/p&gt;
 &lt;p&gt;10s之前是x86微处理器完全不具备多核可扩展性的年代。&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;FSB&lt;/code&gt;(front-side bus)是罪魁祸首。下图架构中，内存总线和PCIe总线需共享一个&lt;code&gt;FSB&lt;/code&gt;才能与CPU相连，导致&lt;code&gt;FSB&lt;/code&gt;成为瓶颈，CPU数量不具备横向扩展性。&lt;/li&gt;
 &lt;li&gt;当年的&lt;code&gt;PCIe&lt;/code&gt;还是1.0（03年初代&lt;code&gt;PCIe&lt;/code&gt;），带宽和lane数都相当有限，即使强上多核，网络IO、磁盘IO也跟不上。
-&lt;img src="https://wujipeng.com/img/fsb.png" alt="fsb"&gt;&lt;/li&gt;
+&lt;img src="https://wujipeng.com/img/fsb.png"
+ alt="fsb"&gt;
+&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;零零年代恰逢摩尔定律逐渐在单核语境失效，专注提升芯片性能在2004年后不再可行，硬件厂商不得不在架构上向多核方向突围。
-&lt;img src="https://wujipeng.com/img/clock.png" alt="clock"&gt;&lt;/p&gt;
+&lt;img src="https://wujipeng.com/img/clock.png"
+ alt="clock"&gt;
+&lt;/p&gt;
 &lt;h2 id="一零年代初多核时代"&gt;一零年代初，多核时代&lt;/h2&gt;
 &lt;p&gt;2012年的Intel Xeon E5-2600 V1 32nm Sandy Bridge是里程碑式的服务器产品，移除&lt;code&gt;FSB&lt;/code&gt;（这个实际上在09年的Nehalem机器上就已经做了）、引入&lt;code&gt;QPI&lt;/code&gt;/&lt;code&gt;DMI&lt;/code&gt;取代&lt;code&gt;FSB&lt;/code&gt;、PCIe2.0，使微架构获取多核可扩展性。&lt;/p&gt;
 &lt;blockquote&gt;
@@ -30,7 +36,9 @@
 当年买电脑时，所谓二代i3/i5/i7就是&lt;code&gt;SandyBridge&lt;/code&gt;，和一代i5/i7的&lt;code&gt;Nehalem&lt;/code&gt;有代差。&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;&lt;code&gt;Sandy Bridge&lt;/code&gt;之后是&lt;code&gt;Haswell&lt;/code&gt;，变化不大。&lt;code&gt;Haswell&lt;/code&gt;之后是&lt;code&gt;Broadwell&lt;/code&gt;，环状拓扑&lt;code&gt;Broadwell Ring&lt;/code&gt;即得名于此。
-&lt;img src="https://wujipeng.com/img/broadwell_ring.png" alt="clock"&gt;
+&lt;img src="https://wujipeng.com/img/broadwell_ring.png"
+ alt="clock"&gt;
+
 再后面就是Skylake，开始冠上Scalable之名了，从多核走向众核，从近代走到现代。&lt;/p&gt;
 &lt;h2 id="一零年代末二零年代初众核时代"&gt;一零年代末~二零年代初，众核时代&lt;/h2&gt;
 &lt;p&gt;17年Intel推出了1st gen Xeon Scalable，&lt;code&gt;Skylake&lt;/code&gt;，采用了Mesh Architecture。见Things are getting meshy
@@ -41,7 +49,9 @@
 &lt;h2 id="变革中的不变量数据中心应用能耗"&gt;变革中的不变量：数据中心应用能耗&lt;/h2&gt;
 &lt;p&gt;全球数据中心能耗十年来几乎没有增长，而同期的服务需求、计算、存储、数据传输总量则经历了数量级增长。作为从业者，我们对互联网的爆发式增长应该不陌生，因此全球数据中心能耗从10到18年仅涨了6%的事实略微反直觉——从能耗的角度看，这几乎是一个停滞的产业。&lt;/p&gt;
 &lt;p&gt;CMOS工艺和软硬件技术的整体进步可以解释服务器能量效率上的提升，但能耗停滞的根本原因还在于互联网企业盈利的本质是对有支付能力的10亿国外人口和10亿国内人口征服务税，个别成功的初创企业可以迅速扩张，但互联网行业作为整体，在数据中心能耗上的投入增长受制于全球平民收入增长。&lt;/p&gt;
-&lt;p&gt;&lt;img src="https://wujipeng.com/img/DatacenterPower.jpeg" alt="DatacenterPower"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://wujipeng.com/img/DatacenterPower.jpeg"
+ alt="DatacenterPower"&gt;
+&lt;/p&gt;
 &lt;p&gt;当初创企业的规模扩张到互联网规模后，机器资源的增长速率应该会从爆炸式上升陡然转入停滞，进入自然汰换阶段。
 从这个角度可以得出结论，数据中心应用在规模扩张结束后，也应从能耗粗放型转为精细集约型，通过软硬件协同充分释放硬件潜力，通过算法创新减少总计算量。&lt;/p&gt;
 &lt;h2 id="算法迭代从演绎推理到归纳推断"&gt;算法迭代：从演绎推理到归纳推断&lt;/h2&gt;
@@ -66,5 +76,7 @@
 &lt;/ul&gt;
 &lt;p&gt;相对之前的Lakes，Sapphire Rapids变化非常大，此前的monolithic die路线确实走到了极限，Sapphire Rapids也进入了multi-die时代：芯片内部分为4个die，这也可以视作向chiplet方向演化。&lt;/p&gt;
 &lt;p&gt;Sapphire Rapids最多支持8个socket，每个芯片可以支持60核。IO技术上支持CXL 1.1、PCIe 5.0、UPI 2.0，HBM2e(optional)。&lt;/p&gt;
-&lt;p&gt;&lt;img src="https://wujipeng.com/img/4th_xeon.jpeg" alt="Xeon"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://wujipeng.com/img/4th_xeon.jpeg"
+ alt="Xeon"&gt;
+&lt;/p&gt;
 &lt;p&gt;AMD的第四代EPYC的主力型号Genoa今年Q1也开始量产，基本上和Sapphire Rapids对标，采用5nm工艺。虽然说AVX512被很多人诟病，实用表现非常一般，但Zen4也支持了，毕竟XeongenEPYC目标客户就是音视频处理和AI workload越来越多的数据中心应用。Genoa是每个die/chiplet 8核的，12个CPU cluster die中间围绕一个IO die的设计，相当于一个芯片96核，是典型的chiplet范式设计。&lt;/p&gt;</description></item></channel></rss>

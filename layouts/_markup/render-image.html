@@ -1,0 +1,5 @@
+{{- $isPhoto := eq .Page.Section "photos" -}}
+<img src="{{ .Destination | safeURL }}"
+     alt="{{ .Text }}"
+     {{- with .Title }} title="{{ . }}"{{ end -}}
+     {{- if $isPhoto }} class="photo-fit-screen"{{ end -}}>

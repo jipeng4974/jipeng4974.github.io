@@ -36,7 +36,9 @@
 &lt;p&gt;Depending on memory configuration on x86 arch, objects addresses are spread between channels and ranks in RAM&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;x86架构下内存通道和内存列在内存地址上interleaving，即均匀分布且递增，因此RAM可视作由&lt;span class="katex"&gt;&lt;span class="katex-mathml"&gt;&lt;math xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;a&lt;/mi&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;mo&gt;×&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;r&lt;/mi&gt;&lt;mi&gt;a&lt;/mi&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;n_{chan}\times n_{rank}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class="katex-html" aria-hidden="true"&gt;&lt;span class="base"&gt;&lt;span class="strut" style="height:0.7333em;vertical-align:-0.15em;"&gt;&lt;/span&gt;&lt;span class="mord"&gt;&lt;span class="mord mathnormal"&gt;n&lt;/span&gt;&lt;span class="msupsub"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class="vlist-r"&gt;&lt;span class="vlist" style="height:0.3361em;"&gt;&lt;span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"&gt;&lt;span class="pstrut" style="height:2.7em;"&gt;&lt;/span&gt;&lt;span class="sizing reset-size6 size3 mtight"&gt;&lt;span class="mord mtight"&gt;&lt;span class="mord mathnormal mtight"&gt;c&lt;/span&gt;&lt;span class="mord mathnormal mtight"&gt;han&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="vlist-s"&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class="vlist-r"&gt;&lt;span class="vlist" style="height:0.15em;"&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="mspace" style="margin-right:0.2222em;"&gt;&lt;/span&gt;&lt;span class="mbin"&gt;×&lt;/span&gt;&lt;span class="mspace" style="margin-right:0.2222em;"&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="base"&gt;&lt;span class="strut" style="height:0.5806em;vertical-align:-0.15em;"&gt;&lt;/span&gt;&lt;span class="mord"&gt;&lt;span class="mord mathnormal"&gt;n&lt;/span&gt;&lt;span class="msupsub"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class="vlist-r"&gt;&lt;span class="vlist" style="height:0.3361em;"&gt;&lt;span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"&gt;&lt;span class="pstrut" style="height:2.7em;"&gt;&lt;/span&gt;&lt;span class="sizing reset-size6 size3 mtight"&gt;&lt;span class="mord mtight"&gt;&lt;span class="mord mathnormal mtight" style="margin-right:0.02778em;"&gt;r&lt;/span&gt;&lt;span class="mord mathnormal mtight" style="margin-right:0.03148em;"&gt;ank&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="vlist-s"&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class="vlist-r"&gt;&lt;span class="vlist" style="height:0.15em;"&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;个block组成的，其DIMM架构如下图。
-&lt;img src="https://wujipeng.com/img/2chan4rank.svg" alt="2chan4rank"&gt;&lt;/p&gt;</description></item><item><title>内存瓶颈应用的eBPF Tracing</title><link>https://wujipeng.com/zh/writeups/ebpf/</link><pubDate>Thu, 07 Dec 2023 00:00:00 +0000</pubDate><guid>https://wujipeng.com/zh/writeups/ebpf/</guid><description>&lt;h2 id="现代workloads的瓶颈"&gt;现代workloads的瓶颈&lt;/h2&gt;
+&lt;img src="https://wujipeng.com/img/2chan4rank.svg"
+ alt="2chan4rank"&gt;
+&lt;/p&gt;</description></item><item><title>内存瓶颈应用的eBPF Tracing</title><link>https://wujipeng.com/zh/writeups/ebpf/</link><pubDate>Thu, 07 Dec 2023 00:00:00 +0000</pubDate><guid>https://wujipeng.com/zh/writeups/ebpf/</guid><description>&lt;h2 id="现代workloads的瓶颈"&gt;现代workloads的瓶颈&lt;/h2&gt;
 &lt;p&gt;如今使用CPU而不将计算offload到GPU等加速器的数据中心应用，大多是访存密集应用，例如倒排检索、向量检索、模型推理、分析型数据库。&lt;/p&gt;
 &lt;p&gt;纯粹instruction-bound的workload反而罕见。即使是最典型的计算密集场景，充满了矩阵乘加的大模型训推，实际瓶颈也出现在内存IO、off-package互连上。&lt;/p&gt;
 &lt;p&gt;现代硬件的发展趋势是越来越深的内存hierarchy，相应地，现代workloads（训推、检索、数据分析）的瓶颈也逐渐向内存总线、Cache、MMU、CPU-to-CPU互连、inter-node互连转移。&lt;/p&gt;
@@ -63,12 +65,18 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;		&lt;span class="nb"&gt;print&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;		&lt;span class="nb"&gt;print&lt;/span&gt; &lt;span class="n"&gt;totaltime&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="所以什么是ebpf"&gt;所以，什么是eBPF？&lt;/h2&gt;
 &lt;p&gt;简单说，eBPF是一个允许跑自定义代码做一些tracing和系统监控的in-kernel runtime，是BPF的升级版。&lt;/p&gt;
-&lt;p&gt;&lt;img src="https://wujipeng.com/img/ebpf.png" alt="ebpf"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://wujipeng.com/img/ebpf.png"
+ alt="ebpf"&gt;
+&lt;/p&gt;
 &lt;p&gt;最初的BPF，即Berkeley Packet Filter，是一个用于报文过滤的几乎被遗忘的古老内核特性。eBPF在BPF基础上做了扩展，允许事件源从报文扩展到多种多样的事件源，eBPF VM有更大的存储空间，更多寄存器和64位word size——BPF事实上提供了一个in-kernel的沙盒环境，或者说虚拟机，安全且受限地执行用户定义的程序。因此eBPF机制的出现实际上在内核态程序、用户态程序之外创造了新的软件品类。&lt;/p&gt;
 &lt;p&gt;eBPF程序不是预编译或解释的，而是JIT CO-RE&lt;sup id="fnref:3"&gt;&lt;a href="#fn:3" class="footnote-ref" role="doc-noteref"&gt;3&lt;/a&gt;&lt;/sup&gt;的，程序出错既不abort，也不panic，而是返回error message。内核态直接访问资源，用户态通过系统调用或fault访问资源，eBPF则是通过一些受限的helper访问资源——目前来说主要作用还是tracing，做一些可观测性上的工作。&lt;/p&gt;
-&lt;p&gt;&lt;img src="https://wujipeng.com/img/ebpf2.png" alt="ebpf2"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://wujipeng.com/img/ebpf2.png"
+ alt="ebpf2"&gt;
+&lt;/p&gt;
 &lt;p&gt;eBPF把JIT编译器和安全验证器直接放到了内核里，用户态的bpf程序先经过parser变成AST，再做一些构造和语法分析，然后生成IR，最终生成优化后的bytecode。BPF bytecode作为输入进入内核的JIT和verifier再编译成机器码给CPU执行。&lt;/p&gt;
-&lt;p&gt;&lt;img src="https://wujipeng.com/img/ebpf3.png" alt="ebpf3"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://wujipeng.com/img/ebpf3.png"
+ alt="ebpf3"&gt;
+&lt;/p&gt;
 &lt;h2 id="ebpf的其他应用"&gt;eBPF的其他应用&lt;/h2&gt;
 &lt;p&gt;eBPF除了用在可观测性上，还可以应用于网络，在L3/L4/L7做traffic control, monitoring或load balancing，比如libbpf &lt;code&gt;tc&lt;/code&gt;/&lt;code&gt;qdiscs&lt;/code&gt; library, &lt;code&gt;XDP&lt;/code&gt;(裸金属高性能可编程网络)/&lt;code&gt;Cilium&lt;/code&gt;(高性能云原生网络)/&lt;code&gt;Katran&lt;/code&gt;(传输层负载均衡)。&lt;/p&gt;
 &lt;p&gt;此外，eBPF还可以应用于安全领域。毕竟eBPF可以观测系统中的各种事件，比如监控某些敏感文件（/etc/passwd这种）是否被篡改。基于这种观测能力在加上一些安全相关的先验知识，就可以做一些安全工具。K8s的&lt;code&gt;seccomp&lt;/code&gt;工具就是基于eBPF实现的。&lt;/p&gt;</description></item><item><title>高性能大规模向量检索</title><link>https://wujipeng.com/zh/writeups/efficient-anns-at-scale/</link><pubDate>Tue, 12 Sep 2023 00:00:00 +0000</pubDate><guid>https://wujipeng.com/zh/writeups/efficient-anns-at-scale/</guid><description>&lt;p&gt;向量检索分为KNN和ANN，KNN就是用brute-force计算出query向量和所有索引向量的相似度，取前k个。ANN则是通过近似手段加速计算，以误差换效率。&lt;/p&gt;
@@ -82,7 +90,9 @@
 &lt;li&gt;为了抵抗尺度变化，往往将内积正则化到[-1,1]，就变成了余弦相似度cosθ，θ为向量夹角，显然θ越小，向量越接近。&lt;/li&gt;
 &lt;li&gt;欧几里得距离正则化到[-1,1]后相当于sqrt(2-2cosθ)。可见欧式距离平方也是和余弦相似度成比的。&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img src="https://wujipeng.com/img/sim_measure.png" alt="sim_measure"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://wujipeng.com/img/sim_measure.png"
+ alt="sim_measure"&gt;
+&lt;/p&gt;
 &lt;p&gt;正则化后欧式距离、内积、cosθ三者同源，所以我们一般就用余弦相似度cosθ去度量向量/embedding之间的相似程度。除非又特殊的抵抗位置变化的需求，可采用皮尔森相关系数，皮尔森相关系数是协方差（两个变量的总体误差）的正则化，不过它同时也可以被视为将x和y中心化后的余弦相似度。&lt;/p&gt;
 &lt;h1 id="向量量化"&gt;向量量化&lt;/h1&gt;
 &lt;p&gt;量化器是D维向量 x ∈ R^D 到 q(x) ∈ C = {c_0, c_1, &amp;hellip; c_k-1} 的映射函数q。c_i即聚类中心centroid。

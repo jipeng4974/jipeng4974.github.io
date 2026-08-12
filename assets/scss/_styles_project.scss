@@ -14,3 +14,14 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   letter-spacing: 0.02em;
   margin-inline-end: -0.02em; // Compensate for trailing letter spacing.
 }
+
+// Photo galleries: keep each image within the viewport so it fits on screen
+// without overflowing horizontally or vertically.
+.td-content .photo-fit-screen {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: unquote("min(100%, 90vw)");
+  max-height: 85vh;
+  margin: 1.25rem auto;
+}
