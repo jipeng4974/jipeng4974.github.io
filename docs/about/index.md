@@ -8,4 +8,4 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-I am **jipeng4974**.
+This is **Wu Jipeng**'s personal site, housing writups, photographs, and games.

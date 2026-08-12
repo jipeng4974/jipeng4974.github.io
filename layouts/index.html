@@ -1,24 +1,66 @@
+{{/* Homepage: render the writeups section in place instead of redirecting.
+     Mirrors the oink theme's blog/baseof.html chrome but passes the writeups
+     section page as the template context, so / serves the same page as
+     /writeups/ (post list, chrome, sidebar with Writeups active) with no
+     redirect. The list body comes from layouts/partials/blog-list-main.html. */ -}}
+{{- $w := .Site.GetPage "/writeups" -}}
+{{- if not $w -}}
+  {{- errorf "homepage requires a /writeups section page" -}}
+{{- end -}}
 <!doctype html>
-{{/* Homepage redirect: shadows the theme's layouts/index.html via Hugo module
-     mounts, sending / (and /zh/) straight to the writeups section. */ -}}
-{{- $writeups := .Site.GetPage "/writeups" -}}
-{{- $target := "/writeups/" -}}
-{{- with $writeups -}}{{ $target = .RelPermalink }}{{ end -}}
-<html lang="{{ .Site.Language.Lang }}">
+<html itemscope itemtype="http://schema.org/WebPage"
+    dir="{{ $w.Site.Language.Direction | default "ltr" }}"
+    lang="{{ partial "language-tag.html" $w }}"
+    {{- $darkMode := partialCached "dark-mode-config.html" "dark-mode-global" -}}
+    {{- if $darkMode.enable }} data-theme-init{{ end }}>
   <head>
-    <meta charset="utf-8">
-    <title>Redirecting&hellip;</title>
-    <link rel="canonical" href="{{ $target | absURL }}">
-    <meta name="robots" content="noindex">
-    <meta http-equiv="refresh" content="0; url={{ $target }}">
+    {{ partial "head.html" $w }}
   </head>
-  <body>
-    <p>
-      Redirecting to
-      <a href="{{ $target }}">{{ with $writeups }}{{ .Title }}{{ else }}Writeups{{ end }}</a>&hellip;
-    </p>
-    <script>
-      location.replace("{{ $target }}");
-    </script>
+  {{ $toc := $w.TableOfContents -}}
+  {{ $hasToc := and (not $w.Params.notoc) $toc (ne $toc `<nav id="TableOfContents"></nav>`) -}}
+  {{ $sidebarMin := $w.Param "ui.sidebar_width_min" | default 220 -}}
+  {{ $sidebarMax := $w.Param "ui.sidebar_width_max" | default 480 -}}
+  {{ $navWrap := eq ($w.Param "ui.sidebar_item_overflow") "wrap" -}}
+  {{ $hasSidebar := partial "shell/sidebar-enabled.html" $w -}}
+  {{ $pageWidth := $w.Param "page_width" | default "normal" -}}
+  {{ $rssURL := "" -}}
+  {{ with $w.CurrentSection.OutputFormats.Get "rss" -}}
+    {{ $rssURL = .RelPermalink -}}
+  {{ end -}}
+  {{ if not (in (slice "normal" "wide" "full") $pageWidth) -}}
+    {{ errorf "invalid page_width %q in %s (allowed: normal | wide | full)" $pageWidth $w.Path -}}
+  {{ end -}}
+  <body class="td-{{ $w.Kind }} td-blog td-shell-chrome{{ with $w.Params.body_class }} {{ . }}{{ end }}">
+    {{ partial "skip-link.html" $w }}
+    {{ partial "shell/subnav.html" $w }}
+    <div class="container-fluid td-outer">
+      <div class="td-main td-shell-layout td-shell-layout--w-{{ $pageWidth }}{{ if not $hasToc }} td-shell-layout--no-toc{{ end }}{{ if not $hasSidebar }} td-shell-layout--no-sidebar{{ end }}{{ if $navWrap }} td-shell-layout--nav-wrap{{ end }}"
+           style="--td-shell-sidebar-min: {{ $sidebarMin }}px; --td-shell-sidebar-max: {{ $sidebarMax }}px;">
+        {{ if $hasSidebar -}}
+        <aside id="td-shell-sidebar" class="td-shell-sidebar d-print-none"
+               aria-label="{{ T "ui_sidebar_nav" }}">
+          {{ partial "shell/sidebar-panel.html" $w }}
+        </aside>
+        <div class="td-shell-drawer-backdrop d-md-none d-print-none" data-td-shell-drawer-close></div>
+        {{ partial "shell/floating-pill.html" $w }}
+        {{- end }}
+        <main id="td-main-content" class="td-shell-main" role="main" tabindex="-1">
+          <article class="td-shell-article">
+            {{ with $rssURL -}}
+            <a class="td-rss-button td-rss-button--content" title="RSS" aria-label="RSS" href="{{ . | safeURL }}" target="_blank" rel="noopener">
+              <i class="fa-solid fa-rss" aria-hidden="true"></i>
+            </a>
+            {{ end -}}
+            {{ if not ($w.Param "ui.breadcrumb_disable") -}}
+              {{ partial "breadcrumb.html" $w -}}
+            {{ end -}}
+            {{ partial "blog-list-main.html" $w }}
+          </article>
+        </main>
+        {{ partial "shell/toc-aside.html" (dict "page" $w "hasToc" $hasToc "rssURL" $rssURL) }}
+      </div>
+      {{ partial "shell/footer-line.html" $w }}
+    </div>
+    {{ partial "scripts.html" $w }}
   </body>
 </html>

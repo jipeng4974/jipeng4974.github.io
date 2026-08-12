@@ -9,4 +9,5 @@ sidebar_root_link_self: true
 comments: false
 ---
 
-I am **jipeng4974**. 
+This is **Wu Jipeng**'s personal site, housing writups, photographs, and games.
+
