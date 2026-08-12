@@ -50,10 +50,10 @@ languages:
             url: /zh/tags/
             icon: fa-solid fa-tags
             desc: 按主题浏览随笔
-          - name: GitHub
-            url: https://github.com/jipeng4974
-            icon: fa-brands fa-github
-            desc: 我的 GitHub 主页
+          - name: 邮箱
+            url: mailto:wjp4974@qq.com
+            icon: fa-solid fa-envelope
+            desc: 给我发邮件
         developer:
           # - name: 项目  # restore when the projects section is re-enabled
           #   url: /zh/projects/
@@ -91,8 +91,8 @@ params:
     authors: '[jipeng4974](https://github.com/jipeng4974)'
     from_year: 2022
     to_year: present
-  github_repo: https://github.com/jipeng4974/jipeng4974.github.io
   github_subdir: ''
+  email: wjp4974@qq.com
   time_format_blog: Monday, January 02, 2006
   time_format_default: January 2, 2006
   rss_sections: [writeups]
@@ -136,10 +136,10 @@ params:
         url: /tags/
         icon: fa-solid fa-tags
         desc: Browse writeups by topic
-      - name: GitHub
-        url: https://github.com/jipeng4974
-        icon: fa-brands fa-github
-        desc: My GitHub profile
+      - name: Email
+        url: mailto:wjp4974@qq.com
+        icon: fa-solid fa-envelope
+        desc: Send me an email
     developer:
       # - name: Projects  # restore when the projects section is re-enabled
       #   url: /projects/

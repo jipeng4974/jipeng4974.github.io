@@ -1,0 +1,77 @@
+{{/*
+Project override of the theme's sidebar-panel partial. Identical to the
+theme version except the sidebar-footer repo button is replaced by an email
+button — the site does not expose its GitHub repository.
+*/ -}}
+{{- $config := partial "shell/config.html" . -}}
+{{- $hasAlgolia := and .Site.Params.search (isset .Site.Params.search "algolia") -}}
+{{- $hasOnlineSearch := or .Site.Params.gcs_engine_id $hasAlgolia -}}
+<div class="td-shell-sidebar__panel">
+  <div class="td-shell-sidebar__header">
+    <div class="td-shell-sidebar__brand-row">
+      <a class="td-shell-sidebar__brand" href="{{ .Site.Home.RelPermalink }}" aria-label="{{ $config.brandName }} home">
+        {{- if $config.wordmarkURL }}
+        <img class="td-shell-brand-logo--wordmark" src="{{ $config.wordmarkURL }}" alt="" width="100" height="40">
+        {{- else }}
+        <img src="{{ $config.logoURL }}" alt="" width="20" height="20">
+        <span class="td-shell-wordmark">{{ $config.brandName }}</span>
+        {{- end }}
+      </a>
+      <button type="button" class="td-shell-iconbtn td-shell-sidebar__collapse" data-td-shell-sidebar-toggle
+        title="{{ T "ui_sidebar_collapse" }}" aria-label="{{ T "ui_sidebar_collapse" }}">
+        {{- partialCached "shell/icon.html" "panel-left" "panel-left" -}}
+      </button>
+    </div>
+    <div class="td-shell-sidebar__header-row">
+      {{- if partial "shell/search-enabled.html" . }}
+      <button type="button" class="td-shell-search-btn" data-td-shell-search-open
+        aria-controls="td-shell-search" aria-expanded="false">
+        {{ partialCached "shell/icon.html" "search" "search" }}
+        <span class="td-shell-search-btn__label">{{ T "ui_search" }}</span>
+        <span class="td-shell-search-btn__keys" aria-hidden="true"><kbd data-td-shell-meta-key>⌘</kbd><kbd>K</kbd></span>
+      </button>
+      {{- else if $hasOnlineSearch }}
+        {{ partial "search-input.html" . }}
+      {{- else }}
+      <span class="td-shell-sidebar__header-spacer"></span>
+      {{- end }}
+      <button type="button" class="td-shell-iconbtn td-shell-sidebar__close" data-td-shell-drawer-close
+        aria-label="{{ T "ui_drawer_close" }}" aria-controls="td-shell-sidebar">{{ partialCached "shell/icon.html" "x" "x" }}</button>
+    </div>
+    {{ partial "shell/root-menu.html" . }}
+  </div>
+  <div class="td-shell-sidebar__viewport" data-td-shell-sidebar-scroll>
+    {{ partial "shell/sidebar.html" . }}
+    {{/* Below xl the TOC rail is hidden; docs-shell.js parks its contents here
+         so the table of contents, the page actions and the taxonomies stay
+         reachable from the drawer. Empty until then. */ -}}
+    <div class="td-shell-sidebar__aside" data-td-shell-aside-slot hidden></div>
+  </div>
+  {{/* Footer row: the version selector, then the global utilities. They live
+       here rather than under the brand so they stay in the same place whether
+       the sidebar is a column or a drawer, and so they are still reachable
+       once the TOC rail (their other home) drops out below xl. */ -}}
+  {{- $darkMode := partialCached "dark-mode-config.html" "dark-mode-global" -}}
+  <div class="td-shell-sidebar__footer">
+    {{ if .Site.Params.versions -}}
+    <div class="td-shell-sidebar__version">
+      {{ partial "navbar-version-selector.html" (dict "page" . "dropup" true) }}
+    </div>
+    {{ end -}}
+    <div class="td-shell-sidebar__utils">
+      {{ partial "language-selector.html" (dict "page" . "class" "td-shell-language-selector" "icon" "shell") }}
+      {{- if $darkMode.showMenu }}
+      <button type="button" class="td-shell-iconbtn td-shell-quick-theme" data-td-theme-toggle
+        title="{{ T "ui_theme_toggle" }}" aria-label="{{ T "ui_theme_toggle" }}">
+        {{- partialCached "shell/icon.html" "moon" "moon" -}}
+        {{- partialCached "shell/icon.html" "sun" "sun" -}}
+      </button>
+      {{- end }}
+      {{ with .Site.Params.email -}}
+      <a class="td-shell-iconbtn" href="mailto:{{ . }}"
+        title="Email" aria-label="Email"><svg class="td-shell-icon td-shell-icon--mail" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></a>
+      {{- end }}
+    </div>
+  </div>
+  <div class="td-shell-sidebar__resizer" data-td-shell-resizer aria-hidden="true"></div>
+</div>

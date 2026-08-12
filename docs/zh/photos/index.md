@@ -1,9 +1,5 @@
 # 摄影
 
-> 这里将放一小部分精选照片。
-
----
-
 LLMS index: [llms.txt](/llms.txt)
 
 ---

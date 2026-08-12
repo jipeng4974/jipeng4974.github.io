@@ -1,6 +1,6 @@
 ---
 title: 摄影
-description: 这里将放一小部分精选照片。
+description: 
 menu: { main: { weight: 30 } }
 type: docs
 icon: fa-solid fa-camera

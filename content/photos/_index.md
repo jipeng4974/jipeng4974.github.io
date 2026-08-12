@@ -1,6 +1,6 @@
 ---
 title: Photographs
-description: A small selection of photographs will live here.
+description:
 menu: { main: { weight: 30 } }
 type: docs
 icon: fa-solid fa-camera

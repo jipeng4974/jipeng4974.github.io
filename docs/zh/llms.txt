@@ -7,7 +7,7 @@
 - [Home page](https://wujipeng.com/zh/index.md)
 - [随笔](https://wujipeng.com/zh/writeups/index.md): 关于系统、AI、数学与其他主题的长文笔记
 - [游戏](https://wujipeng.com/zh/games/index.md): 小游戏与引擎实验
-- [摄影](https://wujipeng.com/zh/photos/index.md): 这里将放一小部分精选照片。
+- [摄影](https://wujipeng.com/zh/photos/index.md)
 - [关于](https://wujipeng.com/zh/about/index.md): 关于我和本站
 
 ## Site locales

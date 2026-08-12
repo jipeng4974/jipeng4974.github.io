@@ -1,9 +1,5 @@
 # Photographs
 
-> A small selection of photographs will live here.
-
----
-
 LLMS index: [llms.txt](/llms.txt)
 
 ---
