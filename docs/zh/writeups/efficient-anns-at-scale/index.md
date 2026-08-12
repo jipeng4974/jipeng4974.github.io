@@ -22,7 +22,7 @@ LLMS index: [llms.txt](/llms.txt)
 - 为了抵抗尺度变化，往往将内积正则化到[-1,1]，就变成了余弦相似度cosθ，θ为向量夹角，显然θ越小，向量越接近。
 - 欧几里得距离正则化到[-1,1]后相当于sqrt(2-2cosθ)。可见欧式距离平方也是和余弦相似度成比的。
 
-![sim_measure](https://jipeng4974.github.io/img/sim_measure.png)
+![sim_measure](https://wujipeng.com/img/sim_measure.png)
 
 正则化后欧式距离、内积、cosθ三者同源，所以我们一般就用余弦相似度cosθ去度量向量/embedding之间的相似程度。除非又特殊的抵抗位置变化的需求，可采用皮尔森相关系数，皮尔森相关系数是协方差（两个变量的总体误差）的正则化，不过它同时也可以被视为将x和y中心化后的余弦相似度。
 

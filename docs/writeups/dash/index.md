@@ -25,11 +25,11 @@ Similar to `extendible hashing`, `linear hashing` also uses a `directory` to org
 
 # Dash for Extendible Hashing
 ## Overview
-![dash_eh](https://jipeng4974.github.io/img/dash_eh.png)
+![dash_eh](https://wujipeng.com/img/dash_eh.png)
 
 In `Dash-EH`, each `directory` entry points to a `segment` which consists of a fixed number of normal buckets and stash buckets. A `segment` can be viewed as a sub-hashtable of constant size. The so-called stash buckets shares the same layout as the normal buckets, responsible for storing overflow records. 
 
-![dash_eh](https://jipeng4974.github.io/img/dash_eh_bucket.png)
+![dash_eh](https://wujipeng.com/img/dash_eh_bucket.png)
 
 The core idea of `Dash-EH` is to pay a little bit extra space in metadata to buy faster probing with fingerprints and lightweight concurrency control with version locks.
 

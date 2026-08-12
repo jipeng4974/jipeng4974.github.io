@@ -22,7 +22,7 @@ First, let's review what **similarity between vectors** means:
 - To be robust to scale changes, the inner product is often normalized to [-1,1], which gives the cosine similarity cosθ, where θ is the angle between the vectors. Obviously, the smaller θ is, the closer the vectors are.
 - After normalizing Euclidean distance to [-1,1], it is equivalent to sqrt(2-2cosθ). So squared Euclidean distance is also proportional to cosine similarity.
 
-![sim_measure](https://jipeng4974.github.io/img/sim_measure.png)
+![sim_measure](https://wujipeng.com/img/sim_measure.png)
 
 After normalization, Euclidean distance, inner product, and cosθ all share the same origin, so we generally use cosine similarity cosθ to measure the similarity between vectors/embeddings. Unless there is a special need to resist positional shifts, in which case the Pearson correlation coefficient can be used: it is the normalization of covariance (the joint error of two variables), but it can also be viewed as the cosine similarity between centered x and y.
 

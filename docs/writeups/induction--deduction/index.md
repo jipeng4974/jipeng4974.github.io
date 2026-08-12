@@ -44,7 +44,7 @@ The completeness of Solomonoff's theory means that Bayes' formula (shown here in
 
 ## At the End of Rules Lies Bayes
 The figure below, taken from [Computability and Complexity](https://plato.stanford.edu/entries/computability) and originally from Descriptive Complexity (Immerman 1999), is a map of the world of computability and complexity; from top to bottom, it gradually transitions from mysteries to problems.
-![computability and complexity map](https://jipeng4974.github.io/img/CaC.jpeg)
+![computability and complexity map](https://wujipeng.com/img/CaC.jpeg)
 
 When we use if-else conditionals in a computer programming language and, no matter how hard we try, still cannot write a program whose results are satisfactory, we are usually facing a mystery, not a problem.
 

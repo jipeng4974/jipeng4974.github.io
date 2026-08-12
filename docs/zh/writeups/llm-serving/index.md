@@ -44,7 +44,7 @@ LLM serving相比此前主流的深度模型serving，有一些独有的特性�
 
 Orca[^1]首先为GPT模型的batching提出了一个完整的解决方案，在迭代层面进行调度，并通过一个必要的selective batching机制剔除不能做batching的操作（若不做剔除，两个请求整体能做batching的几率可以忽略不计），这些操作虽然不能做batching，但对整体性能提升的影响很小。
 
-![orca](https://jipeng4974.github.io/img/orca.png)
+![orca](https://wujipeng.com/img/orca.png)
 
 ## Paged Attention
 Orca方案并未考虑KV cache的HBM占用，默认预分配max_seq_len。
@@ -55,14 +55,14 @@ Orca方案并未考虑KV cache的HBM占用，默认预分配max_seq_len。
 - vLLM的实现中并未采纳Orca的selective batching，主要是因为它的paged attention算子是自己写的cuda，可以与非attn算子一起兼容batching。vLLM将prefill和decoding分开做batching，整体上就不需要实现selective batching这么麻烦的机制了。
     - 但这种做法也阻止了prefill和decoding step的融合。如果某个prompt过长，prefill开销太大，确实会出现block后续所有decoding batch的情形。
 
-![block_table](https://jipeng4974.github.io/img/block_table.png)
+![block_table](https://wujipeng.com/img/block_table.png)
 
 详见[Paged Attention](https://jipeng4974.github.io/writeups/paged-attention)。
 
 ## Dynamic SplitFuse
 DeepSpeed-FastGen[^3]中提出了SplitFuse，也是Continuous Batching的一个演化版本。思路是切分长prompt请求成若干个小的step，这些小的step开销较低，可填充调度缝隙，同时还保证prefill(prompt generation)和decode(token generation)的steps开销一致，就可以确保不存在大小不同的workload，取得一定的吞吐提升，但最主要的优势是能稳住tail-latency，在线服务场景下下限更高。
 
-![split_fuse](https://jipeng4974.github.io/img/split_fuse.png)
+![split_fuse](https://wujipeng.com/img/split_fuse.png)
 
 ## Quantization and Pruning
 由于Nvidia架构上天然偏向图形负载，显存天然就给的不足，各种量化、剪枝技术除了降低计算量外，在LLM serving方向上还起到了关键性的降低显存占用的效果。
@@ -75,20 +75,20 @@ SGLang采用了Radix attention[^4]技术，将common prefix的KV以radix tree的
 ## Flash Attention
 Continuous batching提升了非attn操作的SRAM locality，针对kv计算，Flash Attention[^8]则令attn计算内层循环fit in SRAM。
 
-![fast_att](https://jipeng4974.github.io/img/fast_attention.png)
+![fast_att](https://wujipeng.com/img/fast_attention.png)
 
 详见[Flash Attention](https://jipeng4974.github.io/writeups/flash-attention)。
 
 ## Speculative Decoding
 Speculative decoding[^7]的思路是选用tokenizer相同，大小不同的两个模型。假设大模型的latency大体上是小模型的N倍。小模型输出N个token的时间内，大模型把这N个token拿过来append到seq上形成input，再输出1个token，总计生成N+1个token。基于greedy decoding对这N+1个token进行采样，采样结果如果和小模型的结果match，就直接用了，不match就停下，在停下的地方把原本的小模型token改成大模型采样结果对应的token。整个过程中，大模型实际上只需要一个forward pass，运气好就能一下子输出N+1个token，运气差就输出1个token。
 
-![speculative_decoding](https://jipeng4974.github.io/img/speculative_decoding.png)
+![speculative_decoding](https://wujipeng.com/img/speculative_decoding.png)
 
 
 ## Structured Decoding
 SGLang基于一个压缩有限状态机实现了structured decoding[^4]，用于对特定结构化输出（比如支持regex的JSON模板）进行加速，一次性decode多个token。假设这个结构化输出的JSON模板中总是有一个key是"top5 candidate"，那就可以把"top5 candidate"这个multi-token词组当成一个token一轮迭代处理掉。
 
-![structured_decoding](https://jipeng4974.github.io/img/structured_decoding.png)
+![structured_decoding](https://wujipeng.com/img/structured_decoding.png)
 
 
 [^1]: Gyeong-In Yu and Joo Seong Jeong. Orca: A Distributed Serving System for Transformer-Based Generative Models. OSDI 22. [[pdf]](https://www.usenix.org/system/files/osdi22-yu.pdf)

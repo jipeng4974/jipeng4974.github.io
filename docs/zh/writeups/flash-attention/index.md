@@ -23,7 +23,7 @@ $$Y = att(K,Q,V) = \underbrace{softargmax(\frac{QK^T}{\frac{1}{\sqrt{D^{QK}}}})}
 
 整个过程分两步，第一步先计算每个query index $q$和每个key index $k$的注意力得分，即queries和keys点乘后的```softargmax```结果：$A_{q,k} = \frac{exp(\frac{1}{\sqrt{D^{QK}}} Q_q \cdot K_k ) }{\sum_l exp(\frac{1}{\sqrt{D^{QK}}} Q_q \cdot K_l)}$，其中$\frac{1}{\sqrt{D^{QK}}}$是一个缩放参数，用于保证取值范围在$D^{QK}$变大时大体不变。
 
-![att](https://jipeng4974.github.io/img/attention.png)
+![att](https://wujipeng.com/img/attention.png)
 
 得到注意力得分$A_{q,k}$后，再进行第二步计算：$Y_q = \sum_k A_{q,k}V_k$。注意力得分即queries和keys之间的匹配程度，匹配程度越高，该权重就越高。如果某个query和某个key匹配度达到极限，注意力得分接近1，则直接拿到这个key对应的value。如果和好几个key都有中等水准的匹配，则按注意力得分做加权平均。
 
@@ -34,7 +34,7 @@ $$Y = att(K,Q,V) = \underbrace{softargmax(\frac{QK^T}{\frac{1}{\sqrt{D^{QK}}}})}
 - 对softmax归一化因子做相应调整，即可保证最后加起来得到的最终结果和标准实现等价，具体代数见[^1]附录。
 - 设置K、V的block size为 $\lceil \frac{M}{4d} \rceil$，Q、O的block size为$min(\lceil \frac{M}{4d} \rceil, d)$[^4]。
 
-![fast_att](https://jipeng4974.github.io/img/fast_attention.png)
+![fast_att](https://wujipeng.com/img/fast_attention.png)
 
 此外，对于训练负载来说，`FlashAttention`还在反向传播中复用前馈过程暂存的softmax归一化因子$\frac{1}{\sqrt{D^{QK}}}$，这也比从HBM读$N\times N$的巨大attention中间矩阵要快得多。这可被视作selective gradient checkpointing。
 
@@ -49,7 +49,7 @@ $$Y = att(K,Q,V) = \underbrace{softargmax(\frac{QK^T}{\frac{1}{\sqrt{D^{QK}}}})}
     - 反向传播时并行化外层循环也只有dQ更新时需要简单的通信/同步，这是一个顺序不重要的加法，atomic add足以解决。
 
 既然有了线程块，就要考虑在每个线程块内，不同warps之间如何进行工作的切分。
-![work_part](https://jipeng4974.github.io/img/work_part.png)
+![work_part](https://wujipeng.com/img/work_part.png)
 
 如上图所示，`FlashAttention`的切分方式导致内层循环中各个warp都需要把结果写到共享内存且做一个同步加，存在一定的通信开销，而`FlashAttention2`的切分方式可以保证warp之间完全没有通信需求。
 

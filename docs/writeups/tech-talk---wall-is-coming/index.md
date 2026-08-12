@@ -25,15 +25,15 @@ In ancient times we didn't talk about "data center hardware," because the Intern
 > Compared with IBM mainframes and supercomputers, the cheapness of x86 back then was plain to see. Google ran on Pentium II when it was first founded.
 > The banking industry and DARPA made the IBM Power series. Today, although Power9/10 machines are completely crushed by Xeon/EPYC, they can still linger on thanks to the unchangeable ancestral laws of banking software and government orders, holding on to a niche market.
 
-![commodity_computing](https://jipeng4974.github.io/img/commodity_computing.png)
+![commodity_computing](https://wujipeng.com/img/commodity_computing.png)
 
 Before the 10s, x86 microprocessors had no multi-core scalability at all.
 - The `FSB` (front-side bus) was the chief culprit. In the architecture shown below, the memory bus and the PCIe bus had to share a single `FSB` to connect to the CPU, making the `FSB` the bottleneck and leaving the CPU count unable to scale out.
 - Back then `PCIe` was still 1.0 (the first-generation `PCIe` from 2003), with quite limited bandwidth and lane counts. Even if you forced multi-core in, network IO and disk IO couldn't keep up.
-![fsb](https://jipeng4974.github.io/img/fsb.png)
+![fsb](https://wujipeng.com/img/fsb.png)
 
 The 00s happened to coincide with Moore's Law gradually failing in the single-core context; focusing purely on improving chip performance was no longer viable after 2004, and hardware vendors had to break out architecturally toward multi-core.
-![clock](https://jipeng4974.github.io/img/clock.png)
+![clock](https://wujipeng.com/img/clock.png)
 
 ## The Early 10s: The Multi-Core Era
 The Intel Xeon E5-2600 V1 32nm Sandy Bridge in 2012 was a milestone server product: it removed the `FSB` (this had actually already been done on the 2009 Nehalem machines), introduced `QPI`/`DMI` to replace the `FSB`, plus PCIe 2.0, giving the microarchitecture multi-core scalability.
@@ -41,7 +41,7 @@ The Intel Xeon E5-2600 V1 32nm Sandy Bridge in 2012 was a milestone server produ
 > When buying a computer back then, the so-called second-gen i3/i5/i7 was `SandyBridge`, a full generation ahead of the first-gen i5/i7 `Nehalem`.
 
 After `Sandy Bridge` came `Haswell`, which changed little. After `Haswell` came `Broadwell`, from which the ring topology `Broadwell Ring` takes its name.
-![clock](https://jipeng4974.github.io/img/broadwell_ring.png)
+![clock](https://wujipeng.com/img/broadwell_ring.png)
 After that came Skylake, which began to carry the Scalable name — moving from multi-core to many-core, from the early modern era into the modern era.
 
 ## The Late 10s to Early 20s: The Many-Core Era
@@ -54,7 +54,7 @@ The successor to `Skylake`, `Ice Lake`, did not hatch smoothly, because 2018 bro
 
 Currently the mainstay models for data center applications are `Ice Lake` and `Cascade Lake` machines; starting from 2023~2024, compute/memory-intensive scenarios will gradually move to the fourth-generation Xeon: `Sapphire Rapids` machines.
 In 2019 and 2020 we still had a scattered handful of 1st gen Xeon Scalable Gold machines, which were soon phased out.
-![clock](https://jipeng4974.github.io/img/broadwell_ring.png)
+![clock](https://wujipeng.com/img/broadwell_ring.png)
 
 Both `Ice Lake` and `Cascade Lake` use a monolithic mesh design.
 - Here monolithic refers to the paradigm of a single huge die carrying many cores, as opposed to chiplet/tile-based designs;
@@ -162,7 +162,7 @@ Based on an understanding of the full picture of the optimization space, we can 
 - Use 1GB huge pages to store data. Compared with the default 4KB pages, huge pages greatly reduce the total number of page table entries needed, which can significantly shrink page table size and TLB size, reduce TLB miss and page table walk overhead, and improve the continuity of memory allocation and the locality of memory access — all of which help improve memory bandwidth.
 - Use 4MB large pages to store code: the .text segment can also use larger pages (though the maximum supported is only 4MB). The ITLB, like the DTLB, causes stalls on misses. ITLB problems can be diagnosed with the help of https://github.com/intel/iodlr; the solution is to move .text into existing large pages[^3], or to link statically and use the libhugetlbfs library. I haven't yet seen this optimization land in a real project, but it looks quite promising; see [Runtime Performance Optimization Blueprint: Large Code Pages](https://www.intel.com/content/dam/develop/external/us/en/documents/runtimeperformanceoptimizationblueprint-largecodepages-q1update.pdf).
 - Respect the NUMA topology and avoid remote memory accesses, i.e., UPI traffic.
-![numa](https://jipeng4974.github.io/img/NUMA.png)
+![numa](https://wujipeng.com/img/NUMA.png)
 - Take advantage of new architectural features and new instruction set extensions: for example, AMX-based GEMM precision and performance optimization is widely used in various training/inference frameworks; the AVX512_IFMA instruction extension for big-number multiplication has been used in newer versions of OpenSSL; and QAT (QuickAssist)-based hardware acceleration for cryptographic applications such as AES, RSA, and ECC.
 - Use prefetching to make the cache smarter.
   - So-called hardware prefetching means prefetching data from memory into cache (usually the LLC). The hardware prefetcher has simple stride-pattern recognition logic; for example, a loop like a, a+2, a+4, a+6 can be recognized. There is no need to deliberately trigger hardware prefetching — normal code triggers it. But you need to avoid triggering it by mistake: for example, a large struct spanning multiple cache lines may only need its first few fields accessed, but the hardware prefetcher mistakenly thinks it will keep reading, causing cache pollution. Slightly adjusting the access order of those fields to break the constant stride pattern is enough.
@@ -203,7 +203,7 @@ Based on an understanding of the full picture of the optimization space, we can 
     ```
 - Take advantage of advanced interconnect technologies, such as `CXL`.
 
-![cxl](https://jipeng4974.github.io/img/spr-cxl.png)
+![cxl](https://wujipeng.com/img/spr-cxl.png)
 
 
 [^1]: DIMM (dual in-line memory module), i.e., a RAM stick — the physical embodiment of DDR (Double Data Rate) technology.

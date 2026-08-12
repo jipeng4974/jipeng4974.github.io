@@ -10,7 +10,7 @@ LLMS index: [llms.txt](/llms.txt)
 
 "The Little Book of Deep Learning"([```LBDL```](https://fleuret.org/francois/lbdl.html))是François Fleuret写的一本适配手机屏的书，精简扼要地面向stem背景读者介绍深度学习。正如```DDIA```可被视为分布式系统方向的入门教程，```LBDL```是理想的深度学习101。
 
-![tlb](https://jipeng4974.github.io/img/tlb.jpg)
+![tlb](https://wujipeng.com/img/tlb.jpg)
 
 精简，或者说压缩，正是深度模型的strength，也是这个信息过载时代的virtue。用A4纸打印这个小册子，读起来非常舒适。
 
@@ -57,7 +57,7 @@ token词汇域有限的场景是可计算的，条件概率的链式分解又使
 
 训练时，每个时刻都需要重新计算之前已经算过的，考虑到总体逻辑时间/步骤数目往往相当长，成百上千，甚至上万，这样的计算显然非常低效。解决方案是设计一个一次性预测所有逻辑时间（T）上的logits向量的模型——$f: \{1,...,K\}^T \rightarrow \mathbb{R}^{T\times K}$，并确保t时刻的输入$x_t$对应的logits $l_t$只依赖于$x_1, x_2, x_3, ... x_{t-1}$。这种模型即因果模型（causal models），其原则是不让未来影响过去。
  
-![causal](https://jipeng4974.github.io/img/causal.png)
+![causal](https://wujipeng.com/img/causal.png)
 
 因果模型训练时可以用完整的序列计算output，一次性最大化序列中所有token的概率，最终也等价于最小化per-token交叉熵。
 
@@ -66,7 +66,7 @@ token词汇域有限的场景是可计算的，条件概率的链式分解又使
 ### 梯度下降
 除了线性回归这种简单特例，一般最优权重$w^*$不会有closed-form expression。这种情况下最小化函数的工具是梯度下降：将权重初始化为随机的$w_0$，然后反复迭代，每次迭代都朝梯度方向修改权重使loss逐步降低，即每次迭代都令$w_{n+1} = w_n - \eta \nabla \mathscr{L}_{|w}(W_n). $ 其中$\eta$即学习率，如果设置得太小，训练可能太慢，而且容易卡在局部最小，如果设置得太大，则容易在最低点附近左右横跳。
 
-![gd](https://jipeng4974.github.io/img/gradient_descent.png)
+![gd](https://wujipeng.com/img/gradient_descent.png)
 
 对于每个点$w$来说，梯度$\nabla \mathscr{L}_{|w}(w)$就是能最大化$\mathscr{L}$增量的方向。因此梯度下降就可以通过每次迭代中减去学习率*梯度的值，使所有迭代串联起来可形成一个接近最优的最小化$\mathscr{L}$路线。
 
@@ -79,7 +79,7 @@ $$\nabla ℒ_{|w}(w) = \frac{1}{N} \sum_{n=1}^N \nabla \ell_{n|w}(w)$$
 ### 反向传播
 给定$\ell(w)=L(f(x;w),y)$，怎么计算$\nabla\ell_{|w}(w)$呢？考虑到$f$和$L$都是标准张量运算的组合，它们与任何数学表达式一样，基于链式法则可以得到其表达式。
 
-![bp](https://jipeng4974.github.io/img/bp.png)
+![bp](https://wujipeng.com/img/bp.png)
 
 简单起见，将一个深度为$D$的模型表示为$f = f^{(D)} \circ f^{(D-1)} \circ ... \circ f^{(1)}$。则前馈过程即按顺序计算$x^{(d-1)} \rightarrow x^{(d)}$，即$x^{(d)} = f^{(d)}(x^{(d-1)};w_d)$，直到最终得到$x^{(D)}$作为模型输出。
 
@@ -119,9 +119,9 @@ GPT在大规模无标注训练集上训练就足以处理很多任务，比如�
 
 下图中，$D=3, K=5, D'=4$。
 
-![1dconv](https://jipeng4974.github.io/img/1dconv.png)
+![1dconv](https://wujipeng.com/img/1dconv.png)
 
-![2dconv](https://jipeng4974.github.io/img/2dconv.png)
+![2dconv](https://wujipeng.com/img/2dconv.png)
 
 一维卷积往往用于处理序列数据或时序数据。二维卷积则常用于处理图片，或其他以2D矩阵为输入的任务。转置卷积/反卷积则主要用于GAN、VAE这样的生成式模型中，从一个低维特征膨胀到一个高分辨率图片。
 
@@ -141,7 +141,7 @@ Dropout[Srivastava et al., 2014][^17]层无可训练参数，只有一个超参$
 
 然后再对每个b，计算均值为0方差为1的归一化值$z_{b,d} = \frac{x_{b,d} - m_d}{\sqrt{v_d + \epsilon}} $，再算出最终结果$y_{b,d} = \gamma_d z_{b,d} + \beta_d$，这个最终值的均值为$\beta_d$，方差为$\gamma_d$。
 
-![norm](https://jipeng4974.github.io/img/norm.png)
+![norm](https://wujipeng.com/img/norm.png)
 
 ### 残差连接
 跳跃连接（skip connections，见[Long et al., 2014][^19]; [Ronneberger et al., 2015][^20]）同样可对抗梯度消失。实际上跳跃连接不是一个layer，而是一种让某些层的输出跳过一些中间层嫁接到后面的设计。这种设计允许更原始的信号在更后面的层中得到“反思”。
@@ -157,7 +157,7 @@ $$Y = att(K,Q,V) = \underbrace{softargmax(\frac{QK^T}{\frac{1}{\sqrt{D^{QK}}}})}
 
 整个过程分两步，第一步先计算每个query index $q$和每个key index $k$的注意力得分，即queries和keys点乘后的```softargmax```结果：$A_{q,k} = \frac{exp(\frac{1}{\sqrt{D^{QK}}} Q_q \cdot K_k ) }{\sum_l exp(\frac{1}{\sqrt{D^{QK}}} Q_q \cdot K_l)}$，其中$\frac{1}{\sqrt{D^{QK}}}$是一个缩放参数，用于保证取值范围在$D^{QK}$变大时大体不变。
 
-![att](https://jipeng4974.github.io/img/attention.png)
+![att](https://wujipeng.com/img/attention.png)
 
 得到注意力得分$A_{q,k}$后，再进行第二步计算：$Y_q = \sum_k A_{q,k}V_k$。注意力得分即queries和keys之间的匹配程度，匹配程度越高，该权重就越高。如果某个query和某个key匹配度达到极限，注意力得分接近1，则直接拿到这个key对应的value。如果和好几个key都有中等水准的匹配，则按注意力得分做加权平均。
 

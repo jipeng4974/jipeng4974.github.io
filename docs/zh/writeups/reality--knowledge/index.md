@@ -19,7 +19,7 @@ LLMS index: [llms.txt](/llms.txt)
 人类通过对人体生理学的研究，发现七色感知是一个更深层的潜在现实的涌现结构：多种光感受器的叠加反应。
 
 人类颜色感知系统对红绿蓝敏感的三种光感受器，叠加反应产生的三个峰和四个谷决定了人类能感知到7种颜色。
-![color](https://jipeng4974.github.io/img/color.png)
+![color](https://wujipeng.com/img/color.png)
 
 鸟类由于拥有对紫外线敏感的光感受器，就能感知到9种颜色，因此可以看到九色彩虹。
 
@@ -54,4 +54,4 @@ LLMS index: [llms.txt](/llms.txt)
 一如分子生物学是物理化学的涌现。
 一如物理化学是量子物理的涌现。
 
-![em](https://jipeng4974.github.io/img/em.png)
+![em](https://wujipeng.com/img/em.png)

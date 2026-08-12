@@ -82,12 +82,12 @@ Communication Latency in Federated Learning](https://dga.hanlab.ai/assets/neurip
 
 In-center环境下，同一个机柜的延迟<1us，同机房则是ms级别。无线环境大概是20ms，跨洋连接则至少100ms。在解决带宽问题后，延迟就成为最大瓶颈。这篇论文提出的DGA(Delayed Gradient Aggregation)算法的核心思路是延迟梯度平均到未来的某个迭代，即模型更新时接收过时的平均梯度，从而允许通信和计算流水线化。论文将问题形式化为：最小化随机函数的和。
 
-![DGA](https://jipeng4974.github.io/img/DGA.png)
+![DGA](https://wujipeng.com/img/DGA.png)
 
 N表示client数量，fi表示client i的stochastic损失函数。随机变量ζi关联一个mini-batch样本。
 
 
-![DGA2](https://jipeng4974.github.io/img/DGA2.png)
+![DGA2](https://wujipeng.com/img/DGA2.png)
 
 算法的主要思路是允许averaging通信过程中做本地更新（averaging通信和本地更新并行，）。FedAvg中clients在每轮结束发送参数到彼此，等averaging结束再开启下一轮。DGA里把averaging barrier延迟到了后续迭代(iteration，指的是本地更新的迭代)。因此clients可以立刻开启下一轮(round，指的是最外层循环，即一轮更新)。第一轮下收到外部信息时迭代已经发生了D次，延迟了D个迭代后进行梯度修正。理想情况下不存在通信延迟，D=0时，DGA恢复成最初的FedAvg。
 

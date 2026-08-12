@@ -25,15 +25,15 @@ LLMS index: [llms.txt](/llms.txt)
 > 相对IBM mainframe、super computer而言，当年x86的廉价是一目了然的。Google草创之初用的是奔腾2。
 > 银行业、DAPRA成就了IBM power系列，如今Power9/10机器虽然被Xeon/EPYC完爆，仍然可以靠银行软件的祖宗之法不可变和政府订单苟延残喘，保有一份niche市场。
 
-![commodity_computing](https://jipeng4974.github.io/img/commodity_computing.png)
+![commodity_computing](https://wujipeng.com/img/commodity_computing.png)
 
 10s之前是x86微处理器完全不具备多核可扩展性的年代。
 - `FSB`(front-side bus)是罪魁祸首。下图架构中，内存总线和PCIe总线需共享一个`FSB`才能与CPU相连，导致`FSB`成为瓶颈，CPU数量不具备横向扩展性。
 - 当年的`PCIe`还是1.0（03年初代`PCIe`），带宽和lane数都相当有限，即使强上多核，网络IO、磁盘IO也跟不上。
-![fsb](https://jipeng4974.github.io/img/fsb.png)
+![fsb](https://wujipeng.com/img/fsb.png)
 
 零零年代恰逢摩尔定律逐渐在单核语境失效，专注提升芯片性能在2004年后不再可行，硬件厂商不得不在架构上向多核方向突围。
-![clock](https://jipeng4974.github.io/img/clock.png)
+![clock](https://wujipeng.com/img/clock.png)
 
 ## 一零年代初，多核时代
 2012年的Intel Xeon E5-2600 V1 32nm Sandy Bridge是里程碑式的服务器产品，移除`FSB`（这个实际上在09年的Nehalem机器上就已经做了）、引入`QPI`/`DMI`取代`FSB`、PCIe2.0，使微架构获取多核可扩展性。
@@ -41,7 +41,7 @@ LLMS index: [llms.txt](/llms.txt)
 > 当年买电脑时，所谓二代i3/i5/i7就是`SandyBridge`，和一代i5/i7的`Nehalem`有代差。
 
 `Sandy Bridge`之后是`Haswell`，变化不大。`Haswell`之后是`Broadwell`，环状拓扑`Broadwell Ring`即得名于此。
-![clock](https://jipeng4974.github.io/img/broadwell_ring.png)
+![clock](https://wujipeng.com/img/broadwell_ring.png)
 再后面就是Skylake，开始冠上Scalable之名了，从多核走向众核，从近代走到现代。
 
 ## 一零年代末~二零年代初，众核时代
@@ -54,7 +54,7 @@ LLMS index: [llms.txt](/llms.txt)
 
 目前数据中心应用的主力机型是`Ice Lake`、`Cascade Lake`机器，23~24年起计算/访存密集的场景则会逐步用到第四代Xeon：`Sapphire Rapids`机器。
 19年20年我们还零零散散有一些1st gen Xeon Scalable Gold机器，后来很快就汰换掉了。
-![clock](https://jipeng4974.github.io/img/broadwell_ring.png)
+![clock](https://wujipeng.com/img/broadwell_ring.png)
 
 `Ice Lake`和`Cascade Lake`都是monolithic mesh设计。
 - 这里monolithic是相对于chiplet/tile-based而言的单个huge die承载many-core的范式；
@@ -162,7 +162,7 @@ PC玩家成就了Nvidia GPU，GPU恰好适应AI workloads，于是有了各种ML
 - 利用1GB huge pages存数据，相比4KB默认页，hugepage所需的page table entry总数大大减少，可显著减小page table size和tlb size、降低tlb miss和page table walk开销，提升内存分配的连续性和内存访问的局部性，这些都有助于提升内存带宽。
 - 利用4MB large pages存代码，.text segment也可以用更大的页（不过最大只支持4MB），ITLB和DTLB一样，miss也会造成stall。ITLB问题的诊断可借助https://github.com/intel/iodlr，解决方法把.text移动到已有的large pages里[^3]或静态链接并使用libhugetlbfs库。目前尚未看到该优化在真实项目中落地，但看起来相当promising，可参考[Runtime Performance Optimization Blueprint: Large Code Pages](https://www.intel.com/content/dam/develop/external/us/en/documents/runtimeperformanceoptimizationblueprint-largecodepages-q1update.pdf)。
 - 尊重NUMA拓扑，避免远端内存访问，即UPI traffic。
-![numa](https://jipeng4974.github.io/img/NUMA.png)
+![numa](https://wujipeng.com/img/NUMA.png)
 - 利用新架构特性和新的指令集扩展，如基于AMX实现GEMM的精度和性能优化广泛用在各种训推框架，AVX512_IFMA指令扩展做大数乘法已被用在新版本的OpenSSL中，以及基于QAT（QuickAssist）对AES、RSA、ECC等密码学应用做硬件加速。
 - 利用prefetching让cache变得更聪明。
   - 所谓hardware prefetching就是从内存预取数据到cache（通常是LLC）。Hardware prefetcher有简单的stride pattern识别逻辑，比如a,a+2,a+4,a+6这种loop是可以被识别的。没必要刻意触发hardware prefetching，正常的代码都可以触发。但需避免误触发hardware prefetching——比如一个横跨多个cache line的大结构体其实只需要访问它的前几个field，但hardware prefetcher误以为还要接着读，就会造成cache pollution。稍微调整下这几个fields的访问顺序，破坏掉constant stride pattern即可。
@@ -203,7 +203,7 @@ PC玩家成就了Nvidia GPU，GPU恰好适应AI workloads，于是有了各种ML
     ```
 - 利用先进互连技术，如`CXL`。
 
-![cxl](https://jipeng4974.github.io/img/spr-cxl.png)
+![cxl](https://wujipeng.com/img/spr-cxl.png)
 
 
 [^1]: DIMM(dual in-line memory module)，即ram stick，内存条，DDR(Double Data Rate)技术的物理具现。

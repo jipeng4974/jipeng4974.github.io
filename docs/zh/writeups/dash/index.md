@@ -25,11 +25,11 @@ Dash 论文的主要关注点是曾经风靡一时的 `persistent memory`，但�
 
 # 面向 Extendible Hashing 的 Dash
 ## 概览
-![dash_eh](https://jipeng4974.github.io/img/dash_eh.png)
+![dash_eh](https://wujipeng.com/img/dash_eh.png)
 
 在 `Dash-EH` 中，每个 `directory` 条目指向一个 `segment`，它由固定数量的普通 bucket 和 stash bucket 组成。一个 `segment` 可以看作一个大小恒定的子哈希表。所谓 stash bucket 与普通 bucket 布局相同，负责存储溢出记录。
 
-![dash_eh](https://jipeng4974.github.io/img/dash_eh_bucket.png)
+![dash_eh](https://wujipeng.com/img/dash_eh_bucket.png)
 
 `Dash-EH` 的核心思想是在元数据上多花一点空间，换来基于 fingerprint 的更快 probing，以及基于 version lock 的轻量级并发控制。
 

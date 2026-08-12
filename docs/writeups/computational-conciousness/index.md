@@ -45,7 +45,7 @@ The four major neuroscientific theories of consciousness, ranked by how intensel
 ### GNW | System2 | Attention
 GNW (Global Neural Workspace), or Global Workspace Theory, holds that humans and animals use specialized systems — modules — to handle specific cognitive tasks. Different modules have their own specializations and can run in parallel, yet are integrated into a whole that coordinates the modules and shares information among them.
 
-![gwt](https://jipeng4974.github.io/img/gwt.png)
+![gwt](https://wujipeng.com/img/gwt.png)
 
 GNW holds that only states of global representation count as conscious; the local states inside modules are unconscious. The theory posits a network of "workspace neurons" originating in the frontoparietal region, whose activity is sustained through reentrant processing and which constitutes conscious representation. When a sensory representation is strong enough, it triggers "ignition" — a transition process that broadcasts the local to the global, leaping from unconscious to conscious. In GNW, therefore, conscious states admit no degrees: it is all or nothing.
 

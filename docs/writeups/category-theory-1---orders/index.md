@@ -68,18 +68,18 @@ For example, the pairwise `meets` table of $\{T,F\}(F \leq T)$ happens to be the
 
 Let's pick a particular set, let $X = \{\square, \times, \heartsuit\}$, then we consider its power sets:
 
-![power_sets](https://jipeng4974.github.io/img/power_sets.png)
+![power_sets](https://wujipeng.com/img/power_sets.png)
 
 In this case, it's clear that $\wedge$ = intersection, $\vee$ = union.
 
 **Example 3: $(\mathbb{N}, |), a ≤ b$, iff $a|b$**
 
-![divisible](https://jipeng4974.github.io/img/divisible.png)
+![divisible](https://wujipeng.com/img/divisible.png)
 
 1 divides everything, so we start from 1. Here we have $\wedge$ = gcd, $\vee$ = lcm.
 
 **Example 4: There may be more than one `meet`/`join`.**
-![hasse_diagram](https://jipeng4974.github.io/img/hasse_diagram.png)
+![hasse_diagram](https://wujipeng.com/img/hasse_diagram.png)
 
 This hasse diagram specifies a `preorder` where both $c$ and $d$ are `meets` of $A$. We have $c≤ d$ and $d≤ c$, so $c \cong d$, that is $c$ and $d$ are `isomorphic`, which will be covered later; we generally do not run into trouble if we pretend they are equal though.
 
@@ -95,11 +95,11 @@ The idea that things can be characterized by universal properties, implies we ar
 `Preorders` themselves can be related to one another. A `monotone map` is a structure-preserving map for `preorders`.
 
 A `monotone map` between `preorders` $(A, ≤_A)$ and $(B, ≤_B)$ is a `function` $f : A \rightarrow B$ such that, for all elements $x, y ∈ A$, if $x ≤_A y$ then $f (x) ≤_B f(y)$.
-![monotone_map](https://jipeng4974.github.io/img/monotone_map.png)
+![monotone_map](https://wujipeng.com/img/monotone_map.png)
 
 Let $\mathbb{B}$ be the preorders of booleans and $\mathbb{N}$ be the preorder of natural numbers. The map $\mathbb{B} \rightarrow \mathbb{N}$ sending false to 17 and true to 24 is a `monotone map`, because it preserves order.
 
-![b2n](https://jipeng4974.github.io/img/b2n.png)
+![b2n](https://wujipeng.com/img/b2n.png)
 
 A `monotone map` $f: P \rightarrow Q$ preserves `joins` if $\forall p,p' \in P, f(p\vee p') = f(p) \vee f(p')$
 
@@ -123,7 +123,7 @@ We say that $f$ is the left `adjoint` and g is the right `adjoint` of the `Galoi
 > The theory of `Galois connections` is a special case of a more general theory, the theory of `adjunctions`.
 
 **Example 1: $P = Q = \underline{3}$**
-![togc](https://jipeng4974.github.io/img/Galois_connections.png)
+![togc](https://wujipeng.com/img/Galois_connections.png)
 
 In this case $P$ and $Q$ are total orders, $f$ is left adjoint to $g$ as long as arrows do not cross.
 

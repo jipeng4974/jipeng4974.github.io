@@ -40,7 +40,7 @@ The interface between the CPU and memory is 64 bits wide, but an individual DRAM
 > Depending on memory configuration on x86 arch, objects addresses are spread between channels and ranks in RAM
 
 On the x86 architecture, memory channels and memory ranks are interleaved across memory addresses — that is, evenly distributed and increasing — so RAM can be viewed as consisting of $n_{chan}\times n_{rank}$ blocks, with a DIMM architecture as shown in the figure below.
-![2chan4rank](https://jipeng4974.github.io/img/2chan4rank.svg)
+![2chan4rank](https://wujipeng.com/img/2chan4rank.svg)
 
 As the figure shows, a memory pool should avoid letting object start addresses repeatedly hit the same channel or the same rank; instead, it should make full use of different memory channels and different memory ranks, avoiding load imbalance across channels and ranks to improve memory access bandwidth.
 
@@ -63,7 +63,7 @@ Hardware doesn't know VAs, and userspace doesn't know PAs. One of DPDK's roles i
 
 DPDK has two IOVA modes: PA mode and VA mode. With PA mode, every IOVA address assigned to DPDK is a physical address — or rather, it is also an IO virtual address, just one whose memory layout is exactly identical to the physical addresses. The downsides of PA mode are that it requires root privileges to read the page tables, and it may inherit the fragmentation of physical memory. DPDK therefore introduced the new VA mode, which on one hand needs no root privileges, and on the other hand remaps physical memory through the IOMMU[^2], guaranteeing the contiguity of IO virtual addresses and matching their encoding layout to the format of ordinary virtual addresses — which permits allocating large swaths of contiguous IOVA memory. From the hardware's perspective as well as from userspace's, the IOVA memory region under VA mode is contiguous.
 
-![iova](https://jipeng4974.github.io/img/iova.png)
+![iova](https://wujipeng.com/img/iova.png)
 
 ## Fixed Physical Addresses Are Just Right for DMA
 Respecting NUMA topology, respecting memory layout, VA mode for IOVA, and using hugepages — these features stacked together naturally dictate that in DPDK's design, the underlying physical addresses behind every virtual address used by a userspace process are fixed and immutable — in other words, those addresses can be used for DMA. A DPDK userspace program need not get involved in IO transactions at all; it lets the hardware do the work autonomously, via DMA transactions on those fixed physical addresses.

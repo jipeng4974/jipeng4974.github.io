@@ -44,7 +44,7 @@ As mentioned above, batching LLMs brings many benefits but even more difficultie
 
 Orca[^1] was the first to propose a complete batching solution for GPT models: it schedules at the iteration level and, through a necessary selective batching mechanism, excludes the operations that cannot be batched (without this exclusion, the probability that two requests can be batched as a whole is negligible). Although these operations cannot be batched, their impact on overall performance improvement is small.
 
-![orca](https://jipeng4974.github.io/img/orca.png)
+![orca](https://wujipeng.com/img/orca.png)
 
 ## Paged Attention
 The Orca approach does not account for the HBM footprint of the KV cache and preallocates max_seq_len by default.
@@ -55,14 +55,14 @@ But a monolithic KV cache fragments HBM, and preallocating a huge amount of memo
 - vLLM's implementation does not adopt Orca's selective batching, mainly because its paged attention operator is custom CUDA that can be batched together with non-attn operators. vLLM batches prefill and decoding separately, so overall it does not need a mechanism as complicated as selective batching.
     - But this also prevents fusing prefill and decoding steps. If some prompt is too long and its prefill cost too high, it can indeed block all subsequent decoding batches.
 
-![block_table](https://jipeng4974.github.io/img/block_table.png)
+![block_table](https://wujipeng.com/img/block_table.png)
 
 See [Paged Attention](https://jipeng4974.github.io/writeups/paged-attention) for details.
 
 ## Dynamic SplitFuse
 DeepSpeed-FastGen[^3] proposes SplitFuse, another evolution of Continuous Batching. The idea is to split long-prompt requests into several small steps. These small steps are cheap and can fill scheduling gaps, while keeping the cost of prefill (prompt generation) and decode (token generation) steps consistent, ensuring there are no workloads of different sizes. This yields some throughput improvement, but its main advantage is stabilizing tail latency — a higher floor for online serving scenarios.
 
-![split_fuse](https://jipeng4974.github.io/img/split_fuse.png)
+![split_fuse](https://wujipeng.com/img/split_fuse.png)
 
 ## Quantization and Pruning
 Because Nvidia's architecture inherently favors graphics workloads, memory is naturally underprovisioned, so beyond reducing compute, various quantization and pruning techniques also play a critical role in reducing memory footprint for LLM serving.
@@ -75,20 +75,20 @@ SGLang adopts Radix attention[^4], which retains the KV of common prefixes in a 
 ## Flash Attention
 Continuous batching improves the SRAM locality of non-attn operations; for KV computation, Flash Attention[^8] makes the inner loop of the attn computation fit in SRAM.
 
-![fast_att](https://jipeng4974.github.io/img/fast_attention.png)
+![fast_att](https://wujipeng.com/img/fast_attention.png)
 
 See [Flash Attention](https://jipeng4974.github.io/writeups/flash-attention) for details.
 
 ## Speculative Decoding
 The idea of speculative decoding[^7] is to use two models that share the same tokenizer but differ in size. Assume the large model's latency is roughly N times that of the small model. In the time it takes the small model to output N tokens, the large model takes those N tokens, appends them to the seq to form its input, and outputs 1 token — N+1 tokens generated in total. These N+1 tokens are then sampled with greedy decoding; if the sampling result matches the small model's output, it is used directly; if not, sampling stops, and at the stopping point the original small-model token is replaced with the token from the large model's sampling result. Throughout the process, the large model actually needs only one forward pass: with luck it outputs N+1 tokens in one shot; without luck it outputs 1 token.
 
-![speculative_decoding](https://jipeng4974.github.io/img/speculative_decoding.png)
+![speculative_decoding](https://wujipeng.com/img/speculative_decoding.png)
 
 
 ## Structured Decoding
 SGLang implements structured decoding[^4] based on a compressed finite-state machine to accelerate specific structured outputs (such as regex-enabled JSON templates), decoding multiple tokens in one go. Suppose a key in this structured output's JSON template is always "top5 candidate"; then the multi-token phrase "top5 candidate" can be treated as a single token and processed in one iteration.
 
-![structured_decoding](https://jipeng4974.github.io/img/structured_decoding.png)
+![structured_decoding](https://wujipeng.com/img/structured_decoding.png)
 
 
 [^1]: Gyeong-In Yu and Joo Seong Jeong. Orca: A Distributed Serving System for Transformer-Based Generative Models. OSDI 22. [[pdf]](https://www.usenix.org/system/files/osdi22-yu.pdf)

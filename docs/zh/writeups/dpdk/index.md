@@ -40,7 +40,7 @@ CPU和内存之间是64bit接口，但单个内存颗粒（DRAM chips）的位�
 > Depending on memory configuration on x86 arch, objects addresses are spread between channels and ranks in RAM
 
 x86架构下内存通道和内存列在内存地址上interleaving，即均匀分布且递增，因此RAM可视作由$n_{chan}\times n_{rank}$个block组成的，其DIMM架构如下图。
-![2chan4rank](https://jipeng4974.github.io/img/2chan4rank.svg)
+![2chan4rank](https://wujipeng.com/img/2chan4rank.svg)
 
 如图所示，内存池最好不要让对象的起始地址反复命中同一个channel或同一个rank，而是要充分利用不同内存通道、不同内存列，避免通道、列之间的负载不均，提升访存带宽。
 
@@ -63,7 +63,7 @@ static unsigned int arch_mem_object_align(unsigned int obj_size)
 
 DPDK的IOVA模式有两种：PA mode和VA mode。如果用了PA mode，则分配给DPDK的所有IOVA地址都是物理地址，或者说，也是IO虚拟地址，只不过这个IO虚拟地址的内存布局与物理地址完全相同。PA mode的缺点是需要root权限以读取页表，且可能会继承物理内存的碎片性。因此DPDK引入了新的VA mode，一方面无需root权限，另一方面基于IOMMU[^2]做物理内存的重映射，保证IO虚拟地址的连续性，并使其编码布局和一般虚拟地址在格式上做到匹配，这样就允许大片连续IOVA内存的申请。无论是硬件视角下，还是用户空间视角下，VA mode下IOVA内存区都是连续的。
 
-![iova](https://jipeng4974.github.io/img/iova.png)
+![iova](https://wujipeng.com/img/iova.png)
 
 ## 固定物理地址刚好宜用DMA
 尊重NUMA拓扑、尊重内存布局、IOVA的VA模式、使用巨页这些特性叠加起来，天然就决定了DPDK设计中，用户态进程用到的所有虚拟地址的underlying物理地址都是固定不变的——也就是说，这些地址是可以用于DMA的。DPDK用户态程序可不必涉足IO事务，让硬件自主代劳，通过固定不变的物理地址上的DMA事务完成。

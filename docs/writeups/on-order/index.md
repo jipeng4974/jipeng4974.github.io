@@ -10,7 +10,7 @@ LLMS index: [llms.txt](/llms.txt)
 
 Order emerges from the self-organization of dissipative structures, a phenomenon that is ubiquitous: Rayleigh-Bénard convection[^11] in fluid thermodynamics (regular cloud formations in the sky[^5], solar granules[^13], the hexagonal basalt columns of the Giant's Causeway[^12], mantle convection[^14]), the Belousov-Zhabotinsky reaction[^10] in chemical systems, and everything we know well — climate, cities, flames, explosions, stock markets, traffic, bee swarms, ecosystems, metabolism, life, consciousness.
 
-![stone](https://jipeng4974.github.io/img/stone.webp)
+![stone](https://wujipeng.com/img/stone.webp)
 
 A dissipative structure is a steady-state system far from equilibrium that continuously exchanges matter and energy with its environment. Dissipative structures arise from input and dissipation: when energy or matter flows into a system, if there is a suitable mechanism to dissipate the excess energy, it can lead to a local increase in order or the formation of regularity. As dissipation continues, a complexity — or "intricacy" — that did not exist at first is born in the dissipative system: new behaviors, structures, and patterns arise on their own, organizing spontaneously, assembling automatically, running autonomously.
 
