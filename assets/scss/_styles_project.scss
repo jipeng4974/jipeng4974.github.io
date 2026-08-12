@@ -16,10 +16,7 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 }
 
 // Photo galleries: keep each image within the viewport so it fits on screen
-// without overflowing horizontally or vertically. Photo single pages use the
-// fallback `all` layout, so images are not wrapped in `.td-content`; keep the
-// selector broad enough to cover both cases.
-.photo-fit-screen,
+// without overflowing horizontally or vertically.
 .td-content .photo-fit-screen {
   display: block;
   width: auto;

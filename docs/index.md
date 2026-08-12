@@ -12,6 +12,6 @@ Section pages:
 
 - [About](/about/): About me and this site
 - [Games](/games/): Small games and engine experiments
-- [Photographs](/photos/): Selected photographs
+- [Photographs](/photos/): A small selection of photographs will live here.
 - [Search Results](/search/)
 - [Writeups](/writeups/): Long-form notes on systems, AI, math, and everything in between
