@@ -42,7 +42,7 @@ The computational cost of the quantizer affects inference performance in mixed-p
 
 - SmoothQuant[^23]: unlike per-channel activation quantization, SmoothQuant applies a smoothing operation to the magnitudes to avoid overly drastic inter-channel variation. SmoothQuant makes the originally very uniform weights slightly uneven, but they remain easy to compute with.
 
-![smooth](https://jipeng4974.github.io/img/smooth_quant.png)
+![smooth](https://wujipeng.com/img/smooth_quant.png)
 
 ## k-bit Inference Scaling Laws
 According to the 35,000 k-bit inference experiments in [^5], with the total model size held constant, 4-bit precision is almost always the optimal choice.

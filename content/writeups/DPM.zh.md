@@ -42,7 +42,7 @@ showFullContent = false
 
 Song et al., ICLR 2021[^2]将一个扩散变换描述为：$q(x_i|x_{i-1}) = \mathcal{N}(x_i;\sqrt{1- \beta_i}x_{i-1},\beta_iI)$，令$\alpha_i = \prod_{k=1}^{i} 1 - \beta_i$，则有$q_{\alpha_N}(x_N|x_0) = \prod_{i=1}^{N} q(x_i|x_{i-1}) = \mathcal{N}(x_N;\sqrt{\alpha_N} x_0, (1-\alpha_N)I)$，冗长的递归表达式最终可以划归为一个简洁的closed form[^5]，因此可以很方便地定义N步前向过程的loss。其中$\beta_i$是一系列噪声乘数，可以是超参，也可以说reparameterization学习到的结果。对每个训练数据$x_0 \sim q_D(x)$，都可以构造一个离散马尔可夫链$\{x_0,x_1,...,x_N\}$，经过$N$次加噪，最终使之趋近高斯白噪。$q(x_N|x_0) \sim \mathcal{N}(O,I), N \rightarrow \infty$。
 
-![SDE](https://jipeng4974.github.io/img/sde.png)
+![SDE](https://wujipeng.com/img/sde.png)
 
 上述过程的逆向去噪过程$p(x_{i-1}|x_i)$则是未知、需要学习或估算的——可以用变分近似的方法求解，比如用一个均值为$x_i$函数的高斯分布$\mathcal{N}(\mu_n(x_n), \theta_n^2I)$去近似$p(x_{i-1}|x_i)$，用KL散度最小化的方法使之逼近。
 

@@ -50,17 +50,17 @@ on tracer exit:
 ## So, What Is eBPF?
 Simply put, eBPF is an in-kernel runtime that allows running custom code for tracing and system monitoring — an upgraded version of BPF.
 
-![ebpf](https://jipeng4974.github.io/img/ebpf.png)
+![ebpf](https://wujipeng.com/img/ebpf.png)
 
 The original BPF, the Berkeley Packet Filter, is an ancient, almost forgotten kernel feature for packet filtering. eBPF extends BPF: event sources are no longer limited to packets but expanded to a wide variety of sources, and the eBPF VM has more storage, more registers, and a 64-bit word size. BPF in effect provides an in-kernel sandboxed environment — a virtual machine, really — that executes user-defined programs safely and with restrictions. So the emergence of the eBPF mechanism actually created a new category of software beyond kernel-space and user-space programs.
 
 eBPF programs are neither precompiled nor interpreted; they are JIT-compiled with CO-RE[^2]. When a program goes wrong, it neither aborts nor panics — it returns an error message. Kernel space accesses resources directly; user space accesses resources via system calls or faults; eBPF accesses resources through a set of restricted helpers. For now, its main use is still tracing — observability work.
 
-![ebpf2](https://jipeng4974.github.io/img/ebpf2.png)
+![ebpf2](https://wujipeng.com/img/ebpf2.png)
 
 eBPF puts a JIT compiler and a safety verifier directly inside the kernel. A userspace bpf program is first turned into an AST by a parser, goes through some construction and syntax analysis, then generates IR, and finally produces optimized bytecode. The BPF bytecode enters the kernel's JIT and verifier as input, and is compiled into machine code for the CPU to execute.
 
-![ebpf3](https://jipeng4974.github.io/img/ebpf3.png)
+![ebpf3](https://wujipeng.com/img/ebpf3.png)
 
 ## Other Applications of eBPF
 Beyond observability, eBPF can also be applied to networking — traffic control, monitoring, or load balancing at L3/L4/L7 — for example the libbpf ```tc```/```qdiscs``` library, ```XDP``` (bare-metal, high-performance programmable networking), ```Cilium``` (high-performance cloud-native networking), and ```Katran``` (transport-layer load balancing).

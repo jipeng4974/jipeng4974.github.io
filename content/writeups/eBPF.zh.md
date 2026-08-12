@@ -50,17 +50,17 @@ on tracer exit:
 ## 所以，什么是eBPF？
 简单说，eBPF是一个允许跑自定义代码做一些tracing和系统监控的in-kernel runtime，是BPF的升级版。
 
-![ebpf](https://jipeng4974.github.io/img/ebpf.png)
+![ebpf](https://wujipeng.com/img/ebpf.png)
 
 最初的BPF，即Berkeley Packet Filter，是一个用于报文过滤的几乎被遗忘的古老内核特性。eBPF在BPF基础上做了扩展，允许事件源从报文扩展到多种多样的事件源，eBPF VM有更大的存储空间，更多寄存器和64位word size——BPF事实上提供了一个in-kernel的沙盒环境，或者说虚拟机，安全且受限地执行用户定义的程序。因此eBPF机制的出现实际上在内核态程序、用户态程序之外创造了新的软件品类。
 
 eBPF程序不是预编译或解释的，而是JIT CO-RE[^2]的，程序出错既不abort，也不panic，而是返回error message。内核态直接访问资源，用户态通过系统调用或fault访问资源，eBPF则是通过一些受限的helper访问资源——目前来说主要作用还是tracing，做一些可观测性上的工作。
 
-![ebpf2](https://jipeng4974.github.io/img/ebpf2.png)
+![ebpf2](https://wujipeng.com/img/ebpf2.png)
 
 eBPF把JIT编译器和安全验证器直接放到了内核里，用户态的bpf程序先经过parser变成AST，再做一些构造和语法分析，然后生成IR，最终生成优化后的bytecode。BPF bytecode作为输入进入内核的JIT和verifier再编译成机器码给CPU执行。
 
-![ebpf3](https://jipeng4974.github.io/img/ebpf3.png)
+![ebpf3](https://wujipeng.com/img/ebpf3.png)
 
 ## eBPF的其他应用
 eBPF除了用在可观测性上，还可以应用于网络，在L3/L4/L7做traffic control, monitoring或load balancing，比如libbpf ```tc```/```qdiscs``` library, ```XDP```(裸金属高性能可编程网络)/```Cilium```(高性能云原生网络)/```Katran```(传输层负载均衡)。

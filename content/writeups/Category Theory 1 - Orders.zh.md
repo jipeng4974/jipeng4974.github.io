@@ -66,18 +66,18 @@ $A$ 上的一个 `partition`（划分）无非就是到另一个集合 $P$ 的�
 
 取一个具体的集合，令 $X = \{\square, \times, \heartsuit\}$，然后考虑它的幂集：
 
-![幂集](https://jipeng4974.github.io/img/power_sets.png)
+![幂集](https://wujipeng.com/img/power_sets.png)
 
 在这种情况下，显然 $\wedge$ = 交集（intersection），$\vee$ = 并集（union）。
 
 **例 3：$(\mathbb{N}, |), a ≤ b$ 当且仅当 $a|b$**
 
-![整除关系](https://jipeng4974.github.io/img/divisible.png)
+![整除关系](https://wujipeng.com/img/divisible.png)
 
 1 整除所有数，所以我们从 1 开始。这里 $\wedge$ = gcd，$\vee$ = lcm。
 
 **例 4：`meet`/`join` 可能不止一个。**
-![Hasse 图](https://jipeng4974.github.io/img/hasse_diagram.png)
+![Hasse 图](https://wujipeng.com/img/hasse_diagram.png)
 
 这张 Hasse 图给出了一个 `preorder`，其中 $c$ 和 $d$ 都是 $A$ 的 `meets`。我们有 $c≤ d$ 且 $d≤ c$，所以 $c \cong d$，即 $c$ 与 $d$ 是 `isomorphic`（同构）的，这一点后文会讲到；不过一般来说，我们把它们当作相等也不会遇到什么麻烦。
 
@@ -93,11 +93,11 @@ $A$ 上的一个 `partition`（划分）无非就是到另一个集合 $P$ 的�
 `Preorders` 自身之间也可以相互关联。`monotone map` 就是 `preorders` 之间保持结构的映射。
 
 `preorders` $(A, ≤_A)$ 与 $(B, ≤_B)$ 之间的 `monotone map` 是一个 `function` $f : A \rightarrow B$，使得对所有元素 $x, y ∈ A$，若 $x ≤_A y$，则 $f (x) ≤_B f(y)$。
-![单调映射](https://jipeng4974.github.io/img/monotone_map.png)
+![单调映射](https://wujipeng.com/img/monotone_map.png)
 
 设 $\mathbb{B}$ 为布尔值的 preorder，$\mathbb{N}$ 为自然数的 preorder。把 false 映到 17、把 true 映到 24 的映射 $\mathbb{B} \rightarrow \mathbb{N}$ 是一个 `monotone map`，因为它保持了序。
 
-![b2n](https://jipeng4974.github.io/img/b2n.png)
+![b2n](https://wujipeng.com/img/b2n.png)
 
 若 $\forall p,p' \in P, f(p\vee p') = f(p) \vee f(p')$，则称 `monotone map` $f: P \rightarrow Q$ 保持 `joins`。
 
@@ -121,7 +121,7 @@ $A$ 上的一个 `partition`（划分）无非就是到另一个集合 $P$ 的�
 > `Galois connections` 的理论是一个更一般的理论——`adjunctions`（伴随）理论——的特例。
 
 **例 1：$P = Q = \underline{3}$**
-![togc](https://jipeng4974.github.io/img/Galois_connections.png)
+![togc](https://wujipeng.com/img/Galois_connections.png)
 
 此时 $P$ 和 $Q$ 都是全序（total order），只要箭头不交叉，$f$ 就是 $g$ 的左伴随。
 

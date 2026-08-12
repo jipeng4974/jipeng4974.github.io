@@ -17,7 +17,7 @@ But this is only the first observation of an infinitely vast reality, the most i
 Through the study of human physiology, we discovered that seven-color perception is an emergent structure of a deeper latent reality: the superimposed responses of multiple photoreceptors.
 
 The human color perception system has three types of photoreceptors sensitive to red, green, and blue; the three peaks and four valleys produced by their superimposed responses determine that humans can perceive 7 colors.
-![color](https://jipeng4974.github.io/img/color.png)
+![color](https://wujipeng.com/img/color.png)
 
 Birds, because they possess photoreceptors sensitive to ultraviolet light, can perceive 9 colors, and therefore can see a nine-colored rainbow.
 
@@ -52,4 +52,4 @@ Just as cell biology is an emergence of molecular biology.
 Just as molecular biology is an emergence of physical chemistry.
 Just as physical chemistry is an emergence of quantum physics.
 
-![em](https://jipeng4974.github.io/img/em.png)
+![em](https://wujipeng.com/img/em.png)

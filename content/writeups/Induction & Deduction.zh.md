@@ -42,7 +42,7 @@ showFullContent = false
 
 ## 规则的尽头是贝叶斯
 下图是摘自[Computability and Complexity](https://plato.stanford.edu/entries/computability)，最早出自Descriptive Complexity(Immerman 1999)的可计算性与复杂度世界图，自上而下，逐渐从神秘过渡到问题。
-![cac](https://jipeng4974.github.io/img/CaC.jpeg)
+![cac](https://wujipeng.com/img/CaC.jpeg)
 
 当我们用if else条件判断，用计算机程序语言，无论如何努力，都难以编写出效果让人满意的程序时。我们往往是在面对神秘，而非问题。
 

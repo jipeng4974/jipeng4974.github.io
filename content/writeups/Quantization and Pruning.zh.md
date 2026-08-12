@@ -42,7 +42,7 @@ Non-uniform quantization往往用几个离散的等级模拟其他分布（$x$�
 
 - SmoothQuant[^23]：与per-channel激活量化不同，SmoothQuant把magnitudes做了一个smooth操作，避免过于剧烈的inter-channel variation。SmoothQuant把原本非常uniform的权重分别变得稍有起伏，但实际上仍然易于计算。
 
-![smooth](https://jipeng4974.github.io/img/smooth_quant.png)
+![smooth](https://wujipeng.com/img/smooth_quant.png)
 
 ## k-bit Inference Scaling Laws
 根据[^5]中的三万五千次k-bit推理实验，模型总体积不变的情况下，4-bit精度几乎永远是最优解。

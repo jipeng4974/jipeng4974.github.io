@@ -80,12 +80,12 @@ Communication Latency in Federated Learning](https://dga.hanlab.ai/assets/neurip
 
 In an in-center environment, latency within the same rack is <1us, and within the same datacenter it is on the order of milliseconds. Wireless environments are around 20ms, and transoceanic links are at least 100ms. Once the bandwidth problem is solved, latency becomes the biggest bottleneck. The core idea of the DGA (Delayed Gradient Aggregation) algorithm proposed in this paper is to delay gradient averaging to some future iteration — that is, the model updates while receiving a stale averaged gradient — thereby allowing communication and computation to be pipelined. The paper formalizes the problem as minimizing a sum of stochastic functions.
 
-![DGA](https://jipeng4974.github.io/img/DGA.png)
+![DGA](https://wujipeng.com/img/DGA.png)
 
 N denotes the number of clients, and fi denotes the stochastic loss function of client i. The random variable ζi is associated with a mini-batch sample.
 
 
-![DGA2](https://jipeng4974.github.io/img/DGA2.png)
+![DGA2](https://wujipeng.com/img/DGA2.png)
 
 The main idea of the algorithm is to allow local updates to proceed while the averaging communication is in progress (averaging communication and local updates run in parallel). In FedAvg, clients send parameters to each other at the end of each round and wait for averaging to finish before starting the next round. DGA delays the averaging barrier to a subsequent iteration (iteration here refers to an iteration of the local update). Clients can therefore start the next round immediately (round here refers to the outermost loop, i.e., one round of updates). When the external information from the first round arrives, D iterations have already taken place, and the gradient correction is applied after a delay of D iterations. Ideally, with no communication latency, D=0, and DGA reduces to the original FedAvg.
 

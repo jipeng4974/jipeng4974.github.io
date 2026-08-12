@@ -14,7 +14,7 @@ showFullContent = false
 
 CMOS工艺和软硬件技术的整体进步可以解释服务器能量效率上的提升，但能耗停滞的根本原因还在于互联网企业盈利的本质是对有支付能力的10亿国外人口和10亿国内人口征服务税，个别成功的初创企业可以迅速扩张，但互联网行业作为整体，在数据中心能耗上的投入增长受制于全球平民收入增长。
 
-![DatacenterPower](https://jipeng4974.github.io/img/DatacenterPower.jpeg)
+![DatacenterPower](https://wujipeng.com/img/DatacenterPower.jpeg)
 
 当初创企业的规模扩张到互联网规模后，机器资源的增长速率应该会从爆炸式上升陡然转入停滞，进入自然汰换阶段。
 从这个角度可以得出结论，数据中心应用在规模扩张结束后，也应从能耗粗放型转为精细集约型，通过软硬件协同充分释放硬件潜力，通过算法创新减少总计算量。
@@ -53,7 +53,7 @@ AI时代来临之后，通过更多的权重（作为公理）和由大量算子
 
 Sapphire Rapids最多支持8个socket，每个芯片可以支持60核。IO技术上支持CXL 1.1、PCIe 5.0、UPI 2.0，HBM2e(optional)。
 
-![Xeon](https://jipeng4974.github.io/img/4th_xeon.jpeg)
+![Xeon](https://wujipeng.com/img/4th_xeon.jpeg)
 
 AMD的第四代EPYC的主力型号Genoa今年Q1也开始量产，基本上和Sapphire Rapids对标，采用5nm工艺。虽然说AVX512被很多人诟病，实用表现非常一般，但Zen4也支持了，毕竟XeongenEPYC目标客户就是音视频处理和AI workload越来越多的数据中心应用。Genoa是每个die/chiplet 8核的，12个CPU cluster die中间围绕一个IO die的设计，相当于一个芯片96核，是典型的chiplet范式设计。
 
@@ -63,7 +63,7 @@ Chiplets同时受到业界和学术界的关注，被IBM research称为"what’s
 
 所谓chiplet partitioning就是将电路切分成模块化的子系统，每个子系统都是一个独立晶粒（die），即chiplet，多个chiplet用2.5D/3D技术封装成一个芯片(package)。
 
-![Chiplet](https://jipeng4974.github.io/img/chiplet.png)
+![Chiplet](https://wujipeng.com/img/chiplet.png)
 
 Chiplet-reuse范式相比传统的IP-reuse（IP在芯片语境下指的是具有独立功能和成熟设计的电路模块）的优势如下：
 1. 先进CMOS制程（7nm以下）由于技术原因不太可能在大晶粒上获得高yield，die size越小成本越低。
@@ -82,18 +82,18 @@ Chiplet-reuse范式相比传统的IP-reuse（IP在芯片语境下指的是具有
 
 μArch对计算/访存密集型数据中心应用的性能工程有直接影响。下图是一个6chiplet封装的96核概念机。显然当我们把集成电路的黑盒拆开，就可以看到更细粒度的组件以及它们组成的网络（Network-on-Chip）结构。这个概念机集成了各种先进设计，不仅有many-core，还支持完整的cache coherency。相比过去的多核架构，众核架构的内存层次也相应变得更深，cache miss的代价变得更高。以至于Rust的标准库用B树去实现map（而C++中众所周知是红黑树），这就是处理器和内存频率差距逐渐拉大的结果，（夸张地说）现在的内存已经慢得像是当年的磁盘了。
 
-![IntAct](https://jipeng4974.github.io/img/IntAct.png)
+![IntAct](https://wujipeng.com/img/IntAct.png)
 
 针对NUMA架构，系统层的Linux内核和KVM的NUMA-aware scheduler，应用层的网络框架Seastar、数据库ScyllaDB、内存数据库DragonFly等都已经注意到感知硬件拓扑能极大提升整体性能（ScyllaDB、DragonFly分别数倍领先于对标的Cassandra、Redis），提出了share-nothing高性能架构：避免锁和不必要的共享内存、避免不必要的远端内存访问、避免不必要的跨晶粒通信，设计缓存友好的数据结构，更好地利用晶粒内本地的L1 cache——考虑到目前我们用的Cascade Lake机器并非完全cache coherent，未来即使做到完全cache coherent，shared cache的coherency机制也几乎一定有开销，总之在复杂拓扑深内存层次时代，需警惕cache miss。
 
-![NUMA](https://jipeng4974.github.io/img/NUMA.png)
+![NUMA](https://wujipeng.com/img/NUMA.png)
 
 ## 重新遇到I/O瓶颈：先进互连再次成为HPC核心
 数据中心应用的IO占了全球IO traffic的76%，和计算一样，IO也是耗电的，而且和计算一样，数据中心IO耗电也十年没有变过，被硬件进步offset掉了。和计算一样，互连是分层级的，近期die-to-die(on-package)链路层面有UCIe标准的发布，off-package层面有基于PCIe6.0的CXL3.0，900GB/s的NvLinkC2C，inter-node层面有Infiniband NDR。这些是基于电的互连，相比而言光学互连更有前景，但也更困难，而且还在早期研发阶段。
 
 过去的大数据和前大模型AI时代对IO的需求较低，标准以太网足以支撑大部分数据中心应用，包括parameter servers。大模型训练产生了新的计算、IO形态，内存放不下模型，不得不做模型并行后，IO就重新成了瓶颈：H100的8个GPU每个都需要7.2Tbps的off-package带宽，相比之下，连ToR交换机都只需要10+Tbps。AI专用GPU在大模型训练场景下的带宽需求已经非常接近交换机（交换机和GPU一样，都是巨型ASIC，也都是co-packaged optics适用的领域）。在交换机领域，谷歌已经研发出了实用且收益显著的纯光学链路交换机。在GPU互连上，NV也提出过光学互连的GPU的概念系统，甚至还设计了相应的带外置激光源的GPU机架和顺便解决冷却问题的稀疏布线。
 
-![optics](https://jipeng4974.github.io/img/optics.png)
+![optics](https://wujipeng.com/img/optics.png)
 
 先进IO技术与HPC(高性能计算)的发展密可不分，尽管HPC或者说超算在大众的想象中一直和超强悍的处理器、加速器直接相关，但实际上恰恰相反，传统的HPC workload（建模、模拟类的科学计算）的计算用的往往是普通的商用节点，反而是互连必须用高性能的HPC interconnect技术。传统超算的异构性体现在IO技术，而非FPGA、专用ASIC的应用。
 
@@ -116,7 +116,7 @@ Google的TPUv4超算最大的创新就是4k节点上可重配置的纯光学链�
 
 下图列出了interposer、PCB、CPO、电缆、有源光缆的耗电、成本、密度、传输距离指标。CPO的优势是显而易见的。
 
-![CPO](https://jipeng4974.github.io/img/CPO.png)
+![CPO](https://wujipeng.com/img/CPO.png)
 
 在当前的技术水平下，CPO仅被视为一个电光(E/O)桥的角色，以解决SiP的互连带宽密度瓶颈问题。对分布式训练等应用场景来说，电光桥，或者说bring fiber closer to endpoints已经可以大幅降低能耗，提升性能了。但CPO的潜力远不限于此，如果给CPO chiplet稍微加一些功能，就可以像协处理器、smartNiC那样offload一些CPU work，比如做一些简单的数据预处理、后处理，又如CPO无需经过CPU直接就能访问HBM，从而提供DMA能力，这对解聚架构非常有帮助，无需物理上做pooling，又比铜缆IB网络更快。
 
@@ -128,10 +128,10 @@ Google的TPUv4超算最大的创新就是4k节点上可重配置的纯光学链�
 
 ## 评估 GH200 Grace Hopper Superchip 
 NVIDIA宣称Grace Hopper Superchip是世界上第一个真正支持HPC和AI负载的异构加速平台。
-![GraceHopper](https://jipeng4974.github.io/img/GraceHopper.png)
+![GraceHopper](https://wujipeng.com/img/GraceHopper.png)
 如下图所示，这个superchip是一个把Grace Arm Neoverse CPU+LPDDR5x内存和H100 Tensor Core GPU+HBM，NVLink-C2C集成合封成PCB的集成方案。
-![GraceHopper](https://jipeng4974.github.io/img/GraceHopper2.png)
-![GraceHopper](https://jipeng4974.github.io/img/GraceHopper3.png)
+![GraceHopper](https://wujipeng.com/img/GraceHopper2.png)
+![GraceHopper](https://wujipeng.com/img/GraceHopper3.png)
 
 这并不是一个创新方案，一方面悖逆Chipletization的潮流（除了HBM算是chiplet外，H100、Grace、NvSwitch都是巨型SoC/ASIC，况且即使是HBM也是PCB合封，而不是SiP），另一方面也没有进行任何CPU-GPU超融合（物理上融合至单个SoC上，逻辑上统一页表管理、内存、缓存、并发模型等）的探索或尝试（GPU设计之初就存在太多和CPU无法兼容的设计，比如缓存模型、内存模型和并发模型，如今CUDA根基已成很难回头），只是简单粗暴的将CPU、高带宽内存、H100以PCB合封的方式集成，用NVLink-C2C提供内存一致性和更高off-package的带宽（并未尝试任何先进IO技术）。软件上也没能在CUDA基础上提供更强的可编程性，仅仅提供coherent memory access，编程模型仍然是完全异构的（这也是因为CUDA自诞生之初就是个图形加速库，也没法考虑未来会出现对这种superchip的同构编程模型的需求）。
 

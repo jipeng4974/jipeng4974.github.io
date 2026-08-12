@@ -9,7 +9,7 @@ showFullContent = false
 
 "The Little Book of Deep Learning" ([```LBDL```](https://fleuret.org/francois/lbdl.html)) is a book by François Fleuret formatted for phone screens, offering a concise introduction to deep learning for readers with a STEM background. Just as ```DDIA``` can be regarded as the go-to introductory text for distributed systems, ```LBDL``` is the ideal deep learning 101.
 
-![tlb](https://jipeng4974.github.io/img/tlb.jpg)
+![tlb](https://wujipeng.com/img/tlb.jpg)
 
 Conciseness — or compression — is precisely the strength of deep models, and a virtue in this age of information overload. Printed on A4 paper, this booklet is a very comfortable read.
 
@@ -56,7 +56,7 @@ Training an autoregressive model can iterate over every step, summing the cross-
 
 During training, everything computed before has to be recomputed at every time step. Given that the total number of logical time steps is often quite long — hundreds, thousands, even tens of thousands — such computation is clearly very inefficient. The solution is to design a model that predicts the logits vectors at all logical time steps (T) in one pass — $f: \{1,...,K\}^T \rightarrow \mathbb{R}^{T\times K}$ — while ensuring that the logits $l_t$ corresponding to the input $x_t$ at time t depend only on $x_1, x_2, x_3, ... x_{t-1}$. Such models are causal models, whose principle is to never let the future influence the past.
 
-![causal](https://jipeng4974.github.io/img/causal.png)
+![causal](https://wujipeng.com/img/causal.png)
 
 When training a causal model, the output can be computed over the full sequence, maximizing the probability of every token in the sequence in one pass, which is ultimately equivalent to minimizing the per-token cross-entropy.
 
@@ -65,7 +65,7 @@ NLP has an important technical detail: how tokens should be represented — they
 ### Gradient Descent
 Except for simple special cases like linear regression, the optimal weights $w^*$ generally have no closed-form expression. In such cases, the tool for minimizing the function is gradient descent: initialize the weights to random $w_0$, then iterate repeatedly, modifying the weights along the gradient direction at each iteration so that the loss gradually decreases — that is, at each iteration set $w_{n+1} = w_n - \eta \nabla \mathscr{L}_{|w}(W_n). $ Here $\eta$ is the learning rate; if it is set too small, training may be too slow and can easily get stuck in a local minimum, while if it is set too large, the weights tend to oscillate back and forth near the minimum.
 
-![gd](https://jipeng4974.github.io/img/gradient_descent.png)
+![gd](https://wujipeng.com/img/gradient_descent.png)
 
 For each point $w$, the gradient $\nabla \mathscr{L}_{|w}(w)$ is the direction that maximizes the increase of $\mathscr{L}$. Gradient descent therefore subtracts the learning rate times the gradient at each iteration, so that all the iterations chained together form a near-optimal route minimizing $\mathscr{L}$.
 
@@ -78,7 +78,7 @@ Computing the full gradient is expensive, but the full sum can be estimated with
 ### Backpropagation
 Given $\ell(w)=L(f(x;w),y)$, how do we compute $\nabla\ell_{|w}(w)$? Since $f$ and $L$ are both compositions of standard tensor operations, their expressions can be derived via the chain rule, just like any mathematical expression.
 
-![bp](https://jipeng4974.github.io/img/bp.png)
+![bp](https://wujipeng.com/img/bp.png)
 
 For simplicity, denote a model of depth $D$ as $f = f^{(D)} \circ f^{(D-1)} \circ ... \circ f^{(1)}$. The feedforward process then computes $x^{(d-1)} \rightarrow x^{(d)}$ in order, i.e. $x^{(d)} = f^{(d)}(x^{(d-1)};w_d)$, until finally obtaining $x^{(D)}$ as the model output.
 
@@ -117,9 +117,9 @@ A 1D transposed convolution takes a $D \times T$ tensor $X$ as input, applies an
 
 In the figure below, $D=3, K=5, D'=4$.
 
-![1dconv](https://jipeng4974.github.io/img/1dconv.png)
+![1dconv](https://wujipeng.com/img/1dconv.png)
 
-![2dconv](https://jipeng4974.github.io/img/2dconv.png)
+![2dconv](https://wujipeng.com/img/2dconv.png)
 
 1D convolutions are often used to process sequence data or time-series data. 2D convolutions are commonly used for images, or other tasks that take 2D matrices as input. Transposed convolutions / deconvolutions are mainly used in generative models such as GANs and VAEs, expanding a low-dimensional feature into a high-resolution image.
 
@@ -139,7 +139,7 @@ Normalization can be used to combat vanishing gradients. The most important norm
 
 Then, for each b, compute the normalized value $z_{b,d} = \frac{x_{b,d} - m_d}{\sqrt{v_d + \epsilon}} $ with mean 0 and variance 1, and then the final result $y_{b,d} = \gamma_d z_{b,d} + \beta_d$, which has mean $\beta_d$ and variance $\gamma_d$.
 
-![norm](https://jipeng4974.github.io/img/norm.png)
+![norm](https://wujipeng.com/img/norm.png)
 
 ### Residual Connections
 Skip connections (see [Long et al., 2014][^19]; [Ronneberger et al., 2015][^20]) likewise combat vanishing gradients. A skip connection is not actually a layer, but a design in which the output of some layer skips over a few intermediate layers and is grafted onto later ones. This design allows earlier, rawer signals to be "revisited" in later layers.
@@ -155,7 +155,7 @@ $$Y = att(K,Q,V) = \underbrace{softargmax(\frac{QK^T}{\frac{1}{\sqrt{D^{QK}}}})}
 
 The whole process has two steps. The first step computes the attention score between every query index $q$ and every key index $k$, i.e. the ```softargmax``` of the dot products of queries and keys: $A_{q,k} = \frac{exp(\frac{1}{\sqrt{D^{QK}}} Q_q \cdot K_k ) }{\sum_l exp(\frac{1}{\sqrt{D^{QK}}} Q_q \cdot K_l)}$, where $\frac{1}{\sqrt{D^{QK}}}$ is a scaling parameter that keeps the range of values roughly unchanged as $D^{QK}$ grows.
 
-![att](https://jipeng4974.github.io/img/attention.png)
+![att](https://wujipeng.com/img/attention.png)
 
 With the attention scores $A_{q,k}$ in hand, the second step computes: $Y_q = \sum_k A_{q,k}V_k$. An attention score is the degree of match between a query and a key — the better the match, the higher the weight. If a query matches one key almost perfectly, the attention score approaches 1 and the value corresponding to that key is taken directly. If it matches several keys to a moderate degree, the result is a weighted average according to the attention scores.
 

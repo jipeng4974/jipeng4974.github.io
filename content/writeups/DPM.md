@@ -42,7 +42,7 @@ In diffusion models, the diffusion process likewise gradually adds Gaussian nois
 
 Song et al., ICLR 2021[^2] describe a diffusion transition as: $q(x_i|x_{i-1}) = \mathcal{N}(x_i;\sqrt{1- \beta_i}x_{i-1},\beta_iI)$; letting $\alpha_i = \prod_{k=1}^{i} 1 - \beta_i$, we have $q_{\alpha_N}(x_N|x_0) = \prod_{i=1}^{N} q(x_i|x_{i-1}) = \mathcal{N}(x_N;\sqrt{\alpha_N} x_0, (1-\alpha_N)I)$ — the lengthy recursive expression eventually reduces to a concise closed form[^5], so the loss of the N-step forward process can be defined very conveniently. Here $\beta_i$ is a series of noise multipliers, which can be hyperparameters or the result learned via reparameterization. For each training sample $x_0 \sim q_D(x)$, a discrete Markov chain $\{x_0,x_1,...,x_N\}$ can be constructed; after $N$ rounds of noise injection, it eventually approaches Gaussian white noise: $q(x_N|x_0) \sim \mathcal{N}(O,I), N \rightarrow \infty$.
 
-![SDE](https://jipeng4974.github.io/img/sde.png)
+![SDE](https://wujipeng.com/img/sde.png)
 
 The reverse denoising process of the above procedure, $p(x_{i-1}|x_i)$, is unknown and must be learned or estimated — it can be solved via variational approximation, e.g., approximating $p(x_{i-1}|x_i)$ with a Gaussian distribution $\mathcal{N}(\mu_n(x_n), \theta_n^2I)$ whose mean is a function of $x_i$, and minimizing the KL divergence to bring it close.
 

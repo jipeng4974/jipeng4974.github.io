@@ -21,7 +21,7 @@ $$Y = att(K,Q,V) = \underbrace{softargmax(\frac{QK^T}{\frac{1}{\sqrt{D^{QK}}}})}
 
 The whole process has two steps. The first step computes the attention score between each query index $q$ and each key index $k$, i.e., the ```softargmax``` of the dot product of queries and keys: $A_{q,k} = \frac{exp(\frac{1}{\sqrt{D^{QK}}} Q_q \cdot K_k ) }{\sum_l exp(\frac{1}{\sqrt{D^{QK}}} Q_q \cdot K_l)}$, where $\frac{1}{\sqrt{D^{QK}}}$ is a scaling parameter that keeps the range of values roughly unchanged as $D^{QK}$ grows.
 
-![att](https://jipeng4974.github.io/img/attention.png)
+![att](https://wujipeng.com/img/attention.png)
 
 After obtaining the attention scores $A_{q,k}$, the second step computes: $Y_q = \sum_k A_{q,k}V_k$. An attention score is the degree of match between a query and a key: the better the match, the higher the weight. If a query and a key match to the extreme, the attention score is close to 1, and the value corresponding to that key is taken directly. If the query matches several keys at a moderate level, the result is a weighted average by attention score.
 
@@ -32,7 +32,7 @@ After obtaining the attention scores $A_{q,k}$, the second step computes: $Y_q =
 - By adjusting the softmax normalization factor accordingly, the final summed result is guaranteed to be equivalent to the standard implementation; see the appendix of [^1] for the detailed algebra.
 - Set the block size of K and V to $\lceil \frac{M}{4d} \rceil$, and the block size of Q and O to $min(\lceil \frac{M}{4d} \rceil, d)$[^4].
 
-![fast_att](https://jipeng4974.github.io/img/fast_attention.png)
+![fast_att](https://wujipeng.com/img/fast_attention.png)
 
 Furthermore, for training workloads, `FlashAttention` also reuses the softmax normalization factor $\frac{1}{\sqrt{D^{QK}}}$ cached during the forward pass in backpropagation, which is much faster than reading the huge $N\times N$ intermediate attention matrix from HBM. This can be viewed as selective gradient checkpointing.
 
@@ -47,7 +47,7 @@ Compared with GEMM, `FlashAttention` only achieves 25~40% of the theoretical FLO
     - When parallelizing the outer loop in backpropagation, simple communication/synchronization is only needed for the dQ update; this is an addition whose order does not matter, so an atomic add is sufficient.
 
 With thread blocks in place, the next question is how to partition the work among different warps within each thread block.
-![work_part](https://jipeng4974.github.io/img/work_part.png)
+![work_part](https://wujipeng.com/img/work_part.png)
 
 As shown in the figure above, the partitioning scheme of `FlashAttention` requires every warp in the inner loop to write its results to shared memory and perform a synchronized addition, incurring some communication overhead, whereas the partitioning scheme of `FlashAttention2` guarantees that warps have no communication needs at all.
 

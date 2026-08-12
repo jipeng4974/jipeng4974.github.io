@@ -33,13 +33,13 @@ Partition tolerance默认是满足的，因此CAP-availability、CAP-consistency
 3. 更宽松的causal consistency指的是写操作中有依赖关系的那一部分的顺序是一致的，即各进程中的dependency order一致。现代CPU基本上都是out-of-order流水线，在保证dependency order这个底线后，能多乱序就多乱序。在C++中用std::memory_order_consume的load(A)和std::memory_order_acquire的store(B)配合，即可保证这个store之前所有写操作中load(A)依赖的那一部分对load(A)是可见的。如果每个依赖都保证Release-Consume ordering，则依赖链就有序，整体上可满足causal consistency。
 4. 除了上述几个著名模型外，还有几十个不同方法、领域中应用的一致性模型，下图就包含了非事务分布式存储系统中种种一致性模型（详见[Consistency in Non-Transactional Distributed Storage Systems](https://arxiv.org/pdf/1512.00168.pdf)）。
 
-![Consistency1](https://jipeng4974.github.io/img/1.png)
+![Consistency1](https://wujipeng.com/img/1.png)
 
 并发程序显然可以很容易推广到分布式复制状态机，只是增加了网络延迟。因此，一致性模型可以推广应用到分布式系统中的副本一致性。以sequential consistency为例，增加了实时约束后就是分布式系统领域中更被广泛引用的linearizability，指的是单个被复制对象上的单个操作满足：A是写操作，B是对副本的读，A happened-before（因果律上的先于，见https://en.wikipedia.org/wiki/Happened-before） B，则A的写对B的读总是可见。比较一下C++的sequentially consistent ordering定义：everything that happened-before a store in one thread becomes a visible side effect in the thread that did a load。二者是一致的。
 
 必须注意，迄今为止讨论的对象仅限单个被复制到不同副本中的对象上的单个操作，分布式存储不可能只存一个对象，有很多分布式存储支持事务或BatchWrite，涉及到多个对象上的多个操作。将单对象上单操作的可见性推广到多对象上多操作也不困难——事务的ACID隔离级别本质上就是将单个共享对象上单个操作的可见性推广到多个对象上一组操作上。下图的左侧就是数据库领域熟知的隔离级别，和分布式系统、微处理器架构、多核编程一样，乱序的约束越少，效率越高，并发程序正确性越难保证。
 
-![Consistency2](https://jipeng4974.github.io/img/2.png)
+![Consistency2](https://wujipeng.com/img/2.png)
 
 
 ## 可用性
@@ -58,4 +58,4 @@ Partition tolerance默认是满足的，因此CAP-availability、CAP-consistency
 
 根据这种定义，可以将现有的事务系统的consistency（隔离级别）与其availability进行比较，得出下图中的结果：在新的分类学中，availability要求越高，consistency要求越宽松是成立的。
 
-![Availability](https://jipeng4974.github.io/img/3.png)
+![Availability](https://wujipeng.com/img/3.png)

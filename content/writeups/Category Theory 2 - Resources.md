@@ -20,14 +20,14 @@ showFullContent = false
 
 ## Wiring Diagrams
 `Wiring diagrams` are visual representations for building new releationships from old. In a preorder without a monoidal structure, the relations are chained in series.
-![wiring_diagrams_1](https://jipeng4974.github.io/img/wiring_diagrams_1.png)
+![wiring_diagrams_1](https://wujipeng.com/img/wiring_diagrams_1.png)
 
 With a symmetric monoidal structure, relations could be arranged in parallel as well.
-![wiring_diagrams_2](https://jipeng4974.github.io/img/wiring_diagrams_2.png)
+![wiring_diagrams_2](https://wujipeng.com/img/wiring_diagrams_2.png)
 The whole wiring diagram above says "if $t\le v, w+u\le x+z, v+x\le y$, then $t+u\le y+z$".
 
 We could draw two wires in parallel to represent the monoidal product of two labels.
-![wiring_diagrams_3](https://jipeng4974.github.io/img/wiring_diagrams_3.png)
+![wiring_diagrams_3](https://wujipeng.com/img/wiring_diagrams_3.png)
 The validity of the box above corresponds to $x_1\otimes x_2 \le y_1 \otimes y_2 \otimes y_3$.
 
 TBD

@@ -14,7 +14,7 @@ Global datacenter energy consumption has barely grown over the past decade, whil
 
 Overall progress in CMOS process technology and in hardware/software techniques can explain the improvement in server energy efficiency, but the root cause of stagnant energy consumption lies elsewhere: the essence of internet companies' profitability is levying a service tax on the one billion people abroad and one billion at home who can afford to pay. Individual successful startups can expand rapidly, but the internet industry as a whole sees its spending growth on datacenter energy bounded by the income growth of ordinary people worldwide.
 
-![DatacenterPower](https://jipeng4974.github.io/img/DatacenterPower.jpeg)
+![DatacenterPower](https://wujipeng.com/img/DatacenterPower.jpeg)
 
 Once a startup has scaled up to internet scale, the growth rate of its machine resources should abruptly shift from explosive expansion to stagnation, entering a phase of natural turnover and replacement.
 From this angle one can conclude that, once scale expansion is over, datacenter applications should likewise shift from an extensive, energy-hungry model to an intensive, fine-grained one: fully unleashing hardware potential through hardware-software co-design, and reducing total computation through algorithmic innovation.
@@ -53,7 +53,7 @@ Compared to the previous Lakes, Sapphire Rapids changes a great deal. The monoli
 
 Sapphire Rapids supports up to 8 sockets, with up to 60 cores per chip. For IO technology it supports CXL 1.1, PCIe 5.0, UPI 2.0, and HBM2e (optional).
 
-![Xeon](https://jipeng4974.github.io/img/4th_xeon.jpeg)
+![Xeon](https://wujipeng.com/img/4th_xeon.jpeg)
 
 AMD's fourth-generation EPYC flagship, Genoa, also entered mass production in Q1 this year, basically going head-to-head with Sapphire Rapids on a 5nm process. Although AVX512 is criticized by many and its practical performance is mediocre, Zen4 supports it anyway — after all, the target customers for Xeon and EPYC are datacenter applications with growing audio/video processing and AI workloads. Genoa has 8 cores per die/chiplet, with 12 CPU cluster dies arranged around a central IO die — 96 cores per chip, a textbook chiplet-style design.
 
@@ -63,7 +63,7 @@ Chiplets have drawn attention from both industry and academia, called "what's ne
 
 Chiplet partitioning means splitting a circuit into modular subsystems, each an independent die — a chiplet — and packaging multiple chiplets into a single chip (package) using 2.5D/3D technology.
 
-![Chiplet](https://jipeng4974.github.io/img/chiplet.png)
+![Chiplet](https://wujipeng.com/img/chiplet.png)
 
 The advantages of the chiplet-reuse paradigm over traditional IP-reuse (in the chip context, IP refers to a circuit module with independent functionality and a mature design) are as follows:
 1. Advanced CMOS processes (below 7nm) are unlikely to achieve high yield on large dies for technical reasons; the smaller the die size, the lower the cost.
@@ -82,18 +82,18 @@ In the commercial server space, part of the chiplet paradigm's vision has alread
 
 The μArch has a direct impact on the performance engineering of compute- and memory-intensive datacenter applications. The figure below shows a 96-core concept machine with 6 chiplets in one package. Clearly, once we open the black box of an integrated circuit, we see finer-grained components and the network they form (Network-on-Chip). This concept machine integrates various advanced designs: not only many cores, but also full cache coherency. Compared to past multi-core architectures, the memory hierarchy of many-core architectures has grown correspondingly deeper, and the cost of a cache miss has become higher — to the point that Rust's standard library implements maps with B-trees (whereas in C++ they are famously red-black trees). This is the result of the widening gap between processor and memory frequencies: (to exaggerate a bit) memory today is as slow as disks were back then.
 
-![IntAct](https://jipeng4974.github.io/img/IntAct.png)
+![IntAct](https://wujipeng.com/img/IntAct.png)
 
 For NUMA architectures, the Linux kernel and KVM at the system layer have NUMA-aware schedulers; at the application layer, the networking framework Seastar, the database ScyllaDB, the in-memory database DragonFly, and others have all noticed that being aware of hardware topology greatly improves overall performance (ScyllaDB and DragonFly outperform their counterparts Cassandra and Redis by several times respectively), and have proposed share-nothing high-performance architectures: avoid locks and unnecessary shared memory, avoid unnecessary remote memory access, avoid unnecessary cross-die communication, design cache-friendly data structures, and make better use of the L1 cache local to each die — considering that the Cascade Lake machines we currently use are not fully cache coherent, and that even when full cache coherence is achieved in the future, the coherency mechanism for shared caches will almost certainly carry overhead. In short, in the era of complex topologies and deep memory hierarchies, beware of cache misses.
 
-![NUMA](https://jipeng4974.github.io/img/NUMA.png)
+![NUMA](https://wujipeng.com/img/NUMA.png)
 
 ## Hitting the I/O Bottleneck Again: Advanced Interconnect Once Again Central to HPC
 Datacenter applications account for 76% of global IO traffic. Like computation, IO consumes power — and like computation, datacenter IO power consumption has also stayed flat for a decade, offset by hardware progress. Also like computation, interconnect is layered. Recently at the die-to-die (on-package) link layer there is the UCIe standard; at the off-package layer there is CXL 3.0 based on PCIe 6.0 and the 900GB/s NVLink-C2C; at the inter-node layer there is InfiniBand NDR. These are electrical interconnects; optical interconnects are more promising by comparison, but also harder, and still in early R&D.
 
 The big-data era and the pre-LLM AI era had low IO demands; standard Ethernet sufficed for most datacenter applications, including parameter servers. Large-model training created new forms of computation and IO. Once models no longer fit in memory and model parallelism became unavoidable, IO became the bottleneck again: each of the H100's 8 GPUs needs 7.2Tbps of off-package bandwidth — for comparison, even a ToR switch only needs 10+Tbps. The bandwidth demand of AI-specific GPUs in large-model training scenarios is already very close to that of switches (switches, like GPUs, are giant ASICs and likewise a domain where co-packaged optics applies). In the switch domain, Google has already developed a practical, clearly beneficial all-optical link switch. For GPU interconnect, NVIDIA has also proposed a concept system of optically interconnected GPUs, even designing corresponding GPU racks with external laser sources and sparse cabling that happens to solve the cooling problem.
 
-![optics](https://jipeng4974.github.io/img/optics.png)
+![optics](https://wujipeng.com/img/optics.png)
 
 Advanced IO technology is inseparable from the development of HPC (high-performance computing). Although HPC — or supercomputing — is always associated in the public imagination with extremely powerful processors and accelerators, the reality is actually the opposite: traditional HPC workloads (modeling- and simulation-type scientific computing) typically run on ordinary commercial nodes, while the interconnect must use high-performance HPC interconnect technology. The heterogeneity of traditional supercomputers lies in IO technology, not in the application of FPGAs or dedicated ASICs.
 
@@ -116,7 +116,7 @@ The biggest innovation of Google's TPU v4 supercomputer is its all-optical link 
 
 The figure below lists the power consumption, cost, density, and transmission distance of interposer, PCB, CPO, copper cable, and active optical cable. CPO's advantages are obvious.
 
-![CPO](https://jipeng4974.github.io/img/CPO.png)
+![CPO](https://wujipeng.com/img/CPO.png)
 
 At the current state of the art, CPO is viewed merely as an electrical-optical (E/O) bridge to solve the interconnect bandwidth-density bottleneck of SiP. For application scenarios like distributed training, an E/O bridge — or rather, bringing fiber closer to endpoints — can already greatly reduce energy consumption and improve performance. But CPO's potential goes far beyond this. If you add just a bit of functionality to a CPO chiplet, it can offload some CPU work like a coprocessor or SmartNIC — for example, simple data pre-processing and post-processing; or, CPO can access HBM directly without going through the CPU, thereby providing DMA capability. This is very helpful for disaggregated architectures: no physical pooling is required, and it is faster than copper IB networks.
 
@@ -128,10 +128,10 @@ With high-performance networks, disaggregated architectures can effectively impr
 
 ## Evaluating the GH200 Grace Hopper Superchip 
 NVIDIA claims the Grace Hopper Superchip is the world's first heterogeneous accelerated platform truly supporting HPC and AI workloads.
-![GraceHopper](https://jipeng4974.github.io/img/GraceHopper.png)
+![GraceHopper](https://wujipeng.com/img/GraceHopper.png)
 As shown in the figure below, this superchip is an integration scheme that co-packages a Grace Arm Neoverse CPU + LPDDR5x memory and an H100 Tensor Core GPU + HBM onto a PCB via NVLink-C2C.
-![GraceHopper](https://jipeng4974.github.io/img/GraceHopper2.png)
-![GraceHopper](https://jipeng4974.github.io/img/GraceHopper3.png)
+![GraceHopper](https://wujipeng.com/img/GraceHopper2.png)
+![GraceHopper](https://wujipeng.com/img/GraceHopper3.png)
 
 This is not an innovative solution. On one hand it runs against the chipletization trend (apart from HBM, which counts as a chiplet, the H100, Grace, and NVSwitch are all giant SoCs/ASICs — and even HBM here is PCB co-packaged, not SiP); on the other hand, it makes no exploration or attempt at CPU-GPU hyper-convergence (physical fusion into a single SoC, logical unification of page-table management, memory, cache, and concurrency models). (GPUs were designed from the start with too many choices incompatible with CPUs — cache model, memory model, concurrency model — and with CUDA's foundation now laid, it's hard to turn back.) It simply and crudely integrates the CPU, high-bandwidth memory, and H100 via PCB co-packaging, using NVLink-C2C to provide memory coherence and higher off-package bandwidth (without trying any advanced IO technology). On the software side it also fails to provide stronger programmability on top of CUDA, offering only coherent memory access; the programming model remains fully heterogeneous (also because CUDA was born as a graphics acceleration library and could not have anticipated future demand for a homogeneous programming model for such superchips).
 

@@ -33,13 +33,13 @@ A consistency model describes, in multi-core concurrent scenarios in microproces
 3. The looser causal consistency means the order of the subset of write operations that have dependency relationships is preserved, i.e., the dependency order within each process is consistent. Modern CPUs are essentially all out-of-order pipelines: as long as the bottom line of dependency order is preserved, they reorder as aggressively as possible. In C++, pairing a load(A) with std::memory_order_consume and a store(B) with std::memory_order_acquire guarantees that the part of all writes before this store that load(A) depends on is visible to load(A). If every dependency guarantees Release-Consume ordering, the dependency chain is ordered, and causal consistency holds overall.
 4. Beyond these well-known models, there are dozens of consistency models applied in different approaches and fields. The figure below covers the various consistency models of non-transactional distributed storage systems (see [Consistency in Non-Transactional Distributed Storage Systems](https://arxiv.org/pdf/1512.00168.pdf) for details).
 
-![Consistency1](https://jipeng4974.github.io/img/1.png)
+![Consistency1](https://wujipeng.com/img/1.png)
 
 Concurrent programs can obviously be generalized quite easily to distributed replicated state machines — only network latency is added. Therefore, consistency models can be generalized to replica consistency in distributed systems. Take sequential consistency as an example: with a real-time constraint added, it becomes linearizability, which is more widely cited in the distributed systems field. It states that a single operation on a single replicated object satisfies: if A is a write operation, B is a read on a replica, and A happened-before (precedes in the causal sense, see https://en.wikipedia.org/wiki/Happened-before) B, then A's write is always visible to B's read. Compare this with the C++ definition of sequentially consistent ordering: everything that happened-before a store in one thread becomes a visible side effect in the thread that did a load. The two are equivalent.
 
 Note that everything discussed so far is limited to a single operation on a single object replicated across different replicas. A distributed storage system cannot possibly store just one object, and many distributed stores support transactions or BatchWrite, which involve multiple operations on multiple objects. Generalizing the visibility of a single operation on a single object to multiple operations on multiple objects is not hard either — the ACID isolation levels of transactions are essentially a generalization of the visibility of a single operation on a single shared object to a group of operations on multiple objects. The left side of the figure below shows the isolation levels familiar from the database field. Just as in distributed systems, microprocessor architecture, and multi-core programming: the fewer the constraints on reordering, the higher the efficiency, and the harder it is to guarantee the correctness of concurrent programs.
 
-![Consistency2](https://jipeng4974.github.io/img/2.png)
+![Consistency2](https://wujipeng.com/img/2.png)
 
 
 ## Availability
@@ -58,4 +58,4 @@ This paper gives new definitions of availability:
 
 With these definitions, we can compare the consistency (isolation levels) of existing transactional systems against their availability, yielding the results in the figure below: in the new taxonomy, it holds that the higher the availability requirement, the looser the consistency requirement.
 
-![Availability](https://jipeng4974.github.io/img/3.png)
+![Availability](https://wujipeng.com/img/3.png)
