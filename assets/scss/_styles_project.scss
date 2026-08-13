@@ -25,3 +25,77 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   max-height: 85vh;
   margin: 1.25rem auto;
 }
+
+// Progressive photo loading (see assets/js/photo-gallery.js). Pending photos
+// sit in a fixed 3:2 frame so the layout stays stable while the large JPEGs
+// are fetched on demand; once loaded, the frame wraps the natural image.
+.td-content .photo-frame {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  width: unquote("min(100%, 90vw, 127.5vh)"); // 3:2 at no more than 85vh tall
+  aspect-ratio: 3 / 2;
+  margin: 1.25rem auto;
+  background: var(--bs-tertiary-bg, rgba(128, 128, 128, 0.08));
+}
+
+.td-content .photo-frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.td-content .photo-frame--loaded {
+  overflow: visible;
+  width: fit-content;
+  max-width: unquote("min(100%, 90vw)");
+  aspect-ratio: auto;
+  background: transparent;
+}
+
+.td-content .photo-frame--loaded img {
+  position: static;
+  width: auto;
+  height: auto;
+  opacity: 1;
+}
+
+.td-content .photo-frame__status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column; // spinner above, progress text below
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--bs-secondary-color, #888);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums; // keep the percentage width stable
+  pointer-events: none;
+}
+
+.td-content .photo-frame--loading .photo-frame__status::before {
+  content: "";
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: photo-frame-spin 0.8s linear infinite;
+}
+
+.td-content .photo-frame--error .photo-frame__status {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+@keyframes photo-frame-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

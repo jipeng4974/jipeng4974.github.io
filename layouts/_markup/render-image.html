@@ -1,5 +1,24 @@
 {{- $isPhoto := eq .Page.Section "photos" -}}
+{{- if $isPhoto -}}
+  {{- /* Photos pages reference many large JPEGs on R2. Only the first image
+         is loaded eagerly; the rest are wrapped in a fixed-ratio placeholder
+         frame and fetched on demand by assets/js/photo-gallery.js. */ -}}
+  {{- $idx := (.Page.Store.Get "photoImageIdx") | default 0 -}}
+  {{- .Page.Store.Set "photoImageIdx" (add $idx 1) -}}
+  {{- if eq $idx 0 -}}
 <img src="{{ .Destination | safeURL }}"
      alt="{{ .Text }}"
-     {{- with .Title }} title="{{ . }}"{{ end -}}
-     {{- if $isPhoto }} class="photo-fit-screen"{{ end -}}>
+     {{- with .Title }} title="{{ . }}"{{ end }}
+     class="photo-fit-screen" decoding="async" fetchpriority="high">
+  {{- else -}}
+<span class="photo-frame photo-frame--pending"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+     data-src="{{ .Destination | safeURL }}"
+     alt="{{ .Text }}"
+     {{- with .Title }} title="{{ . }}"{{ end }}
+     class="photo-fit-screen" decoding="async"><span class="photo-frame__status" aria-hidden="true"></span></span>
+  {{- end -}}
+{{- else -}}
+<img src="{{ .Destination | safeURL }}"
+     alt="{{ .Text }}"
+     {{- with .Title }} title="{{ . }}"{{ end -}}>
+{{- end -}}

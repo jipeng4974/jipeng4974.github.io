@@ -1,0 +1,8 @@
+{{/* Progressive photo loading: only needed on pages of the photos section. */ -}}
+{{ if eq .Page.Section "photos" -}}
+{{ $js := resources.Get "js/photo-gallery.js" -}}
+{{ if hugo.IsProduction -}}
+  {{ $js = $js | minify | fingerprint -}}
+{{ end -}}
+<script defer src="{{ $js.RelPermalink }}"{{ with $js.Data.Integrity }} integrity="{{ . }}" crossorigin="anonymous"{{ end }}></script>
+{{ end -}}

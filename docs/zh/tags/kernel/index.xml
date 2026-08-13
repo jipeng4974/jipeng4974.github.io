@@ -26,17 +26,14 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;		&lt;span class="nb"&gt;print&lt;/span&gt; &lt;span class="n"&gt;totaltime&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="所以什么是ebpf"&gt;所以，什么是eBPF？&lt;/h2&gt;
 &lt;p&gt;简单说，eBPF是一个允许跑自定义代码做一些tracing和系统监控的in-kernel runtime，是BPF的升级版。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/ebpf.png"
- alt="ebpf"&gt;
-&lt;/p&gt;
+ alt="ebpf"&gt;&lt;/p&gt;
 &lt;p&gt;最初的BPF，即Berkeley Packet Filter，是一个用于报文过滤的几乎被遗忘的古老内核特性。eBPF在BPF基础上做了扩展，允许事件源从报文扩展到多种多样的事件源，eBPF VM有更大的存储空间，更多寄存器和64位word size——BPF事实上提供了一个in-kernel的沙盒环境，或者说虚拟机，安全且受限地执行用户定义的程序。因此eBPF机制的出现实际上在内核态程序、用户态程序之外创造了新的软件品类。&lt;/p&gt;
 &lt;p&gt;eBPF程序不是预编译或解释的，而是JIT CO-RE&lt;sup id="fnref:3"&gt;&lt;a href="#fn:3" class="footnote-ref" role="doc-noteref"&gt;3&lt;/a&gt;&lt;/sup&gt;的，程序出错既不abort，也不panic，而是返回error message。内核态直接访问资源，用户态通过系统调用或fault访问资源，eBPF则是通过一些受限的helper访问资源——目前来说主要作用还是tracing，做一些可观测性上的工作。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/ebpf2.png"
- alt="ebpf2"&gt;
-&lt;/p&gt;
+ alt="ebpf2"&gt;&lt;/p&gt;
 &lt;p&gt;eBPF把JIT编译器和安全验证器直接放到了内核里，用户态的bpf程序先经过parser变成AST，再做一些构造和语法分析，然后生成IR，最终生成优化后的bytecode。BPF bytecode作为输入进入内核的JIT和verifier再编译成机器码给CPU执行。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/ebpf3.png"
- alt="ebpf3"&gt;
-&lt;/p&gt;
+ alt="ebpf3"&gt;&lt;/p&gt;
 &lt;h2 id="ebpf的其他应用"&gt;eBPF的其他应用&lt;/h2&gt;
 &lt;p&gt;eBPF除了用在可观测性上，还可以应用于网络，在L3/L4/L7做traffic control, monitoring或load balancing，比如libbpf &lt;code&gt;tc&lt;/code&gt;/&lt;code&gt;qdiscs&lt;/code&gt; library, &lt;code&gt;XDP&lt;/code&gt;(裸金属高性能可编程网络)/&lt;code&gt;Cilium&lt;/code&gt;(高性能云原生网络)/&lt;code&gt;Katran&lt;/code&gt;(传输层负载均衡)。&lt;/p&gt;
 &lt;p&gt;此外，eBPF还可以应用于安全领域。毕竟eBPF可以观测系统中的各种事件，比如监控某些敏感文件（/etc/passwd这种）是否被篡改。基于这种观测能力在加上一些安全相关的先验知识，就可以做一些安全工具。K8s的&lt;code&gt;seccomp&lt;/code&gt;工具就是基于eBPF实现的。&lt;/p&gt;</description></item></channel></rss>

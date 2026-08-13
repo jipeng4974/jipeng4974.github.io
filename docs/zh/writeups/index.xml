@@ -538,8 +538,7 @@ for batch in dataloader:
 &lt;p&gt;上文提及LLM做batching好处虽多，困难更多，并不存在特别简单、显而易见的GPT特供batching机制。&lt;/p&gt;
 &lt;p&gt;Orca&lt;sup id="fnref:3"&gt;&lt;a href="#fn:3" class="footnote-ref" role="doc-noteref"&gt;3&lt;/a&gt;&lt;/sup&gt;首先为GPT模型的batching提出了一个完整的解决方案，在迭代层面进行调度，并通过一个必要的selective batching机制剔除不能做batching的操作（若不做剔除，两个请求整体能做batching的几率可以忽略不计），这些操作虽然不能做batching，但对整体性能提升的影响很小。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/orca.png"
- alt="orca"&gt;
-&lt;/p&gt;
+ alt="orca"&gt;&lt;/p&gt;
 &lt;h2 id="paged-attention"&gt;Paged Attention&lt;/h2&gt;
 &lt;p&gt;Orca方案并未考虑KV cache的HBM占用，默认预分配max_seq_len。&lt;/p&gt;
 &lt;p&gt;但monolithic KV cache导致HBM碎片化，为每个seq预分配巨大内存进而导致并发不足也是真实瓶颈所在，vLLM中就对此进行了优化，提出了Paged Attention&lt;sup id="fnref:4"&gt;&lt;a href="#fn:4" class="footnote-ref" role="doc-noteref"&gt;4&lt;/a&gt;&lt;/sup&gt;，一种近似页表的分块kv cache技术：&lt;/p&gt;
@@ -553,8 +552,7 @@ for batch in dataloader:
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/block_table.png"
- alt="block_table"&gt;
-&lt;/p&gt;</description></item><item><title>C++系统工程范式</title><link>https://wujipeng.com/zh/writeups/engineering-practices/</link><pubDate>Tue, 03 Dec 2024 00:00:00 +0000</pubDate><guid>https://wujipeng.com/zh/writeups/engineering-practices/</guid><description>&lt;h2 id="基于真实需求创造新颖的计算形态"&gt;基于真实需求，创造新颖的计算形态。&lt;/h2&gt;
+ alt="block_table"&gt;&lt;/p&gt;</description></item><item><title>C++系统工程范式</title><link>https://wujipeng.com/zh/writeups/engineering-practices/</link><pubDate>Tue, 03 Dec 2024 00:00:00 +0000</pubDate><guid>https://wujipeng.com/zh/writeups/engineering-practices/</guid><description>&lt;h2 id="基于真实需求创造新颖的计算形态"&gt;基于真实需求，创造新颖的计算形态。&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;若一个系统不存在新颖性，则不必为审美或宗教原因重复造轮。&lt;/li&gt;
 &lt;li&gt;应认识到，绝大多数系统在商业上几乎没有价值，本就不应该存在。自然不应该向本就不该存在的系统投入稀缺的工程人力。&lt;/li&gt;
@@ -705,16 +703,13 @@ for batch in dataloader:
 &lt;p&gt;&lt;code&gt;PagedAttention&lt;/code&gt;&lt;sup id="fnref:1"&gt;&lt;a href="#fn:1" class="footnote-ref" role="doc-noteref"&gt;1&lt;/a&gt;&lt;/sup&gt;的目标就是消除这种内存浪费、在请求内部和请求之间灵活共享一些KV cache。vLLM通过&lt;code&gt;PagedAttention&lt;/code&gt;达到此前sota的&lt;code&gt;FasterTransformer&lt;/code&gt;和&lt;code&gt;Orca&lt;/code&gt;的2~4倍吞吐。&lt;/p&gt;
 &lt;p&gt;此前，朴素的KV Cache实现如下图所示，简短的prompt和并不长的当前iteration只占据了7+4个slots，剩余2038个slots不得不预留在内存里以支撑最大序列长达2048的承诺（采样结束才能知道实际tokens数目），在这之后才能是下一个请求的slots，中间预留的部分就完全浪费掉了。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/naive_kv_cache.png"
- alt="naive_kv_cache"&gt;
-&lt;/p&gt;
+ alt="naive_kv_cache"&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;PagedAttention&lt;/code&gt;把连续的kv存在不连续的内存空间上，借用类似页表的机制（引入一个block_table）规避内存碎片化问题。具体来讲，&lt;code&gt;PagedAttention&lt;/code&gt;把KV cache分区成若干个K blocks和V blocks，每个K/V block容纳固定数量tokens所对应的K/V向量，因此attention计算也被转化为blockwise计算。这和&lt;code&gt;FlashAttention&lt;/code&gt;有点像，不过应用的尺度不同，前者是为了大规模serving时克服碎片化、按需取用，后者是为了单次self-attention计算能全部fit in SRAM。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/block_table.png"
- alt="block_table"&gt;
-&lt;/p&gt;
+ alt="block_table"&gt;&lt;/p&gt;
 &lt;p&gt;这个物理kv blocks显然是支持多个请求复用的。如下图所示，为每个请求维护一个小的block table即可。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/vllm_two_requests.png"
- alt="vllm_two_requests"&gt;
-&lt;/p&gt;
+ alt="vllm_two_requests"&gt;&lt;/p&gt;
 &lt;div class="footnotes" role="doc-endnotes"&gt;
 &lt;hr&gt;
 &lt;ol&gt;
@@ -889,20 +884,17 @@ for batch in dataloader:
 银行业、DAPRA成就了IBM power系列，如今Power9/10机器虽然被Xeon/EPYC完爆，仍然可以靠银行软件的祖宗之法不可变和政府订单苟延残喘，保有一份niche市场。&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/commodity_computing.png"
- alt="commodity_computing"&gt;
-&lt;/p&gt;
+ alt="commodity_computing"&gt;&lt;/p&gt;
 &lt;p&gt;10s之前是x86微处理器完全不具备多核可扩展性的年代。&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;FSB&lt;/code&gt;(front-side bus)是罪魁祸首。下图架构中，内存总线和PCIe总线需共享一个&lt;code&gt;FSB&lt;/code&gt;才能与CPU相连，导致&lt;code&gt;FSB&lt;/code&gt;成为瓶颈，CPU数量不具备横向扩展性。&lt;/li&gt;
 &lt;li&gt;当年的&lt;code&gt;PCIe&lt;/code&gt;还是1.0（03年初代&lt;code&gt;PCIe&lt;/code&gt;），带宽和lane数都相当有限，即使强上多核，网络IO、磁盘IO也跟不上。
 &lt;img src="https://wujipeng.com/img/fsb.png"
- alt="fsb"&gt;
-&lt;/li&gt;
+ alt="fsb"&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;零零年代恰逢摩尔定律逐渐在单核语境失效，专注提升芯片性能在2004年后不再可行，硬件厂商不得不在架构上向多核方向突围。
 &lt;img src="https://wujipeng.com/img/clock.png"
- alt="clock"&gt;
-&lt;/p&gt;
+ alt="clock"&gt;&lt;/p&gt;
 &lt;h2 id="一零年代初多核时代"&gt;一零年代初，多核时代&lt;/h2&gt;
 &lt;p&gt;2012年的Intel Xeon E5-2600 V1 32nm Sandy Bridge是里程碑式的服务器产品，移除&lt;code&gt;FSB&lt;/code&gt;（这个实际上在09年的Nehalem机器上就已经做了）、引入&lt;code&gt;QPI&lt;/code&gt;/&lt;code&gt;DMI&lt;/code&gt;取代&lt;code&gt;FSB&lt;/code&gt;、PCIe2.0，使微架构获取多核可扩展性。&lt;/p&gt;
 &lt;blockquote&gt;
@@ -912,7 +904,6 @@ for batch in dataloader:
 &lt;p&gt;&lt;code&gt;Sandy Bridge&lt;/code&gt;之后是&lt;code&gt;Haswell&lt;/code&gt;，变化不大。&lt;code&gt;Haswell&lt;/code&gt;之后是&lt;code&gt;Broadwell&lt;/code&gt;，环状拓扑&lt;code&gt;Broadwell Ring&lt;/code&gt;即得名于此。
 &lt;img src="https://wujipeng.com/img/broadwell_ring.png"
  alt="clock"&gt;
-
 再后面就是Skylake，开始冠上Scalable之名了，从多核走向众核，从近代走到现代。&lt;/p&gt;
 &lt;h2 id="一零年代末二零年代初众核时代"&gt;一零年代末~二零年代初，众核时代&lt;/h2&gt;
 &lt;p&gt;17年Intel推出了1st gen Xeon Scalable，&lt;code&gt;Skylake&lt;/code&gt;，采用了Mesh Architecture。见Things are getting meshy
@@ -957,11 +948,9 @@ for batch in dataloader:
 &lt;/blockquote&gt;
 &lt;p&gt;x86架构下内存通道和内存列在内存地址上interleaving，即均匀分布且递增，因此RAM可视作由&lt;span class="katex"&gt;&lt;span class="katex-mathml"&gt;&lt;math xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;a&lt;/mi&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;mo&gt;×&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;r&lt;/mi&gt;&lt;mi&gt;a&lt;/mi&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;n_{chan}\times n_{rank}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class="katex-html" aria-hidden="true"&gt;&lt;span class="base"&gt;&lt;span class="strut" style="height:0.7333em;vertical-align:-0.15em;"&gt;&lt;/span&gt;&lt;span class="mord"&gt;&lt;span class="mord mathnormal"&gt;n&lt;/span&gt;&lt;span class="msupsub"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class="vlist-r"&gt;&lt;span class="vlist" style="height:0.3361em;"&gt;&lt;span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"&gt;&lt;span class="pstrut" style="height:2.7em;"&gt;&lt;/span&gt;&lt;span class="sizing reset-size6 size3 mtight"&gt;&lt;span class="mord mtight"&gt;&lt;span class="mord mathnormal mtight"&gt;c&lt;/span&gt;&lt;span class="mord mathnormal mtight"&gt;han&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="vlist-s"&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class="vlist-r"&gt;&lt;span class="vlist" style="height:0.15em;"&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="mspace" style="margin-right:0.2222em;"&gt;&lt;/span&gt;&lt;span class="mbin"&gt;×&lt;/span&gt;&lt;span class="mspace" style="margin-right:0.2222em;"&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="base"&gt;&lt;span class="strut" style="height:0.5806em;vertical-align:-0.15em;"&gt;&lt;/span&gt;&lt;span class="mord"&gt;&lt;span class="mord mathnormal"&gt;n&lt;/span&gt;&lt;span class="msupsub"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class="vlist-r"&gt;&lt;span class="vlist" style="height:0.3361em;"&gt;&lt;span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"&gt;&lt;span class="pstrut" style="height:2.7em;"&gt;&lt;/span&gt;&lt;span class="sizing reset-size6 size3 mtight"&gt;&lt;span class="mord mtight"&gt;&lt;span class="mord mathnormal mtight" style="margin-right:0.02778em;"&gt;r&lt;/span&gt;&lt;span class="mord mathnormal mtight" style="margin-right:0.03148em;"&gt;ank&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="vlist-s"&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class="vlist-r"&gt;&lt;span class="vlist" style="height:0.15em;"&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;个block组成的，其DIMM架构如下图。
 &lt;img src="https://wujipeng.com/img/2chan4rank.svg"
- alt="2chan4rank"&gt;
-&lt;/p&gt;</description></item><item><title>The Little Book 书评</title><link>https://wujipeng.com/zh/writeups/the-little-book-review/</link><pubDate>Fri, 15 Dec 2023 00:00:00 +0000</pubDate><guid>https://wujipeng.com/zh/writeups/the-little-book-review/</guid><description>&lt;p&gt;&amp;ldquo;The Little Book of Deep Learning&amp;rdquo;(&lt;a href="https://fleuret.org/francois/lbdl.html"&gt;&lt;code&gt;LBDL&lt;/code&gt;&lt;/a&gt;)是François Fleuret写的一本适配手机屏的书，精简扼要地面向stem背景读者介绍深度学习。正如&lt;code&gt;DDIA&lt;/code&gt;可被视为分布式系统方向的入门教程，&lt;code&gt;LBDL&lt;/code&gt;是理想的深度学习101。&lt;/p&gt;
+ alt="2chan4rank"&gt;&lt;/p&gt;</description></item><item><title>The Little Book 书评</title><link>https://wujipeng.com/zh/writeups/the-little-book-review/</link><pubDate>Fri, 15 Dec 2023 00:00:00 +0000</pubDate><guid>https://wujipeng.com/zh/writeups/the-little-book-review/</guid><description>&lt;p&gt;&amp;ldquo;The Little Book of Deep Learning&amp;rdquo;(&lt;a href="https://fleuret.org/francois/lbdl.html"&gt;&lt;code&gt;LBDL&lt;/code&gt;&lt;/a&gt;)是François Fleuret写的一本适配手机屏的书，精简扼要地面向stem背景读者介绍深度学习。正如&lt;code&gt;DDIA&lt;/code&gt;可被视为分布式系统方向的入门教程，&lt;code&gt;LBDL&lt;/code&gt;是理想的深度学习101。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/tlb.jpg"
- alt="tlb"&gt;
-&lt;/p&gt;
+ alt="tlb"&gt;&lt;/p&gt;
 &lt;p&gt;精简，或者说压缩，正是深度模型的strength，也是这个信息过载时代的virtue。用A4纸打印这个小册子，读起来非常舒适。&lt;/p&gt;
 &lt;hr&gt;
 &lt;p&gt;接下来是知识内化和梳理。&lt;/p&gt;
@@ -1007,17 +996,14 @@ for batch in dataloader:
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;		&lt;span class="nb"&gt;print&lt;/span&gt; &lt;span class="n"&gt;totaltime&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="所以什么是ebpf"&gt;所以，什么是eBPF？&lt;/h2&gt;
 &lt;p&gt;简单说，eBPF是一个允许跑自定义代码做一些tracing和系统监控的in-kernel runtime，是BPF的升级版。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/ebpf.png"
- alt="ebpf"&gt;
-&lt;/p&gt;
+ alt="ebpf"&gt;&lt;/p&gt;
 &lt;p&gt;最初的BPF，即Berkeley Packet Filter，是一个用于报文过滤的几乎被遗忘的古老内核特性。eBPF在BPF基础上做了扩展，允许事件源从报文扩展到多种多样的事件源，eBPF VM有更大的存储空间，更多寄存器和64位word size——BPF事实上提供了一个in-kernel的沙盒环境，或者说虚拟机，安全且受限地执行用户定义的程序。因此eBPF机制的出现实际上在内核态程序、用户态程序之外创造了新的软件品类。&lt;/p&gt;
 &lt;p&gt;eBPF程序不是预编译或解释的，而是JIT CO-RE&lt;sup id="fnref:3"&gt;&lt;a href="#fn:3" class="footnote-ref" role="doc-noteref"&gt;3&lt;/a&gt;&lt;/sup&gt;的，程序出错既不abort，也不panic，而是返回error message。内核态直接访问资源，用户态通过系统调用或fault访问资源，eBPF则是通过一些受限的helper访问资源——目前来说主要作用还是tracing，做一些可观测性上的工作。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/ebpf2.png"
- alt="ebpf2"&gt;
-&lt;/p&gt;
+ alt="ebpf2"&gt;&lt;/p&gt;
 &lt;p&gt;eBPF把JIT编译器和安全验证器直接放到了内核里，用户态的bpf程序先经过parser变成AST，再做一些构造和语法分析，然后生成IR，最终生成优化后的bytecode。BPF bytecode作为输入进入内核的JIT和verifier再编译成机器码给CPU执行。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/ebpf3.png"
- alt="ebpf3"&gt;
-&lt;/p&gt;
+ alt="ebpf3"&gt;&lt;/p&gt;
 &lt;h2 id="ebpf的其他应用"&gt;eBPF的其他应用&lt;/h2&gt;
 &lt;p&gt;eBPF除了用在可观测性上，还可以应用于网络，在L3/L4/L7做traffic control, monitoring或load balancing，比如libbpf &lt;code&gt;tc&lt;/code&gt;/&lt;code&gt;qdiscs&lt;/code&gt; library, &lt;code&gt;XDP&lt;/code&gt;(裸金属高性能可编程网络)/&lt;code&gt;Cilium&lt;/code&gt;(高性能云原生网络)/&lt;code&gt;Katran&lt;/code&gt;(传输层负载均衡)。&lt;/p&gt;
 &lt;p&gt;此外，eBPF还可以应用于安全领域。毕竟eBPF可以观测系统中的各种事件，比如监控某些敏感文件（/etc/passwd这种）是否被篡改。基于这种观测能力在加上一些安全相关的先验知识，就可以做一些安全工具。K8s的&lt;code&gt;seccomp&lt;/code&gt;工具就是基于eBPF实现的。&lt;/p&gt;</description></item><item><title>人造直觉</title><link>https://wujipeng.com/zh/writeups/on-reasoning-abilities-of-llms/</link><pubDate>Wed, 29 Nov 2023 00:00:00 +0000</pubDate><guid>https://wujipeng.com/zh/writeups/on-reasoning-abilities-of-llms/</guid><description>&lt;h2 id="llm具有system2吗"&gt;LLM具有System2吗？&lt;/h2&gt;
@@ -1048,8 +1034,7 @@ for batch in dataloader:
 &lt;li id="fn:4"&gt;
 &lt;p&gt;Can Large Language Models Infer Causation from Correlation?&lt;a href="https://arxiv.org/pdf/2306.05836.pdf"&gt;[pdf]&lt;/a&gt;&amp;#160;&lt;a href="#fnref:4" class="footnote-backref" role="doc-backlink"&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;</description></item><item><title>论秩序</title><link>https://wujipeng.com/zh/writeups/on-order/</link><pubDate>Tue, 28 Nov 2023 00:00:00 +0000</pubDate><guid>https://wujipeng.com/zh/writeups/on-order/</guid><description>&lt;p&gt;秩序在耗散结构的自组织中涌现，这一现象无所不在，流体热力学中的瑞利-贝纳德对流&lt;sup id="fnref:1"&gt;&lt;a href="#fn:1" class="footnote-ref" role="doc-noteref"&gt;1&lt;/a&gt;&lt;/sup&gt;（天空中规则的云&lt;sup id="fnref:2"&gt;&lt;a href="#fn:2" class="footnote-ref" role="doc-noteref"&gt;2&lt;/a&gt;&lt;/sup&gt;、太阳米粒组织&lt;sup id="fnref:3"&gt;&lt;a href="#fn:3" class="footnote-ref" role="doc-noteref"&gt;3&lt;/a&gt;&lt;/sup&gt;、巨人岬六角石柱&lt;sup id="fnref:4"&gt;&lt;a href="#fn:4" class="footnote-ref" role="doc-noteref"&gt;4&lt;/a&gt;&lt;/sup&gt;、地幔对流&lt;sup id="fnref:5"&gt;&lt;a href="#fn:5" class="footnote-ref" role="doc-noteref"&gt;5&lt;/a&gt;&lt;/sup&gt;）、化学系统中的贝洛索夫-扎博廷斯基反应&lt;sup id="fnref:6"&gt;&lt;a href="#fn:6" class="footnote-ref" role="doc-noteref"&gt;6&lt;/a&gt;&lt;/sup&gt;，以及我们熟知的一切——气候、城市、火焰、爆炸、股市、交通、蜂群、生态系统、新陈代谢、生命、意识。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/stone.webp"
- alt="stone"&gt;
-&lt;/p&gt;
+ alt="stone"&gt;&lt;/p&gt;
 &lt;p&gt;耗散结构，即与环境持续交换物质和能量，维持某种远离平衡态的稳态系统。耗散结构的产生源于输入和耗散，当能量或物质流入一个系统时，如果存在适当的机制来消散多余的能量，那么它可能会导致局部的秩序增加或者规律的形成。随着耗散的持续，起初不存在的复杂度，或者说“精致度”，就在耗散系统中诞生了——新的行为、结构、图景应运而生，自发组织，自动装配，自主运行。&lt;/p&gt;
 &lt;p&gt;平衡态下，系统各处可测的宏观物理性质均匀，系统内部内有宏观不可逆过程，遵守热力学第一定律（内能增量=吸收的热量-对外做功）、热力学第二定律(系统自发熵增）、玻尔兹曼有序性定理（温度为T的系统中内能为E的子系统的比率为e-E/kT）。近平衡态系统处于距离平衡态不远处的线性区，遵守昂萨格倒易关系（用一组公式描述系统输运过程中各种流和力的关系）和最小熵产生原理（给定边界条件组织系统达到平衡态时，系统落入最小耗散，即最小熵产生的态）。&lt;/p&gt;
 &lt;p&gt;所谓远离平衡态，是相对平衡态和近平衡态而言，系统内可测物理性质极不均匀的状态，这种状态下系统的热力学行为违逆最小熵产生原理，走向高熵产生、宏观有序的状态。&lt;/p&gt;
@@ -1102,8 +1087,7 @@ for batch in dataloader:
 &lt;h3 id="gnw--system2--attention"&gt;GNW | System2 | Attention&lt;/h3&gt;
 &lt;p&gt;GNW(Global Neural Workspace)，即全局工作空间论，主张：人或动物用特化系统，或者说模块，来处理特定的认知任务。不同模块各有专精，能够并行，却又集成一个整体，整体能协调各模块，共享各模块的信息。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/gwt.png"
- alt="gwt"&gt;
-&lt;/p&gt;
+ alt="gwt"&gt;&lt;/p&gt;
 &lt;p&gt;GNW主张只有全局表征状态才算是有意识的，模块内部的局部状态则是无意识的。GNW理论认为，存在一个起源于额顶区的“workspace神经元”网络，该网络的活动是通过回归处理来维持的，它构成了有意识的表现。当感观表征足够强时，会触发“点火”——一种跃迁过程，将局部广播到全局，从无意识跃迁到有意识。因此GNW中，有意识状态没有程度可言，要么有，要么无。&lt;/p&gt;
 &lt;p&gt;GNW的global workspace还具有一些高等功能，即心理学中的所谓System2思考模式&lt;sup id="fnref:5"&gt;&lt;a href="#fn:5" class="footnote-ref" role="doc-noteref"&gt;5&lt;/a&gt;&lt;/sup&gt;，比如受控的多神经模块协调，多步问题分解和规划等。System2模式和System1的一个关键区别在于注意力，神经科学中的注意力概念也被引入人工神经网络设计中，比如transformer的self-attention和cross-attention，与神经科学中的增益机制（即注意力会成倍地放大神经活动）有一点设计思路上的相似性。通过注意力机制，transformer模型能在不同语境下更鲁棒地对多义词进行理解，对not/never这样否定词的额外注意力则使语言模型能更准确地理解语义。注意力，作为GNW和System2的关键特征，哪怕小小地运用，也极大提升了人工智能模型的性能。&lt;/p&gt;
 &lt;p&gt;近期一些试图突破transformer局限的模型架构创新，也受system2和GNW理论的影响，比如：Lecun的world model+JEPA&lt;sup id="fnref:6"&gt;&lt;a href="#fn:6" class="footnote-ref" role="doc-noteref"&gt;6&lt;/a&gt;&lt;/sup&gt;——目前仍只能算是前瞻、设计和立场，以及Bengio的shared global workspace model&lt;sup id="fnref:7"&gt;&lt;a href="#fn:7" class="footnote-ref" role="doc-noteref"&gt;7&lt;/a&gt;&lt;/sup&gt;——这个工作真正做出了解决方案，在transformer架构基础上增加了shared workspace，在一些任务上超过了baseline transformer。&lt;/p&gt;
@@ -1125,8 +1109,7 @@ for batch in dataloader:
 &lt;li&gt;欧几里得距离正则化到[-1,1]后相当于sqrt(2-2cosθ)。可见欧式距离平方也是和余弦相似度成比的。&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/sim_measure.png"
- alt="sim_measure"&gt;
-&lt;/p&gt;
+ alt="sim_measure"&gt;&lt;/p&gt;
 &lt;p&gt;正则化后欧式距离、内积、cosθ三者同源，所以我们一般就用余弦相似度cosθ去度量向量/embedding之间的相似程度。除非又特殊的抵抗位置变化的需求，可采用皮尔森相关系数，皮尔森相关系数是协方差（两个变量的总体误差）的正则化，不过它同时也可以被视为将x和y中心化后的余弦相似度。&lt;/p&gt;
 &lt;h1 id="向量量化"&gt;向量量化&lt;/h1&gt;
 &lt;p&gt;量化器是D维向量 x ∈ R^D 到 q(x) ∈ C = {c_0, c_1, &amp;hellip; c_k-1} 的映射函数q。c_i即聚类中心centroid。
@@ -1161,8 +1144,7 @@ for batch in dataloader:
 &lt;p&gt;全球数据中心能耗十年来几乎没有增长，而同期的服务需求、计算、存储、数据传输总量则经历了数量级增长。作为从业者，我们对互联网的爆发式增长应该不陌生，因此全球数据中心能耗从10到18年仅涨了6%的事实略微反直觉——从能耗的角度看，这几乎是一个停滞的产业。&lt;/p&gt;
 &lt;p&gt;CMOS工艺和软硬件技术的整体进步可以解释服务器能量效率上的提升，但能耗停滞的根本原因还在于互联网企业盈利的本质是对有支付能力的10亿国外人口和10亿国内人口征服务税，个别成功的初创企业可以迅速扩张，但互联网行业作为整体，在数据中心能耗上的投入增长受制于全球平民收入增长。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/DatacenterPower.jpeg"
- alt="DatacenterPower"&gt;
-&lt;/p&gt;
+ alt="DatacenterPower"&gt;&lt;/p&gt;
 &lt;p&gt;当初创企业的规模扩张到互联网规模后，机器资源的增长速率应该会从爆炸式上升陡然转入停滞，进入自然汰换阶段。
 从这个角度可以得出结论，数据中心应用在规模扩张结束后，也应从能耗粗放型转为精细集约型，通过软硬件协同充分释放硬件潜力，通过算法创新减少总计算量。&lt;/p&gt;
 &lt;h2 id="算法迭代从演绎推理到归纳推断"&gt;算法迭代：从演绎推理到归纳推断&lt;/h2&gt;
@@ -1188,8 +1170,7 @@ for batch in dataloader:
 &lt;p&gt;相对之前的Lakes，Sapphire Rapids变化非常大，此前的monolithic die路线确实走到了极限，Sapphire Rapids也进入了multi-die时代：芯片内部分为4个die，这也可以视作向chiplet方向演化。&lt;/p&gt;
 &lt;p&gt;Sapphire Rapids最多支持8个socket，每个芯片可以支持60核。IO技术上支持CXL 1.1、PCIe 5.0、UPI 2.0，HBM2e(optional)。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/4th_xeon.jpeg"
- alt="Xeon"&gt;
-&lt;/p&gt;
+ alt="Xeon"&gt;&lt;/p&gt;
 &lt;p&gt;AMD的第四代EPYC的主力型号Genoa今年Q1也开始量产，基本上和Sapphire Rapids对标，采用5nm工艺。虽然说AVX512被很多人诟病，实用表现非常一般，但Zen4也支持了，毕竟XeongenEPYC目标客户就是音视频处理和AI workload越来越多的数据中心应用。Genoa是每个die/chiplet 8核的，12个CPU cluster die中间围绕一个IO die的设计，相当于一个芯片96核，是典型的chiplet范式设计。&lt;/p&gt;</description></item><item><title>归纳和演绎</title><link>https://wujipeng.com/zh/writeups/induction--deduction/</link><pubDate>Wed, 28 Jun 2023 00:00:00 +0000</pubDate><guid>https://wujipeng.com/zh/writeups/induction--deduction/</guid><description>&lt;p&gt;诺姆·乔姆斯基说：人的无知，可分为神秘和问题(mysteries &amp;amp; problems)。&lt;/p&gt;
 &lt;p&gt;诚哉斯言，为了对抗无知，人的理性，也可分为归纳和演绎(induction &amp;amp; deduction)。&lt;/p&gt;
 &lt;p&gt;前者推断神秘，后者解决问题。&lt;/p&gt;
@@ -1212,8 +1193,7 @@ for batch in dataloader:
 &lt;h2 id="规则的尽头是贝叶斯"&gt;规则的尽头是贝叶斯&lt;/h2&gt;
 &lt;p&gt;下图是摘自&lt;a href="https://plato.stanford.edu/entries/computability"&gt;Computability and Complexity&lt;/a&gt;，最早出自Descriptive Complexity(Immerman 1999)的可计算性与复杂度世界图，自上而下，逐渐从神秘过渡到问题。
 &lt;img src="https://wujipeng.com/img/CaC.jpeg"
- alt="cac"&gt;
-&lt;/p&gt;
+ alt="cac"&gt;&lt;/p&gt;
 &lt;p&gt;当我们用if else条件判断，用计算机程序语言，无论如何努力，都难以编写出效果让人满意的程序时。我们往往是在面对神秘，而非问题。&lt;/p&gt;
 &lt;p&gt;这种场景下，经典逻辑的手段已经穷尽，演绎明确不是真理之钥，但我们可以观想所罗门诺夫之妖。&lt;/p&gt;
 &lt;p&gt;所罗门诺夫之妖所喻的纯粹贝叶斯主义固然具有不可计算性，却可以被各种手段近似模拟，典型的结构就是深度神经网络，用数十亿、数百亿、数千亿个参数/权重，用臃肿笨拙地方式去模拟贝叶斯推断。&lt;/p&gt;
@@ -1261,8 +1241,7 @@ for batch in dataloader:
 &lt;p&gt;人类通过对人体生理学的研究，发现七色感知是一个更深层的潜在现实的涌现结构：多种光感受器的叠加反应。&lt;/p&gt;
 &lt;p&gt;人类颜色感知系统对红绿蓝敏感的三种光感受器，叠加反应产生的三个峰和四个谷决定了人类能感知到7种颜色。
 &lt;img src="https://wujipeng.com/img/color.png"
- alt="color"&gt;
-&lt;/p&gt;
+ alt="color"&gt;&lt;/p&gt;
 &lt;p&gt;鸟类由于拥有对紫外线敏感的光感受器，就能感知到9种颜色，因此可以看到九色彩虹。&lt;/p&gt;
 &lt;p&gt;无论人类的七色彩虹还是鸟类的九色彩虹，都只是知识（或者说embedding），而不是现实。&lt;/p&gt;
 &lt;p&gt;人类通过数学工具和电磁学研究，进一步认识到光谱是连续的，包括无线电波、微波、热、红外线、可见光、紫外线等。&lt;/p&gt;
@@ -1283,8 +1262,7 @@ for batch in dataloader:
 一如分子生物学是物理化学的涌现。
 一如物理化学是量子物理的涌现。&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/em.png"
- alt="em"&gt;
-&lt;/p&gt;</description></item><item><title>联邦学习</title><link>https://wujipeng.com/zh/writeups/federated-learning/</link><pubDate>Thu, 01 Jun 2023 00:00:00 +0000</pubDate><guid>https://wujipeng.com/zh/writeups/federated-learning/</guid><description>&lt;h1 id="联邦学习"&gt;联邦学习&lt;/h1&gt;
+ alt="em"&gt;&lt;/p&gt;</description></item><item><title>联邦学习</title><link>https://wujipeng.com/zh/writeups/federated-learning/</link><pubDate>Thu, 01 Jun 2023 00:00:00 +0000</pubDate><guid>https://wujipeng.com/zh/writeups/federated-learning/</guid><description>&lt;h1 id="联邦学习"&gt;联邦学习&lt;/h1&gt;
 &lt;p&gt;&lt;a href="https://arxiv.org/pdf/1602.05629.pdf"&gt;联邦学习&lt;/a&gt;由McMahan于2016年提出，指的是许多移动设备在一个中央服务器的编排下协作训练模型，保持训练数据离散，避免对用户数据进行收集，仅将客户端模型更新上传中央服务器汇总成新的全局模型的机器学习模式。&lt;/p&gt;
 &lt;p&gt;联邦学习的naive实现如下：&lt;/p&gt;
 &lt;ol&gt;
@@ -1380,6 +1358,5 @@ generic programming is not about how to use template。第一个版本的STL尽�
 &lt;li&gt;除了上述几个著名模型外，还有几十个不同方法、领域中应用的一致性模型，下图就包含了非事务分布式存储系统中种种一致性模型（详见&lt;a href="https://arxiv.org/pdf/1512.00168.pdf"&gt;Consistency in Non-Transactional Distributed Storage Systems&lt;/a&gt;）。&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;&lt;img src="https://wujipeng.com/img/1.png"
- alt="Consistency1"&gt;
-&lt;/p&gt;
+ alt="Consistency1"&gt;&lt;/p&gt;
 &lt;p&gt;并发程序显然可以很容易推广到分布式复制状态机，只是增加了网络延迟。因此，一致性模型可以推广应用到分布式系统中的副本一致性。以sequential consistency为例，增加了实时约束后就是分布式系统领域中更被广泛引用的linearizability，指的是单个被复制对象上的单个操作满足：A是写操作，B是对副本的读，A happened-before（因果律上的先于，见https://en.wikipedia.org/wiki/Happened-before） B，则A的写对B的读总是可见。比较一下C++的sequentially consistent ordering定义：everything that happened-before a store in one thread becomes a visible side effect in the thread that did a load。二者是一致的。&lt;/p&gt;</description></item></channel></rss>
