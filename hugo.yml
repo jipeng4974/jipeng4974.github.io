@@ -88,7 +88,7 @@ params:
   hugoMinVersion: &hugoMinVersion 0.160.1
   productionURL: &productionURL https://wujipeng.com
   copyright:
-    authors: 'Wu Jipeng | Photos, write-ups & games, all rights reserved. No commercial use.'
+    authors: 'Wu Jipeng • All rights reserved.'
     from_year: 2022
     to_year: present
   github_subdir: ''
