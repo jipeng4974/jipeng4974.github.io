@@ -1,6 +1,6 @@
 ---
 title: 随笔
-description: 关于系统、AI、数学与其他主题的长文笔记
+description: 为无结构现实建立结构
 menu: { main: { weight: 10 } }
 type: blog
 icon: fa-solid fa-pen-nib

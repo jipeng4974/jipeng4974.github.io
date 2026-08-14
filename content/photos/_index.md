@@ -1,6 +1,6 @@
 ---
 title: Photographs
-description:
+description: The World, Framed
 menu: { main: { weight: 30 } }
 type: docs
 icon: fa-solid fa-camera

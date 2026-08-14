@@ -1,5 +1,9 @@
 # Photographs
 
+> The World, Framed
+
+---
+
 LLMS index: [llms.txt](/llms.txt)
 
 ---

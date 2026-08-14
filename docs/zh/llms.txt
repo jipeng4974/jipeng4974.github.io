@@ -1,13 +1,11 @@
 # 时俗工巧，鸿爪雪泥
 
-> jipeng4974 的个人站点——关于系统、AI、数学等主题的随笔
-
 ## Site index
 
 - [Home page](https://wujipeng.com/zh/index.md)
-- [随笔](https://wujipeng.com/zh/writeups/index.md): 关于系统、AI、数学与其他主题的长文笔记
+- [随笔](https://wujipeng.com/zh/writeups/index.md): 为无结构现实建立结构
 - [游戏](https://wujipeng.com/zh/games/index.md): 小游戏与引擎实验
-- [摄影](https://wujipeng.com/zh/photos/index.md)
+- [摄影](https://wujipeng.com/zh/photos/index.md): 镜收天地
 - [关于](https://wujipeng.com/zh/about/index.md): 关于我和本站
 
 ## Site locales

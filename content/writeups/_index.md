@@ -1,6 +1,6 @@
 ---
 title: Writeups
-description: Long-form notes on systems, AI, math, and everything in between
+description: Impose structure over unstructured realities
 menu: { main: { weight: 10 } }
 type: blog
 icon: fa-solid fa-pen-nib

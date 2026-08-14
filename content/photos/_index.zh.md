@@ -1,6 +1,6 @@
 ---
 title: 摄影
-description: 
+description: 镜收天地
 menu: { main: { weight: 30 } }
 type: docs
 icon: fa-solid fa-camera

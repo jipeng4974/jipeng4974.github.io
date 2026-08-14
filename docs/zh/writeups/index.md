@@ -1,6 +1,6 @@
 # 随笔
 
-> 关于系统、AI、数学与其他主题的长文笔记
+> 为无结构现实建立结构
 
 ---
 
@@ -10,6 +10,7 @@ LLMS index: [llms.txt](/llms.txt)
 
 Section pages:
 
+- [表征几何](/zh/writeups/representation_geometry/): 表征学习的反复迭代中，应尝试估计嵌入子流形的内禀维数，在输入和输出环节上设计合理的 ambient space。
 - [Music JEPA 和三体宇宙](/zh/writeups/music_jepa_universe/): 生存维数，维度坍塌，死维复活，宇宙规律，田园宇宙，幸存子空间，威慑项λ。
 - [Music JEPA Regularizers](/zh/writeups/music_jepa_reg/): 再试Music LeJEPA之抗坍缩正则
 - [DSpark](/zh/writeups/dspark/): DSpark：低秩bigram赎回块内依赖，置信度head给验证长度做admission control。

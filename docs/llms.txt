@@ -1,13 +1,11 @@
 # Jipeng's Footprints
 
-> Personal site of jipeng4974 — writeups on systems, AI, math, and more
-
 ## Site index
 
 - [Home page](https://wujipeng.com/index.md)
-- [Writeups](https://wujipeng.com/writeups/index.md): Long-form notes on systems, AI, math, and everything in between
+- [Writeups](https://wujipeng.com/writeups/index.md): Impose structure over unstructured realities
 - [Games](https://wujipeng.com/games/index.md): Small games and engine experiments
-- [Photographs](https://wujipeng.com/photos/index.md)
+- [Photographs](https://wujipeng.com/photos/index.md): The World, Framed
 - [About](https://wujipeng.com/about/index.md): About me and this site
 
 ## Site locales
