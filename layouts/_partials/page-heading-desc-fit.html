@@ -1,0 +1,22 @@
+{{- /*
+Project helper: estimate whether a page's title and description fit on one
+heading row. Only applies to the writeups/games/photos sections; all other
+pages keep the theme's heading-plus-lead layout.
+
+Width model: the h1 (1.75rem bold sans) costs ≈15px per Latin char and ≈30px
+per CJK char; the description (1rem serif) ≈9px / ≈18px; plus a 20px gap.
+Fits when the total stays under ~620px of content width. When it does,
+page-title.html renders the description inline and the content templates
+(_td-content.html, blog/_td-content.html, docs/list.html) skip the redundant
+.lead paragraph.
+
+Width units: Latin char = 1, CJK/wide char = 2, i.e. rune count + non-ASCII
+count. Input: a page. Returns: bool.
+*/ -}}
+{{- $fit := false -}}
+{{- if and (in (slice "writeups" "games" "photos") .Section) .Description -}}
+  {{- $tUnits := add (strings.CountRunes .Title) (len (findRE `[^\x00-\x7F]` .Title)) -}}
+  {{- $dUnits := add (strings.CountRunes .Description) (len (findRE `[^\x00-\x7F]` .Description)) -}}
+  {{- $fit = le (add (mul $tUnits 15) (mul $dUnits 9) 20) 620 -}}
+{{- end -}}
+{{- return $fit -}}

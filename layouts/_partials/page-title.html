@@ -1,0 +1,14 @@
+{{/*
+Project override of the theme's page-title partial. Identical to the theme
+version except pages whose title + description fit on one heading row (see
+page-heading-desc-fit.html: writeups/games/photos sections) render the
+description inline to the right of the title; the content templates then drop
+the redundant .lead paragraph.
+*/ -}}
+{{- $withDesc := partial "page-heading-desc-fit.html" . -}}
+<div class="td-page-heading{{ if $withDesc }} td-page-heading--with-desc{{ end }}">
+  <h1>{{ .Title }}</h1>
+  {{- if $withDesc }}
+  <p class="td-page-heading__desc">{{ .Description }}</p>
+  {{- end }}
+</div>

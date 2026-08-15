@@ -89,12 +89,6 @@ the site home.
 </aside>
 {{/* Fixed restore action shown only when the rail is collapsed at xl+. */}}
 <div class="td-shell-toc-float d-print-none">
-  {{- with $rssURL }}
-  <a class="td-shell-iconbtn td-shell-toc-float__rss" title="RSS" aria-label="RSS"
-    href="{{ . | safeURL }}" target="_blank" rel="noopener">
-    <i class="fa-solid fa-rss" aria-hidden="true"></i>
-  </a>
-  {{- end }}
   <button type="button" class="td-shell-iconbtn" data-td-shell-right-toggle
     title="{{ T "ui_toc_show" }}" aria-label="{{ T "ui_toc_show" }}">
     {{- partialCached "shell/icon.html" "panel-right" "panel-right" -}}

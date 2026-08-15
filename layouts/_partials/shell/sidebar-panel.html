@@ -71,6 +71,14 @@ button — the site does not expose its GitHub repository.
       <a class="td-shell-iconbtn" href="mailto:{{ . }}"
         title="Email" aria-label="Email"><svg class="td-shell-icon td-shell-icon--mail" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></a>
       {{- end }}
+      {{/* RSS for the current section; moved here from the TOC rail's float
+           so all global actions sit in one row. Limited to rss_sections. */ -}}
+      {{- if in (.Site.Params.rss_sections | default (slice)) .Section -}}
+      {{- with .CurrentSection.OutputFormats.Get "rss" -}}
+      <a class="td-shell-iconbtn td-shell-sidebar__rss" href="{{ .RelPermalink | safeURL }}"
+        target="_blank" rel="noopener" title="RSS" aria-label="RSS"><i class="fa-solid fa-rss" aria-hidden="true"></i></a>
+      {{- end }}
+      {{- end }}
     </div>
   </div>
   <div class="td-shell-sidebar__resizer" data-td-shell-resizer aria-hidden="true"></div>

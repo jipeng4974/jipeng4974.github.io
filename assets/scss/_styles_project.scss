@@ -30,6 +30,61 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   height: 16px;
 }
 
+// Language selector popup: the theme's hover menu reads oversized next to the
+// icon-only toolbars — items drop to ~55% of the inherited size and the menu
+// box shrinks to hug the (nowrap) item text.
+.td-language-selector--menu > ul {
+  min-width: 0;
+  padding: 0.2rem;
+  border-radius: 0.4rem;
+
+  .td-language-selector__item {
+    padding: 0.15rem 0.3rem;
+    border-radius: 0.3rem;
+    font-size: 55%;
+  }
+}
+
+// Page heading: the writeups section pairs its bare title with the section
+// description, set in a quiet serif to the right of the h1 and kept narrow;
+// it wraps below the title when the row runs out of room.
+.td-content > .td-page-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 1.25rem;
+
+  .td-page-heading__desc {
+    margin: 0;
+    max-width: 22em;
+    font-family: Georgia, 'Times New Roman', 'Songti SC', 'SimSun', serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--bs-secondary-color);
+  }
+}
+
+// Page headings sit below Bootstrap's default h1 (~2.5rem responsive).
+.td-content > .td-page-heading > h1 {
+  font-size: 1.75rem;
+}
+
+// Blog post list titles: a step up from the h5 sizing they carry.
+.td-blog-posts-list h3 {
+  font-size: 1.4rem;
+}
+
+// Blog pagination: quieter, slightly smaller page items.
+.td-blog-posts__pagination .page-link {
+  padding: 0.2rem 0.55rem;
+  font-size: 0.85rem;
+}
+
+// Sidebar footer RSS action: match the lucide icon size of its neighbors.
+.td-shell-sidebar__rss .fa-rss {
+  font-size: 15px;
+}
+
 // Photo galleries: keep each image within the viewport so it fits on screen
 // without overflowing horizontally or vertically.
 .td-content .photo-fit-screen {
