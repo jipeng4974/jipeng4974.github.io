@@ -15,6 +15,21 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   margin-inline-end: -0.02em; // Compensate for trailing letter spacing.
 }
 
+// Sidebar default width: wide enough that the brand row (logo + "Jipeng's
+// Footprints" ≈ 245px, collapse button ≈ 30px, header padding 32px) stays on
+// one line. The resizer can still drag it narrower — a width persisted in
+// localStorage is applied inline by the prepaint script and wins over this.
+:root {
+  --td-shell-sidebar-w: 312px;
+}
+
+// TOC rail home button: size the site logo like the neighboring 16px icons.
+.td-shell-toc__home img {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
 // Photo galleries: keep each image within the viewport so it fits on screen
 // without overflowing horizontally or vertically.
 .td-content .photo-fit-screen {

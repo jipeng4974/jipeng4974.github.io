@@ -1,0 +1,102 @@
+{{/*
+Project override of the theme's toc-aside partial. Identical to the theme
+version except the quick-links row (the pen-nib button jumping to /writeups/)
+is replaced by a single home button carrying the site logo, linking back to
+the site home.
+*/ -}}
+{{- $p := .page -}}
+{{- $hasToc := .hasToc -}}
+{{- $rssURL := .rssURL | default "" -}}
+{{- $config := partial "shell/config.html" $p -}}
+<aside class="td-shell-toc d-print-none" aria-label="{{ T "toc_on_this_page" }}">
+  <div class="td-shell-toc__panel">
+    <div class="td-shell-toc__actions">
+      <button type="button" class="td-shell-toc__title-btn" data-td-shell-right-toggle
+        title="{{ T "ui_toc_hide" }}" aria-label="{{ T "ui_toc_hide" }}">
+        {{- partialCached "shell/icon.html" "panel-right" "panel-right" -}}
+      </button>
+      <a class="td-shell-iconbtn td-shell-iconbtn--sm td-shell-toc__home" href="{{ $p.Site.Home.RelPermalink }}"
+        title="{{ $config.brandName }}" aria-label="{{ $config.brandName }} home">
+        <img src="{{ $config.logoURL }}" alt="" width="16" height="16">
+      </a>
+      <span class="td-shell-toc__actions-spacer"></span>
+      {{ partial "language-selector.html" (dict "page" $p "class" "td-shell-language-selector" "icon" "shell") }}
+      {{- $darkMode := partialCached "dark-mode-config.html" "dark-mode-global" -}}
+      {{- if $darkMode.enable }}
+      <button type="button" class="td-shell-iconbtn td-shell-iconbtn--sm td-shell-quick-theme" data-td-theme-toggle
+        title="{{ T "ui_theme_toggle" }}" aria-label="{{ T "ui_theme_toggle" }}">
+        {{- partialCached "shell/icon.html" "moon" "moon" -}}
+        {{- partialCached "shell/icon.html" "sun" "sun" -}}
+      </button>
+      {{- end }}
+      {{- with $config.projectRepo }}
+      <a class="td-shell-iconbtn td-shell-iconbtn--sm" href="{{ . }}"
+        target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
+        {{- partialCached "shell/icon.html" "github" "github" -}}
+      </a>
+      {{- end }}
+    </div>
+    {{/* Everything below the controls row is relocatable: below xl this rail is
+         hidden, and docs-shell.js moves this block into the sidebar drawer so
+         the contents-plus-actions stay reachable. Keep it one element. */ -}}
+    <div class="td-shell-aside" data-td-shell-aside>
+      {{ if $hasToc -}}
+      {{/* Collapsible like the groups below it, but open by default and left
+           open when the block moves into the drawer — it is the reason the
+           block exists. */ -}}
+      <div class="td-shell-aside-group td-shell-aside-group--toc">
+        <button type="button" class="td-shell-tree__row td-shell-aside-group__head"
+          data-td-shell-tree-toggle data-td-shell-aside-keep-open
+          aria-expanded="true" aria-controls="td-shell-aside-toc"
+          aria-label="{{ T "ui_sidebar_collapse_section" }}: {{ T "toc_on_this_page" }}"
+          data-label-expand="{{ T "ui_sidebar_expand_section" }}: {{ T "toc_on_this_page" }}"
+          data-label-collapse="{{ T "ui_sidebar_collapse_section" }}: {{ T "toc_on_this_page" }}">
+          <span class="td-shell-aside-group__title">{{ T "toc_on_this_page" }}</span>
+          <span class="td-shell-tree__chevron" aria-hidden="true">
+            {{- partialCached "shell/icon.html" "chevron-down" "chevron-down" -}}
+          </span>
+        </button>
+        <div id="td-shell-aside-toc" class="td-shell-tree__children is-open">
+          <div class="td-shell-tree__children-inner">
+            {{ partial "shell/toc.html" $p }}
+          </div>
+        </div>
+      </div>
+      {{- end }}
+      {{/* Taxonomy pages have no single source file or meaningful page actions. */}}
+      {{ if not (in (slice "term" "taxonomy") $p.Kind) -}}
+      <div class="td-shell-aside-group">
+        <button type="button" class="td-shell-tree__row td-shell-aside-group__head" data-td-shell-tree-toggle
+          aria-expanded="true" aria-controls="td-shell-aside-actions"
+          aria-label="{{ T "ui_sidebar_collapse_section" }}: {{ T "ui_page_actions" }}"
+          data-label-expand="{{ T "ui_sidebar_expand_section" }}: {{ T "ui_page_actions" }}"
+          data-label-collapse="{{ T "ui_sidebar_collapse_section" }}: {{ T "ui_page_actions" }}">
+          <span class="td-shell-aside-group__title">{{ T "ui_page_actions" }}</span>
+          <span class="td-shell-tree__chevron" aria-hidden="true">
+            {{- partialCached "shell/icon.html" "chevron-down" "chevron-down" -}}
+          </span>
+        </button>
+        <div id="td-shell-aside-actions" class="td-shell-tree__children is-open">
+          <div class="td-shell-tree__children-inner">
+            {{ partial "page-meta-links.html" $p }}
+          </div>
+        </div>
+      </div>
+      {{- end }}
+      {{ partial "shell/taxonomy-terms-clouds.html" $p }}
+    </div>
+  </div>
+</aside>
+{{/* Fixed restore action shown only when the rail is collapsed at xl+. */}}
+<div class="td-shell-toc-float d-print-none">
+  {{- with $rssURL }}
+  <a class="td-shell-iconbtn td-shell-toc-float__rss" title="RSS" aria-label="RSS"
+    href="{{ . | safeURL }}" target="_blank" rel="noopener">
+    <i class="fa-solid fa-rss" aria-hidden="true"></i>
+  </a>
+  {{- end }}
+  <button type="button" class="td-shell-iconbtn" data-td-shell-right-toggle
+    title="{{ T "ui_toc_show" }}" aria-label="{{ T "ui_toc_show" }}">
+    {{- partialCached "shell/icon.html" "panel-right" "panel-right" -}}
+  </button>
+</div>
