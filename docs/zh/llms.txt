@@ -3,8 +3,8 @@
 ## Site index
 
 - [Home page](https://wujipeng.com/zh/index.md)
-- [随笔](https://wujipeng.com/zh/writeups/index.md): 为无结构现实建立结构
-- [游戏](https://wujipeng.com/zh/games/index.md): 小游戏与引擎实验
+- [随笔](https://wujipeng.com/zh/writeups/index.md): 为现实建立结构
+- [游戏](https://wujipeng.com/zh/games/index.md): 小游戏与网页试玩
 - [摄影](https://wujipeng.com/zh/photos/index.md): 镜收天地
 - [关于](https://wujipeng.com/zh/about/index.md): 关于我和本站
 

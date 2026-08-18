@@ -4,7 +4,7 @@
 
 - [Home page](https://wujipeng.com/index.md)
 - [Writeups](https://wujipeng.com/writeups/index.md): Impose structure over unstructured realities
-- [Games](https://wujipeng.com/games/index.md): Small games and engine experiments
+- [Games](https://wujipeng.com/games/index.md): Small games and demos
 - [Photographs](https://wujipeng.com/photos/index.md): The World, Framed
 - [About](https://wujipeng.com/about/index.md): About me and this site
 
