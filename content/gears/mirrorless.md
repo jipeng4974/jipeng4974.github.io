@@ -1,7 +1,7 @@
 +++
 title = "The Mirrorless System"
 date = "2026-08-18"
-tags = ["camera", "lens"]
+tags = ["Camera & Lens"]
 description = "Camera and lens"
 showFullContent = false
 +++
