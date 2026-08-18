@@ -6,6 +6,7 @@ LLMS index: [llms.txt](/llms.txt)
 
 Section pages:
 
+- [装备](/zh/gears/): 生产力工具和玩具
 - [Search Results](/zh/search/)
 - [关于](/zh/about/): 关于我和本站
 - [摄影](/zh/photos/): 镜收天地

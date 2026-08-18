@@ -5,6 +5,7 @@
 - [Home page](https://wujipeng.com/zh/index.md)
 - [随笔](https://wujipeng.com/zh/writeups/index.md): 为现实建立结构
 - [游戏](https://wujipeng.com/zh/games/index.md): 小游戏与网页试玩
+- [装备](https://wujipeng.com/zh/gears/index.md): 生产力工具和玩具
 - [摄影](https://wujipeng.com/zh/photos/index.md): 镜收天地
 - [关于](https://wujipeng.com/zh/about/index.md): 关于我和本站
 
