@@ -271,6 +271,14 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   transform: translateY(-50%);
 }
 
+// Display math: KaTeX equations never line-break, so math-fit.js scales them
+// down to fit the container. Equations still too wide at the minimum scale
+// fall back to horizontal scrolling instead of breaking the page layout.
+.td-content .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
 @keyframes photo-frame-spin {
   to {
     transform: rotate(360deg);
