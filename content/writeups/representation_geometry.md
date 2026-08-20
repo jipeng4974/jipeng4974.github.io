@@ -9,15 +9,18 @@ showFullContent = false
 Consider an audio representation model that takes the logmel of an 8s clip as input. Its embedding pipeline is the following dimensionality-reduction process:
 
 $$
+\begin{gathered}
 w\in\mathbb{R}^{176400}
 \;\xrightarrow{\;\Phi\;(\text{logmel})\;}\;
 x\in\mathbb{R}^{11008}
 \;\xrightarrow{\;h_\theta\;(\text{ViT-L})\;}\;
 \mathrm{CLS}\in\mathbb{R}^{1024}
+\\[6pt]
 \;\xrightarrow{\;g_\theta\;(\text{proj head})\;}\;
 z\in\mathbb{R}^{256}
 \;\xrightarrow{\;\ell_2\;}\;
 \hat z\in S^{255}
+\end{gathered}
 $$
 
 1. From the point-wise perspective, a single point $w$ in the signal space is reparameterized into a point in a semantic metric space.

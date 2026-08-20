@@ -1,14 +1,17 @@
 {{/*
 Project override of the theme's page-title partial. Identical to the theme
-version except pages whose title + description fit on one heading row (see
-page-heading-desc-fit.html: writeups/games/photos sections) render the
-description inline to the right of the title; the content templates then drop
-the redundant .lead paragraph.
+version except pages with a description (see page-heading-desc-fit.html:
+writeups/games/photos sections) render it inside the heading — inline to the
+right of the title when the row fits ("inline" mode), or as a quiet subtitle
+under the title ("block" mode); the content templates then drop the redundant
+.lead paragraph. Very long descriptions keep the theme's .lead layout.
 */ -}}
-{{- $withDesc := partial "page-heading-desc-fit.html" . -}}
-<div class="td-page-heading{{ if $withDesc }} td-page-heading--with-desc{{ end }}">
+{{- $descMode := partial "page-heading-desc-fit.html" . -}}
+<div class="td-page-heading{{ if eq $descMode "inline" }} td-page-heading--with-desc{{ else if eq $descMode "block" }} td-page-heading--desc-block{{ end }}">
   <h1>{{ .Title }}</h1>
-  {{- if $withDesc }}
+  {{- if eq $descMode "inline" }}
   <p class="td-page-heading__desc">{{ .Description }}</p>
+  {{- else if eq $descMode "block" }}
+  <p class="td-page-heading__desc">{{ .Description | markdownify }}</p>
   {{- end }}
 </div>

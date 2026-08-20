@@ -64,6 +64,22 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   }
 }
 
+// Block mode (page-heading-desc-fit.html): descriptions too long for the
+// title row but still subtitle-sized sit under the h1 across the full
+// content width, instead of falling back to the bulky .lead paragraph.
+.td-content > .td-page-heading--desc-block {
+  display: block;
+  margin-bottom: 1.5rem;
+
+  > h1 {
+    margin-bottom: 0.35rem;
+  }
+
+  .td-page-heading__desc {
+    max-width: 44em;
+  }
+}
+
 // Page headings sit below Bootstrap's default h1 (~2.5rem responsive).
 .td-content > .td-page-heading > h1 {
   font-size: 1.75rem;

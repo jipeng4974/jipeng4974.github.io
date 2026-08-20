@@ -11,15 +11,18 @@ LLMS index: [llms.txt](/llms.txt)
 考虑以 8s clip的logmel 为输入的音频表征模型，其 embedding pipeline 是如下降维过程：
 
 $$
+\begin{gathered}
 w\in\mathbb{R}^{176400}
 \;\xrightarrow{\;\Phi\;(\text{logmel})\;}\;
 x\in\mathbb{R}^{11008}
 \;\xrightarrow{\;h_\theta\;(\text{ViT-L})\;}\;
 \mathrm{CLS}\in\mathbb{R}^{1024}
+\\[6pt]
 \;\xrightarrow{\;g_\theta\;(\text{proj head})\;}\;
 z\in\mathbb{R}^{256}
 \;\xrightarrow{\;\ell_2\;}\;
 \hat z\in S^{255}
+\end{gathered}
 $$
 
 1. 从点视角看，信号空间的某个单点 $w$，被重参数化为语义度量空间的点。
