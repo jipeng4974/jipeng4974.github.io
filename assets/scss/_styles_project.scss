@@ -325,7 +325,13 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   [dir='rtl'][data-td-shell-toc='collapsed'] .td-shell-toc__panel {
     transform: translateX(-100%);
   }
+}
 
+// Floating restore button: only in the md–xl gap, where there is no topbar.
+// Below md the subnav override (layouts/_partials/shell/subnav.html) carries
+// the toggle, because the fixed-position float would overlap the header and
+// cover its search / drawer buttons; at xl+ the theme's own rule applies.
+@include media-breakpoint-between(md, xl) {
   [data-td-shell-toc='collapsed'] .td-shell-toc-float {
     display: flex;
     animation: td-shell-fade 300ms ease both;
@@ -441,7 +447,7 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 // pulled grayer and darker so the rail still reads as a separate surface;
 // dark mode is untouched.
 [data-bs-theme='light'] {
-  --bs-body-bg: #f4e9d4;
-  --bs-body-bg-rgb: 244, 233, 212;
-  --td-shell-card: color-mix(in srgb, var(--bs-body-bg) 88%, #8b8474 12%);
+  --bs-body-bg: #f7f1e5;
+  --bs-body-bg-rgb: 247, 241, 229;
+  --td-shell-card: color-mix(in srgb, var(--bs-body-bg) 92%, #8b8474 8%);
 }

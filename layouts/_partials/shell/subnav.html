@@ -1,0 +1,37 @@
+{{/*
+Project override of the theme's subnav (mobile topbar) partial. Difference
+from the theme version:
+  - a right-rail (TOC sidebar) toggle is added as the last button. On phones
+    the floating restore button would sit on top of this header and cover the
+    search / drawer buttons, so below md _styles_project.scss hides the float
+    and this button takes over (docs-shell.js wires every
+    data-td-shell-right-toggle the same way). It uses the "text" list glyph
+    instead of "panel-right" so it does not mirror the drawer's "panel-left".
+*/ -}}
+{{- $config := partial "shell/config.html" . -}}
+<header class="td-shell-subnav d-md-none d-print-none">
+  <a class="td-shell-subnav__brand" href="{{ .Site.Home.RelPermalink }}" aria-label="{{ $config.brandName }} home">
+    {{- if $config.wordmarkURL }}
+    <img class="td-shell-brand-logo--wordmark" src="{{ $config.wordmarkURL }}" alt="" width="100" height="40">
+    {{- else }}
+    <img src="{{ $config.logoURL }}" alt="" width="20" height="20">
+    <span class="td-shell-wordmark">{{ $config.brandName }}</span>
+    {{- end }}
+  </a>
+  <span class="td-shell-subnav__spacer"></span>
+  {{- if partial "shell/search-enabled.html" . }}
+  <button type="button" class="td-shell-iconbtn td-shell-subnav__btn" data-td-shell-search-open
+    aria-label="{{ T "ui_search" }}" aria-controls="td-shell-search" aria-expanded="false">{{ partialCached "shell/icon.html" "search" "search" }}</button>
+  {{- end }}
+  {{- if partial "shell/sidebar-enabled.html" . }}
+  <button type="button" class="td-shell-iconbtn td-shell-subnav__btn" data-td-shell-drawer-open
+    title="{{ T "ui_drawer_open" }}" aria-label="{{ T "ui_drawer_open" }}"
+    aria-controls="td-shell-sidebar" aria-expanded="false">
+    {{- partialCached "shell/icon.html" "panel-left" "panel-left" -}}
+  </button>
+  {{- end }}
+  <button type="button" class="td-shell-iconbtn td-shell-subnav__btn" data-td-shell-right-toggle
+    title="{{ T "ui_toc_show" }}" aria-label="{{ T "ui_toc_show" }}">
+    {{- partialCached "shell/icon.html" "text" "text" -}}
+  </button>
+</header>

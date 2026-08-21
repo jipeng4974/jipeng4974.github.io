@@ -21,7 +21,7 @@ theme version:
     <div class="td-shell-toc__actions">
       <button type="button" class="td-shell-toc__title-btn" data-td-shell-right-toggle
         title="{{ T "ui_toc_hide" }}" aria-label="{{ T "ui_toc_hide" }}">
-        {{- partialCached "shell/icon.html" "panel-right" "panel-right" -}}
+        {{- partialCached "shell/icon.html" "text" "text" -}}
       </button>
       {{- range $p.Site.Menus.main -}}
         {{- $key := .Identifier -}}
@@ -110,10 +110,13 @@ theme version:
     </div>
   </div>
 </aside>
-{{/* Fixed restore action shown whenever the rail is collapsed. */}}
+{{/* Fixed restore action shown whenever the rail is collapsed between md and
+     xl; below md the subnav topbar hosts the toggle instead, above xl the
+     theme's own float rule applies. Icon is "text" (list glyph) rather than
+     "panel-right" so it no longer mirrors the sidebar's "panel-left". */}}
 <div class="td-shell-toc-float d-print-none">
   <button type="button" class="td-shell-iconbtn" data-td-shell-right-toggle
     title="{{ T "ui_toc_show" }}" aria-label="{{ T "ui_toc_show" }}">
-    {{- partialCached "shell/icon.html" "panel-right" "panel-right" -}}
+    {{- partialCached "shell/icon.html" "text" "text" -}}
   </button>
 </div>
