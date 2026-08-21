@@ -13,7 +13,7 @@ Section pages:
 - [表征几何](/zh/writeups/representation_geometry/): 表征学习的反复迭代中，应尝试估计嵌入子流形的内禀维数，在输入和输出环节上设计合理的 ambient space。
 - [Music JEPA 和三体宇宙](/zh/writeups/music_jepa_universe/): 生存维数，维度坍塌，死维复活，宇宙规律，田园宇宙，幸存子空间，威慑项λ。
 - [Music JEPA Regularizers](/zh/writeups/music_jepa_reg/): 再试Music LeJEPA之抗坍缩正则
-- [DSpark](/zh/writeups/dspark/): DSpark：低秩bigram赎回块内依赖，置信度head给验证长度做admission control。
+- [DSpark](/zh/writeups/dspark/): DSpark = 半自回归 draft（重并行骨干 + 轻量顺序头） + 置信度感知的动态验证调度
 - [自由意志的可度量指标](/zh/writeups/free_will/): 由己度 = 内敏性 - 外敏性。
 - [Kimi K3：沿序列、深度与宽度扩展 LLM](/zh/writeups/llm_arch/): LLM架构演化，从dense transformer到Kimi K3。
 - [Music LeJEPA](/zh/writeups/music_lejepa/): 初试Music LeJEPA（未完待续）

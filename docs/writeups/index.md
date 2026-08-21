@@ -13,7 +13,7 @@ Section pages:
 - [Geometry of Representations](/writeups/representation_geometry/): In the iterative loop of representation learning, one should try to estimate the intrinsic dimension of the embedded submanifold and design a reasonable ambient space at both the input and output ends.
 - [Music JEPA and the Three-Body Universe](/writeups/music_jepa_universe/): Dimensions of survival, dimensional collapse, resurrecting dead dimensions, the laws of the universe, the Edenic universe, surviving subspaces, and the deterrence term λ.
 - [Music JEPA Regularizers](/writeups/music_jepa_reg/): Revisiting anti-collapse regularizers for Music LeJEPA
-- [DSpark](/writeups/dspark/): DSpark: a low-rank bigram table buys back intra-block dependencies, and a confidence head applies admission control to verification length.
+- [DSpark](/writeups/dspark/): DSpark = semi-autoregressive draft (heavy parallel backbone + lightweight serial head) + confidence-scheduled verification.
 - [A Measurable Metric of Free Will](/writeups/free_will/): Self-origination = internal sensitivity - external sensitivity.
 - [Kimi K3: Scaling LLMs Across Sequence, Depth, and Width](/writeups/llm_arch/): LLM Arch: From dense transformer to Kimi K3。
 - [Music LeJEPA](/writeups/music_lejepa/): First attempt at Music LeJEPA (to be continued)

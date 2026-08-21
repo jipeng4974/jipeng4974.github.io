@@ -1,6 +1,6 @@
 # DSpark
 
-> DSpark：低秩bigram赎回块内依赖，置信度head给验证长度做admission control。
+> DSpark = 半自回归 draft（重并行骨干 + 轻量顺序头） + 置信度感知的动态验证调度
 
 ---
 

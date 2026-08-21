@@ -3,7 +3,7 @@ title = "DSpark"
 date = "2026-08-01"
 tags = ["Systems", "AI"]
 aiAssisted = true
-description = "DSpark：低秩bigram赎回块内依赖，置信度head给验证长度做admission control。"
+description = "DSpark = 半自回归 draft（重并行骨干 + 轻量顺序头） + 置信度感知的动态验证调度"
 showFullContent = false
 +++
 

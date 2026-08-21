@@ -3,7 +3,7 @@ title = "DSpark"
 date = "2026-08-01"
 tags = ["Systems", "AI"]
 aiAssisted = true
-description = "DSpark: a low-rank bigram table buys back intra-block dependencies, and a confidence head applies admission control to verification length."
+description = "DSpark = semi-autoregressive draft (heavy parallel backbone + lightweight serial head) + confidence-scheduled verification."
 showFullContent = false
 +++
 
