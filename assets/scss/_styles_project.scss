@@ -17,10 +17,11 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 
 // Sidebar default width: wide enough that the brand row (logo + "Craft &
 // Contemplation", collapse button ≈ 30px, header padding 32px) stays on
-// one line. The resizer can still drag it narrower — a width persisted in
-// localStorage is applied inline by the prepaint script and wins over this.
+// one line with the final glyph fully visible. The resizer can still drag
+// it narrower — a width persisted in localStorage is applied inline by the
+// prepaint script and wins over this.
 :root {
-  --td-shell-sidebar-w: 312px;
+  --td-shell-sidebar-w: 328px;
 }
 
 // TOC rail home button: size the site logo like the neighboring 16px icons.
@@ -410,8 +411,8 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 // Sidebar brand row: the theme top-aligns the row and ships a 20px logo /
 // 1rem wordmark, so the brand sat high and small next to the 30px collapse
 // toggle. Pin the row to a compact 40px height, center everything in it,
-// and keep the wordmark on one line — at the default 312px sidebar width
-// the row leaves ~200px for the text, so 16px (the theme's own size) is
+// and keep the wordmark on one line — at the default 328px sidebar width
+// the row leaves ~215px for the text, so 16px (the theme's own size) is
 // the largest "Craft & Contemplation" fits unwrapped; anything bigger folds
 // to two lines and inflates the row. If the sidebar is dragged narrower,
 // clip instead of wrapping.

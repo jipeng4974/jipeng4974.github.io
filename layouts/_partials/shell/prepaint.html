@@ -1,11 +1,10 @@
 {{/*
 Project override of the theme's prepaint partial. Identical to the theme
-version except the right TOC rail defaults to collapsed at every viewport
-width: it stays hidden unless the visitor has explicitly expanded it
-(localStorage '0'). The toggle in docs-shell.js still persists both states,
-so an expanded rail survives reloads. (The theme applies the collapsed
-default only at min-width 1200px; here the rail stays a rail below xl, so
-the default must too.)
+version except the right TOC rail always starts collapsed at every viewport
+width, ignoring the persisted state: the toggle in docs-shell.js still
+writes localStorage, but a once-expanded rail no longer survives reloads.
+(The theme applies the collapsed default only at min-width 1200px; here the
+rail stays a rail below xl, so the default must too.)
 */ -}}
 {{- if partial "shell/chrome-enabled.html" . -}}
 <script>
@@ -19,9 +18,7 @@ the default must too.)
       }
       var width = parseInt(localStorage.getItem('td-shell-sidebar-w'), 10);
       if (width > 0) html.style.setProperty('--td-shell-sidebar-w', width + 'px');
-      if (localStorage.getItem('td-shell-toc-collapsed') !== '0') {
-        html.setAttribute('data-td-shell-toc', 'collapsed');
-      }
+      html.setAttribute('data-td-shell-toc', 'collapsed');
     } catch (_) {}
   })();
 </script>
