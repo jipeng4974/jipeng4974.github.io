@@ -15,8 +15,8 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   margin-inline-end: -0.02em; // Compensate for trailing letter spacing.
 }
 
-// Sidebar default width: wide enough that the brand row (logo + "Jipeng's
-// Footprints" ≈ 245px, collapse button ≈ 30px, header padding 32px) stays on
+// Sidebar default width: wide enough that the brand row (logo + "Craft &
+// Contemplation", collapse button ≈ 30px, header padding 32px) stays on
 // one line. The resizer can still drag it narrower — a width persisted in
 // localStorage is applied inline by the prepaint script and wins over this.
 :root {
@@ -410,9 +410,9 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 // Sidebar brand row: the theme top-aligns the row and ships a 20px logo /
 // 1rem wordmark, so the brand sat high and small next to the 30px collapse
 // toggle. Pin the row to a compact 40px height, center everything in it,
-// and keep the wordmark on one line — at the default 268px sidebar width
-// the row leaves ~165px for the text, so 16px (the theme's own size) is
-// the largest "Jipeng's Footprints" fits unwrapped; anything bigger folds
+// and keep the wordmark on one line — at the default 312px sidebar width
+// the row leaves ~200px for the text, so 16px (the theme's own size) is
+// the largest "Craft & Contemplation" fits unwrapped; anything bigger folds
 // to two lines and inflates the row. If the sidebar is dragged narrower,
 // clip instead of wrapping.
 .td-shell-sidebar__brand-row {

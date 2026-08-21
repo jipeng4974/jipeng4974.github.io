@@ -1,4 +1,4 @@
-title: Jipeng's Footprints
+title: "Craft & Contemplation"
 enableRobotsTXT: true
 enableGitInfo: true
 enableEmoji: true
@@ -28,7 +28,7 @@ languages:
     label: English
     locale: en-US
     weight: 1
-    title: Jipeng's Footprints
+    title: "Craft & Contemplation"
     params:
       description: Writeups on systems, AI, math, and everything in between
   zh:
