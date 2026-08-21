@@ -23,6 +23,12 @@ from the theme version:
   <button type="button" class="td-shell-iconbtn td-shell-subnav__btn" data-td-shell-search-open
     aria-label="{{ T "ui_search" }}" aria-controls="td-shell-search" aria-expanded="false">{{ partialCached "shell/icon.html" "search" "search" }}</button>
   {{- end }}
+  {{/* The TOC toggle sits left of the drawer button, so the main-navigation
+       button keeps the far-right slot. */ -}}
+  <button type="button" class="td-shell-iconbtn td-shell-subnav__btn" data-td-shell-right-toggle
+    title="{{ T "ui_toc_show" }}" aria-label="{{ T "ui_toc_show" }}">
+    {{- partialCached "shell/icon.html" "text" "text" -}}
+  </button>
   {{- if partial "shell/sidebar-enabled.html" . }}
   <button type="button" class="td-shell-iconbtn td-shell-subnav__btn" data-td-shell-drawer-open
     title="{{ T "ui_drawer_open" }}" aria-label="{{ T "ui_drawer_open" }}"
@@ -30,8 +36,4 @@ from the theme version:
     {{- partialCached "shell/icon.html" "panel-left" "panel-left" -}}
   </button>
   {{- end }}
-  <button type="button" class="td-shell-iconbtn td-shell-subnav__btn" data-td-shell-right-toggle
-    title="{{ T "ui_toc_show" }}" aria-label="{{ T "ui_toc_show" }}">
-    {{- partialCached "shell/icon.html" "text" "text" -}}
-  </button>
 </header>
