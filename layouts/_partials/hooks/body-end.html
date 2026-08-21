@@ -15,3 +15,12 @@
 {{ end -}}
 <script defer src="{{ $js.RelPermalink }}"{{ with $js.Data.Integrity }} integrity="{{ . }}" crossorigin="anonymous"{{ end }}></script>
 {{ end -}}
+
+{{/* TOC rail top sheet on phone portrait: collapsed groups, tap-to-close.
+     The script no-ops on pages without the rail, so it is safe to load
+     everywhere. */ -}}
+{{ $js := resources.Get "js/toc-sheet.js" -}}
+{{ if hugo.IsProduction -}}
+  {{ $js = $js | minify | fingerprint -}}
+{{ end -}}
+<script defer src="{{ $js.RelPermalink }}"{{ with $js.Data.Integrity }} integrity="{{ . }}" crossorigin="anonymous"{{ end }}></script>

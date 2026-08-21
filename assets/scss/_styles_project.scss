@@ -338,6 +338,45 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   }
 }
 
+// Phone portrait: the rail becomes a top sheet instead of a side drawer —
+// full width, hanging from the 56px subnav, ~40% of the viewport tall and
+// slightly translucent, so the lower ~60% of the article stays visible (and
+// faintly shows through). A transparent backdrop over that lower area takes
+// the first tap and closes the sheet (wired in assets/js/toc-sheet.js). The
+// panel drops below the subnav's z-index so it slides away underneath it.
+.td-shell-toc-sheet-backdrop {
+  display: none;
+  position: fixed;
+  inset-block: calc(56px + 40vh) 0;
+  inset-block: calc(56px + 40dvh) 0;
+  inset-inline: 0;
+  z-index: 24;
+}
+
+@media (max-width: 767.98px) and (orientation: portrait) {
+  .td-shell-toc__panel {
+    inset-block: 56px auto;
+    inset-inline: 0;
+    width: auto;
+    max-width: none;
+    height: 40vh;
+    height: 40dvh;
+    z-index: 25;
+    border-inline-start: 0;
+    border-block-end: 1px solid var(--bs-border-color);
+    background: color-mix(in srgb, var(--bs-body-bg) 88%, transparent);
+  }
+
+  [data-td-shell-toc='collapsed'] .td-shell-toc__panel,
+  [dir='rtl'][data-td-shell-toc='collapsed'] .td-shell-toc__panel {
+    transform: translateY(calc(-100% - 56px));
+  }
+
+  html:not([data-td-shell-toc='collapsed']) .td-shell-toc-sheet-backdrop {
+    display: block;
+  }
+}
+
 // AI-assisted hint: a quiet note appended to the article's tags row for
 // posts carrying aiAssisted = true in their front matter.
 .taxo-tags .ai-assisted-hint {

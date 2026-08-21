@@ -10,6 +10,9 @@ theme version:
     from the sidebar-panel override, so docs-shell.js never relocates them
     into the left sidebar (below xl the rail simply stays collapsed behind
     the floating restore button).
+  - a transparent sheet backdrop is appended after the float: on phone
+    portrait the rail opens as a full-width top sheet (~40dvh) and a tap on
+    the visible article below closes it (assets/js/toc-sheet.js).
 */ -}}
 {{- $p := .page -}}
 {{- $hasToc := .hasToc -}}
@@ -120,3 +123,8 @@ theme version:
     {{- partialCached "shell/icon.html" "text" "text" -}}
   </button>
 </div>
+{{/* Phone portrait only: while the rail is open as a top sheet, this
+     transparent layer covers the article's visible lower area so the first
+     tap on the content closes the sheet instead of activating a link
+     (assets/js/toc-sheet.js). Hidden at every other breakpoint. */}}
+<div class="td-shell-toc-sheet-backdrop d-print-none" aria-hidden="true"></div>
