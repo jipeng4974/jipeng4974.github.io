@@ -1,7 +1,7 @@
 +++
 title = "超越表征学习：预测驱动的编码器+可学习的传感器"
 date = "2026-06-29"
-tags = ["Research", "AI"]
+tags = ["AI"]
 description = "现有的多模态表征学习原始、孤立且残缺，还需要预测驱动的编码器+可学习的传感器。"
 showFullContent = false
 +++

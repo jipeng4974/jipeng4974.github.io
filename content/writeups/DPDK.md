@@ -1,7 +1,7 @@
 +++
 title = "DPDK is All You Need"
 date = "2024-01-05"
-tags = ["Sys", "Perf"]
+tags = ["Systems"]
 description = "For memory-intensive datacenter applications, DPDK offers an excellent performance engineering paradigm."
 showFullContent = false
 +++

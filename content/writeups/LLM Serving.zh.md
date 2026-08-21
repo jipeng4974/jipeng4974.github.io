@@ -2,7 +2,7 @@
 +++
 title = "LLM Serving"
 date = "2024-12-09"
-tags = ["Sys", "AI", "LLM"]
+tags = ["Systems", "AI"]
 description = "本文总结LLM serving的计算形态和优化机会。"
 showFullContent = false
 +++

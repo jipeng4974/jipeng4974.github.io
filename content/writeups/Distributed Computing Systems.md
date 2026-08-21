@@ -1,7 +1,7 @@
 +++
 title = "Distributed Computing Systems At Scale"
 date = "2023-06-07"
-tags = ["Sys"]
+tags = ["Systems"]
 description = "Messy distributed phenomena and tedious engineering practice can easily obscure the essence of distributed computing systems, so here is a systematic overview."
 showFullContent = false
 +++

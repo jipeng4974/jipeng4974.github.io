@@ -1,7 +1,7 @@
 +++
 title = "String Lookups Reduce to Parsing"
 date = "2023-05-14"
-tags = ["Sys"]
+tags = ["Systems"]
 description = "String lookup and string parsing both essentially extract state from a character stream using the most compact structure and the most efficient algorithm possible. So the NFA-to-DFA algorithm from the Dragon Book can be put to good use."
 showFullContent = false
 +++

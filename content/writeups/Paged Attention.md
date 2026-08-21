@@ -2,7 +2,7 @@
 +++
 title = "Paged Attention"
 date = "2024-07-30"
-tags = ["Sys", "AI", "LLM"]
+tags = ["Systems", "AI"]
 description = "Paged Attention: improving memory utilization and throughput when serving many concurrent requests."
 showFullContent = false
 +++

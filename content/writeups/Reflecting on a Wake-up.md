@@ -1,7 +1,7 @@
 +++
 title = "Reflecting on a Wake-up"
 date = "2024-04-10"
-tags = ["Humanity", "Philosophy"]
+tags = ["Philosophy"]
 description = "Notes on a moment of waking before dawn."
 showFullContent = false
 +++

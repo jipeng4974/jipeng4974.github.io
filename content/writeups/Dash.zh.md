@@ -1,7 +1,7 @@
 +++
 title = "Dash: 可扩展哈希"
 date = "2024-01-26"
-tags = ["Sys", "En", "Perf"]
+tags = ["Systems"]
 description = "Dash 论文的主要关注点是曾经风靡一时的 `persistent memory`，但实际上，任何受 `memory bandwidth` 限制的场景都能从中受益。随着 Intel 砍掉其 `pmem` 业务，`Dash` 方案的意义已经转移到了普通的 `DRAM` 应用上。"
 showFullContent = false
 +++

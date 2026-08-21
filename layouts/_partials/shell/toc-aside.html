@@ -1,13 +1,21 @@
 {{/*
-Project override of the theme's toc-aside partial. Identical to the theme
-version except the quick-links row (the pen-nib button jumping to /writeups/)
-is replaced by a single home button carrying the site logo, linking back to
-the site home.
+Project override of the theme's toc-aside partial. Differences from the
+theme version:
+  - the quick-links row is kept (theme mechanism: main-menu entries whose
+    key is listed in params.ui.quick_links render as icon buttons here);
+    no home-logo button;
+  - the groups are ordered On this page, Tags, Actions (theme: On this
+    page, Actions, Tags);
+  - the groups always live in this right rail: the drawer slot is removed
+    from the sidebar-panel override, so docs-shell.js never relocates them
+    into the left sidebar (below xl the rail simply stays collapsed behind
+    the floating restore button).
 */ -}}
 {{- $p := .page -}}
 {{- $hasToc := .hasToc -}}
 {{- $rssURL := .rssURL | default "" -}}
 {{- $config := partial "shell/config.html" $p -}}
+{{- $baseURL := urls.Parse $p.Site.BaseURL -}}
 <aside class="td-shell-toc d-print-none" aria-label="{{ T "toc_on_this_page" }}">
   <div class="td-shell-toc__panel">
     <div class="td-shell-toc__actions">
@@ -15,10 +23,27 @@ the site home.
         title="{{ T "ui_toc_hide" }}" aria-label="{{ T "ui_toc_hide" }}">
         {{- partialCached "shell/icon.html" "panel-right" "panel-right" -}}
       </button>
-      <a class="td-shell-iconbtn td-shell-iconbtn--sm td-shell-toc__home" href="{{ $p.Site.Home.RelPermalink }}"
-        title="{{ $config.brandName }}" aria-label="{{ $config.brandName }} home">
-        <img src="{{ $config.logoURL }}" alt="" width="16" height="16">
+      {{- range $p.Site.Menus.main -}}
+        {{- $key := .Identifier -}}
+        {{- with .Page }}{{ if not $key }}{{ $key = .Section }}{{ end }}{{ end -}}
+        {{- if in $config.quickLinks $key -}}
+          {{- $href := .URL | relLangURL -}}
+          {{- $description := "" -}}
+          {{- $icon := partial "menu-icon.html" . -}}
+          {{- with .Page -}}
+            {{- $href = .RelPermalink -}}
+            {{- $description = .Description | default .Title | plainify -}}
+          {{- end -}}
+          {{- $target := urls.Parse .URL -}}
+          {{- $external := and $target.Host (ne $baseURL.Host $target.Host) -}}
+          {{- $label := .Name -}}
+          {{- with $description }}{{ $label = printf "%s: %s" $label . }}{{ end -}}
+      <a class="td-shell-iconbtn td-shell-iconbtn--sm" href="{{ $href }}"
+        title="{{ $label }}" aria-label="{{ $label }}"{{ if $external }} target="_blank" rel="noopener"{{ end }}>
+        <i class="{{ $icon }}" aria-hidden="true"></i>
       </a>
+        {{- end -}}
+      {{- end -}}
       <span class="td-shell-toc__actions-spacer"></span>
       {{ partial "language-selector.html" (dict "page" $p "class" "td-shell-language-selector" "icon" "shell") }}
       {{- $darkMode := partialCached "dark-mode-config.html" "dark-mode-global" -}}
@@ -36,14 +61,12 @@ the site home.
       </a>
       {{- end }}
     </div>
-    {{/* Everything below the controls row is relocatable: below xl this rail is
-         hidden, and docs-shell.js moves this block into the sidebar drawer so
-         the contents-plus-actions stay reachable. Keep it one element. */ -}}
+    {{/* The groups below the controls row stay in this rail at every
+         breakpoint; see the header comment. Keep the block one element. */ -}}
     <div class="td-shell-aside" data-td-shell-aside>
       {{ if $hasToc -}}
-      {{/* Collapsible like the groups below it, but open by default and left
-           open when the block moves into the drawer — it is the reason the
-           block exists. */ -}}
+      {{/* Collapsible like the groups below it, but open by default — it is
+           the reason the rail exists. */ -}}
       <div class="td-shell-aside-group td-shell-aside-group--toc">
         <button type="button" class="td-shell-tree__row td-shell-aside-group__head"
           data-td-shell-tree-toggle data-td-shell-aside-keep-open
@@ -63,6 +86,7 @@ the site home.
         </div>
       </div>
       {{- end }}
+      {{ partial "shell/taxonomy-terms-clouds.html" $p }}
       {{/* Taxonomy pages have no single source file or meaningful page actions. */}}
       {{ if not (in (slice "term" "taxonomy") $p.Kind) -}}
       <div class="td-shell-aside-group">
@@ -83,11 +107,10 @@ the site home.
         </div>
       </div>
       {{- end }}
-      {{ partial "shell/taxonomy-terms-clouds.html" $p }}
     </div>
   </div>
 </aside>
-{{/* Fixed restore action shown only when the rail is collapsed at xl+. */}}
+{{/* Fixed restore action shown whenever the rail is collapsed. */}}
 <div class="td-shell-toc-float d-print-none">
   <button type="button" class="td-shell-iconbtn" data-td-shell-right-toggle
     title="{{ T "ui_toc_show" }}" aria-label="{{ T "ui_toc_show" }}">

@@ -1,7 +1,7 @@
 +++
 title = "A Taxonomy of Stateful Distributed Systems"
 date = "2021-07-08"
-tags = ["Sys"]
+tags = ["Systems"]
 description = "This post discusses the limitations of the CAP theorem and lays out a more fine-grained and precise taxonomy of stateful distributed systems, based on the trade-off between the two ideal properties of consistency and availability."
 showFullContent = false
 +++

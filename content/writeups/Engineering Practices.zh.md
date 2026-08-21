@@ -1,7 +1,7 @@
 +++
 title = "C++系统工程范式"
 date = "2024-12-03"
-tags = ["Sys", "SE"]
+tags = ["Systems", "Software Engineering"]
 description = "本文总结当下我认为比较好的C++系统工程范式。"
 showFullContent = false
 +++

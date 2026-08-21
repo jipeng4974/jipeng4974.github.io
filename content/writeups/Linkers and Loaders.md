@@ -1,7 +1,7 @@
 +++
 title = "Linkers & Loaders"
 date = "2024-03-04"
-tags = ["Sys"]
+tags = ["Systems"]
 description = "Linkers & Loaders fills a niche body of knowledge — linking and loading."
 showFullContent = false
 +++

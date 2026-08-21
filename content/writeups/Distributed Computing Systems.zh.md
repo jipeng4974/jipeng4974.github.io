@@ -1,7 +1,7 @@
 +++
 title = "大规模分布式计算"
 date = "2023-06-07"
-tags = ["Sys"]
+tags = ["Systems"]
 description = "纷乱的分布式现象、繁琐的工程实践容易遮蔽对分布式计算系统本质的理解，遂做梳理。"
 showFullContent = false
 +++

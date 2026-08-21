@@ -1,7 +1,7 @@
 +++
 title = "量化和剪枝"
 date = "2024-09-02"
-tags = ["Sys", "AI"]
+tags = ["Systems", "AI"]
 description = "总结推理优化问题中相当重要的模型压缩技术——量化和剪枝。"
 showFullContent = false
 +++

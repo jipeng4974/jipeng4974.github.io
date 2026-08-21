@@ -1,7 +1,8 @@
 +++
 title = "DSpark"
 date = "2026-08-01"
-tags = ["Sys", "AI", "LLM", "AI-Assisted"]
+tags = ["Systems", "AI"]
+aiAssisted = true
 description = "DSpark: a low-rank bigram table buys back intra-block dependencies, and a confidence head applies admission control to verification length."
 showFullContent = false
 +++

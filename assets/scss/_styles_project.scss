@@ -284,3 +284,164 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
     transform: rotate(360deg);
   }
 }
+
+// Right rail below xl: the theme hides it and relocates its groups into the
+// left drawer. This site keeps the rail a rail at every width (the drawer
+// slot is removed in layouts/_partials/shell/sidebar-panel.html), collapsed
+// by default per prepaint.html, so the column reserves no width and the
+// panel slides in over the content like a drawer.
+@include media-breakpoint-down(xl) {
+  .td-shell-toc {
+    display: block;
+    flex: 0 0 0;
+    width: 0;
+  }
+
+  .td-shell-toc__panel {
+    display: flex;
+    position: fixed;
+    inset-block: 0;
+    inset-inline-end: 0;
+    flex-direction: column;
+    width: 286px;
+    max-width: calc(100vw - 48px);
+    min-height: 0;
+    padding: 16px 20px 12px 8px;
+    z-index: 40;
+    background: var(--bs-body-bg);
+    border-inline-start: 1px solid var(--bs-border-color);
+    box-shadow: var(--td-shell-shadow-lg);
+    transition:
+      transform 200ms ease,
+      opacity 150ms ease;
+  }
+
+  [data-td-shell-toc='collapsed'] .td-shell-toc__panel {
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  [dir='rtl'][data-td-shell-toc='collapsed'] .td-shell-toc__panel {
+    transform: translateX(-100%);
+  }
+
+  [data-td-shell-toc='collapsed'] .td-shell-toc-float {
+    display: flex;
+    animation: td-shell-fade 300ms ease both;
+  }
+}
+
+// AI-assisted hint: a quiet note appended to the article's tags row for
+// posts carrying aiAssisted = true in their front matter.
+.taxo-tags .ai-assisted-hint {
+  color: var(--bs-secondary-color);
+  font-size: 0.85em;
+  font-style: italic;
+  opacity: 0.75;
+}
+
+// Sidebar root menu icons: the theme paints every icon with the accent
+// color. Here only the current section's icon stays blue — the trigger
+// (which shows the current section) and the active entry in the dropdown;
+// the rest fall back to a neutral gray in light mode, off-white in dark.
+// The dark-mode rule must come before the accent rules so they win on
+// equal specificity.
+.td-shell-root__icon {
+  color: #64748b;
+}
+
+[data-bs-theme='dark'] .td-shell-root__icon {
+  color: #c7d0d8;
+}
+
+.td-shell-root__trigger .td-shell-root__icon,
+.td-shell-root__item.is-active .td-shell-root__icon {
+  color: var(--td-shell-primary);
+}
+
+// Sidebar brand row: the theme top-aligns the row and ships a 20px logo /
+// 1rem wordmark, so the brand sat high and small next to the 30px collapse
+// toggle. Pin the row to a compact 40px height, center everything in it,
+// and keep the wordmark on one line — at the default 268px sidebar width
+// the row leaves ~165px for the text, so 16px (the theme's own size) is
+// the largest "Jipeng's Footprints" fits unwrapped; anything bigger folds
+// to two lines and inflates the row. If the sidebar is dragged narrower,
+// clip instead of wrapping.
+.td-shell-sidebar__brand-row {
+  @include media-breakpoint-up(md) {
+    align-items: center;
+    height: 40px;
+  }
+}
+
+.td-shell-sidebar__brand {
+  min-width: 0;
+  overflow: hidden;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
+
+  // The theme pins .td-shell-wordmark to 1rem on the span itself; override
+  // it here so the rule lives next to the logo size it must match.
+  .td-shell-wordmark {
+    font-size: 16px;
+    line-height: 40px;
+    white-space: nowrap;
+  }
+}
+
+// Sidebar header: tighten the vertical rhythm. With the search bar demoted
+// to the footer, the header-row is empty on desktop, so the theme's 12px
+// column gap reads as dead air between the brand row and the root menu.
+.td-shell-sidebar__header {
+  gap: 8px;
+}
+
+// With the search bar demoted to the footer, the header-row's only child on
+// desktop is an empty spacer — the drawer close button inside it is
+// mobile-only. Hide the row entirely above the drawer breakpoint so it
+// stops contributing an 8px flex gap between the brand row and the root
+// menu.
+@include media-breakpoint-up(md) {
+  .td-shell-sidebar__header-row {
+    display: none;
+  }
+}
+
+// Sidebar root menu (the section switcher): shrink the trigger and the
+// dropdown items a notch — trigger padding 8px→6px, fonts 14px→13px and
+// 13px→12px — so the 16px brand wordmark above reads as the larger title.
+.td-shell-root__trigger {
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.td-shell-root__icon {
+  width: 18px;
+  height: 18px;
+
+  i {
+    font-size: 14px;
+  }
+}
+
+.td-shell-root__item-title {
+  font-size: 13px;
+}
+
+.td-shell-root__item-desc {
+  font-size: 12px;
+}
+
+// Light mode: swap the pure-white page background for a soft paper tone
+// (warm gray-yellow, near white). The sidebar takes the same hue but
+// pulled grayer and darker so the rail still reads as a separate surface;
+// dark mode is untouched.
+[data-bs-theme='light'] {
+  --bs-body-bg: #f4e9d4;
+  --bs-body-bg-rgb: 244, 233, 212;
+  --td-shell-card: color-mix(in srgb, var(--bs-body-bg) 88%, #8b8474 12%);
+}

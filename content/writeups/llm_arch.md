@@ -1,7 +1,8 @@
 +++
 title = "Kimi K3: Scaling LLMs Across Sequence, Depth, and Width"
 date = "2026-07-28"
-tags = ["AI", "LLM", "AI-Assisted", "En"]
+tags = ["AI"]
+aiAssisted = true
 description = "LLM Arch: From dense transformer to Kimi K3。"
 showFullContent = false
 +++

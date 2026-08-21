@@ -2,7 +2,7 @@
 +++
 title = "eBPF Tracing for Memory-Stalled Applications"
 date = "2023-12-07"
-tags = ["Sys", "Kernel", "Perf"]
+tags = ["Systems"]
 description = "An introduction to eBPF — the cutting-edge observability technology for Linux — and eBPF-based off-CPU performance analysis."
 showFullContent = false
 +++

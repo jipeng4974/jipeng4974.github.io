@@ -2,7 +2,7 @@
 +++
 title = "Paged Attention"
 date = "2024-07-30"
-tags = ["Sys", "AI", "LLM"]
+tags = ["Systems", "AI"]
 description = "Paged Attention：提升同时处理多请求的显存利用率和吞吐。"
 showFullContent = false
 +++

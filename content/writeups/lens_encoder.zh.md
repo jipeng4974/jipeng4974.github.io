@@ -1,7 +1,7 @@
 +++
 title = "镜头与编码器的同构性"
 date = "2026-07-01"
-tags = ["Optics", "AI"]
+tags = ["Physics", "AI"]
 description = "相机镜头和编码器呈现惊人的同构性。"
 showFullContent = false
 +++

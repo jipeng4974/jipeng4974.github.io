@@ -1,7 +1,7 @@
 +++
 title = "CAT02: Resources"
 date = "2024-06-14"
-tags = ["En", "Math"]
+tags = ["Math"]
 description = "第二篇 CAT 笔记讨论资源的范畴论形式化，以及如何将一组资源转化为另一组资源。内容涵盖 monoidal preorder（幺半预序）、wiring diagram（接线图）、monoidal monotone map 和 V-category。"
 showFullContent = false
 +++

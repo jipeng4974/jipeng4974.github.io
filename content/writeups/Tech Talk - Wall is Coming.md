@@ -1,7 +1,7 @@
 +++
 title = "Tech Talk: Wall is Coming"
 date = "2024-02-22"
-tags = ["Sys", "Talk"]
+tags = ["Systems"]
 description = "Tech Talk transcript: traces the historical roots of the memory wall problem, attempts to frame an understanding of the optimization space, derives corresponding heuristics, and lists several memory-access optimization techniques."
 showFullContent = false
 +++

@@ -1,7 +1,7 @@
 +++
 title = "高性能大规模向量检索"
 date = "2023-09-12"
-tags = ["AI", "Sys", "Perf"]
+tags = ["AI", "Systems"]
 description = "如何在十亿、百亿级特征库上做高效的向量检索"
 showFullContent = false
 +++

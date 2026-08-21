@@ -1,7 +1,7 @@
 +++
 title = "错误处理"
 date = "2024-04-09"
-tags = ["SE"]
+tags = ["Software Engineering"]
 description = "本文讨论现代C++的错误处理问题。"
 showFullContent = false
 +++

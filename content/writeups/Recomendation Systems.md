@@ -1,7 +1,8 @@
 +++
 title = "Recommender Systems"
 date = "2025-01-22"
-tags = ["AI", "Sys", "AI-Assisted"]
+tags = ["AI", "Systems"]
+aiAssisted = true
 description = "Reading papers with the help of DeepSeek R1 to sort out recommender systems."
 showFullContent = false
 +++
