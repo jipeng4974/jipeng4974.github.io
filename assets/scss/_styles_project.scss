@@ -493,3 +493,25 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   --bs-body-bg-rgb: 247, 241, 229;
   --td-shell-card: color-mix(in srgb, var(--bs-body-bg) 92%, #8b8474 8%);
 }
+
+// Link color: replace the theme's vivid blue with a lower-saturation ink
+// blue. Hover states go a shade deeper (light) / lighter (dark).
+[data-bs-theme='light'] {
+  --bs-link-color: #3a517e;
+  --bs-link-color-rgb: 58, 81, 126;
+  --bs-link-hover-color: #2d3f63;
+  --bs-link-hover-color-rgb: 45, 63, 99;
+}
+
+[data-bs-theme='dark'] {
+  --bs-link-color: #8ea6cd;
+  --bs-link-color-rgb: 142, 166, 205;
+  --bs-link-hover-color: #a8bdd9;
+  --bs-link-hover-color-rgb: 168, 189, 217;
+}
+
+// Section index entries (photos/gears section pages): tighten the gap
+// between entries a notch (0.75rem → 0.5rem).
+.section-index .entry {
+  padding: 0.5rem 0;
+}
