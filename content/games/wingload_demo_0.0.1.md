@@ -24,6 +24,4 @@ Win by clearing all 6 waves and destroying the boss mothership; lose when all cr
 
 ![Wingload 0.0.1 gameplay](/img/wingload_0.0.1.png)
 
-The demo is a ~40MB WebAssembly build, so it only downloads after you click:
-
 {{< gamedemo src="/games/wingload/0.0.1/" play="Play the demo" >}}

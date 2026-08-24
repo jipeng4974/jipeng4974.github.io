@@ -1,0 +1,41 @@
+# Wingload 0.0.1：网页试玩
+
+> 竖版飞行射击 + 机舱改装：在波次之间重新设计你的机体拓扑 —— 可直接在浏览器里试玩。
+
+---
+
+LLMS index: [llms.txt](/llms.txt)
+
+---
+
+**Wingload** 是我用 Godot 开发的一款 Roguelike 竖版飞行射击游戏（vertical shmup）。它的核心机制是**机舱改装（retrofit）**：你的战机不是一张固定贴图，而是由若干机舱组成的拓扑结构。在战斗间隙，你可以拆装动力、火力、感知、智能等系统，用敌人掉落的机舱扩充机体，也可以精简机舱来缩小被弹面、降低质量。敌方火力带有穿透和爆炸属性，一发可能掀掉多个机舱——机体不是越大越好。
+
+开飞机本身也是挑战的一部分：没有方向键，你用 `1`/`2`（`3`/`4`）控制各引擎档位，左右引擎的差速产生力矩来旋转机身，横向移动只能靠转向获得。火力系统自动开火。
+
+**操作：**
+
+| 输入 | 作用 |
+|---|---|
+| `1` `2`（`3` `4`） | 循环切换对应引擎档位 0→1→2→3→0（1 档 = 抵消卷轴悬停） |
+| 差速 | 转向——左右引擎档位差产生力矩 |
+| `Tab` | 打开机舱改装（仅战场无敌机时可用） |
+| `Esc` | 放弃本局（改装界面打开时 = 关闭改装） |
+| `R` | 胜利/失败后重新开始 |
+
+胜利条件：清完 6 波敌人并击毁 boss 母舰；失败条件：乘员舱（绿色）全部损毁。开局机型的 4 个乘员舱就是 4 条命。
+
+![Wingload 0.0.1 游戏画面](/img/wingload_0.0.1.png)
+
+
+
+
+
+
+
+
+<button type="button" class="gamedemo-play" data-target="gamedemo-0">开始试玩</button>
+<div id="gamedemo-0" class="gamedemo-overlay" hidden>
+  <div class="gamedemo-hint">加载中……</div>
+  <iframe data-src="/games/wingload/0.0.1/" title="开始试玩" allow="autoplay; fullscreen; gamepad" allowfullscreen></iframe>
+  <button type="button" class="gamedemo-close" aria-label="Close">✕</button>
+</div>

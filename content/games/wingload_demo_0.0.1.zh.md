@@ -24,6 +24,4 @@ comments: false
 
 ![Wingload 0.0.1 游戏画面](/img/wingload_0.0.1.png)
 
-试玩版是约 40MB 的 WebAssembly 构建，点击按钮后才会开始下载：
-
 {{< gamedemo src="/games/wingload/0.0.1/" play="开始试玩" loading="加载中……" >}}
