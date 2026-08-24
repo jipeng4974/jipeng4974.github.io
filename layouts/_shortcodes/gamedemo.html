@@ -1,0 +1,124 @@
+{{/*
+
+@param {string} src URL of the game build directory (must contain index.html).
+@param {string} [play="Play"] Label of the play button.
+@param {string} [loading="Loading…"] Hint shown while the iframe loads.
+
+Renders a play button that opens a fullscreen overlay with an iframe.
+The iframe `src` is only set on click, so heavy game assets (wasm) are
+never fetched until the user asks for them. Close via the X button,
+ESC, or the backdrop-free overlay's close control; closing clears the
+iframe src so the game stops (audio/CPU) and body scroll is restored.
+
+*/ -}}
+
+{{ $src := .Get "src" }}
+{{ $play := .Get "play" | default "Play" }}
+{{ $loading := .Get "loading" | default "Loading…" }}
+{{ $id := printf "gamedemo-%d" .Ordinal }}
+
+{{ if not ($.Page.Store.Get "hasGameDemo") }}
+{{ $.Page.Store.Set "hasGameDemo" true }}
+<style>
+  .gamedemo-play {
+    cursor: pointer;
+    padding: 0.5rem 1.2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background: var(--bs-primary, #30638e);
+    border: none;
+    border-radius: 0.4rem;
+  }
+  .gamedemo-play:hover { filter: brightness(1.15); }
+  .gamedemo-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 10, 16, 0.96);
+  }
+  .gamedemo-overlay[hidden] { display: none; }
+  .gamedemo-overlay iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #000;
+  }
+  .gamedemo-hint {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    font-size: 1.1rem;
+    pointer-events: none;
+  }
+  .gamedemo-hint[hidden] { display: none; }
+  .gamedemo-close {
+    position: fixed;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 10001;
+    width: 2.5rem;
+    height: 2.5rem;
+    cursor: pointer;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
+    border-radius: 50%;
+  }
+  .gamedemo-close:hover { background: rgba(255, 255, 255, 0.28); }
+</style>
+<script>
+  (function () {
+    function openDemo(id) {
+      var overlay = document.getElementById(id);
+      if (!overlay) return;
+      var frame = overlay.querySelector('iframe');
+      var hint = overlay.querySelector('.gamedemo-hint');
+      if (!frame.getAttribute('src')) {
+        if (hint) hint.hidden = false;
+        frame.setAttribute('src', frame.getAttribute('data-src'));
+      }
+      overlay.hidden = false;
+      document.documentElement.style.overflow = 'hidden';
+    }
+    function closeDemo(overlay) {
+      var frame = overlay.querySelector('iframe');
+      if (frame) frame.setAttribute('src', '');
+      overlay.hidden = true;
+      document.documentElement.style.overflow = '';
+    }
+    document.addEventListener('click', function (e) {
+      var play = e.target.closest('.gamedemo-play');
+      if (play) { openDemo(play.getAttribute('data-target')); return; }
+      var close = e.target.closest('.gamedemo-close');
+      if (close) { closeDemo(close.closest('.gamedemo-overlay')); }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var overlay = document.querySelector('.gamedemo-overlay:not([hidden])');
+      if (overlay) closeDemo(overlay);
+    });
+    document.addEventListener('load', function (e) {
+      if (e.target.matches && e.target.matches('.gamedemo-overlay iframe')) {
+        var hint = e.target.closest('.gamedemo-overlay').querySelector('.gamedemo-hint');
+        if (hint) hint.hidden = true;
+      }
+    }, true);
+  })();
+</script>
+{{ end }}
+
+<button type="button" class="gamedemo-play" data-target="{{ $id }}">{{ $play }}</button>
+<div id="{{ $id }}" class="gamedemo-overlay" hidden>
+  <div class="gamedemo-hint">{{ $loading }}</div>
+  <iframe data-src="{{ $src }}" title="{{ $play }}" allow="autoplay; fullscreen; gamepad" allowfullscreen></iframe>
+  <button type="button" class="gamedemo-close" aria-label="Close">✕</button>
+</div>
