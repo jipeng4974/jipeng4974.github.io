@@ -36,6 +36,6 @@ LLMS index: [llms.txt](/llms.txt)
 <button type="button" class="gamedemo-play" data-target="gamedemo-0">开始试玩</button>
 <div id="gamedemo-0" class="gamedemo-overlay" hidden>
   <div class="gamedemo-hint">加载中……</div>
-  <iframe data-src="/games/wingload/0.0.1/" title="开始试玩" allow="autoplay; fullscreen; gamepad" allowfullscreen></iframe>
+  <iframe data-src="https://assets.wujipeng.com/games/wingload/0.0.1/index.html" title="开始试玩" allow="autoplay; fullscreen; gamepad" allowfullscreen></iframe>
   <button type="button" class="gamedemo-close" aria-label="Close">✕</button>
 </div>

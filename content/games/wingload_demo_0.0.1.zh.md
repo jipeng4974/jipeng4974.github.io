@@ -24,4 +24,4 @@ comments: false
 
 ![Wingload 0.0.1 游戏画面](/img/wingload_0.0.1.png)
 
-{{< gamedemo src="/games/wingload/0.0.1/" play="开始试玩" loading="加载中……" >}}
+{{< gamedemo src="https://assets.wujipeng.com/games/wingload/0.0.1/index.html" play="开始试玩" loading="加载中……" >}}

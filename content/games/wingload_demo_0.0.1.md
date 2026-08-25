@@ -24,4 +24,4 @@ Win by clearing all 6 waves and destroying the boss mothership; lose when all cr
 
 ![Wingload 0.0.1 gameplay](/img/wingload_0.0.1.png)
 
-{{< gamedemo src="/games/wingload/0.0.1/" play="Play the demo" >}}
+{{< gamedemo src="https://assets.wujipeng.com/games/wingload/0.0.1/index.html" play="Play the demo" >}}

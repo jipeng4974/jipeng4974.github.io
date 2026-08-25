@@ -36,6 +36,6 @@ Win by clearing all 6 waves and destroying the boss mothership; lose when all cr
 <button type="button" class="gamedemo-play" data-target="gamedemo-0">Play the demo</button>
 <div id="gamedemo-0" class="gamedemo-overlay" hidden>
   <div class="gamedemo-hint">Loading…</div>
-  <iframe data-src="/games/wingload/0.0.1/" title="Play the demo" allow="autoplay; fullscreen; gamepad" allowfullscreen></iframe>
+  <iframe data-src="https://assets.wujipeng.com/games/wingload/0.0.1/index.html" title="Play the demo" allow="autoplay; fullscreen; gamepad" allowfullscreen></iframe>
   <button type="button" class="gamedemo-close" aria-label="Close">✕</button>
 </div>
