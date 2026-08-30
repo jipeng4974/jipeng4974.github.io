@@ -8,7 +8,7 @@ LLMS index: [llms.txt](/llms.txt)
 
 ---
 
-[Wingload 0.0.1](/games/wingload_demo_0.0.1/) was developed end-to-end by an AI agent: the agent wrote the code, but it cannot play the game with its own hands. That constraint shaped the whole workflow — the game must ship with test hooks that a script can drive, otherwise the agent can say "the code is written" but never "the game works." This post covers the three main threads of the 0.0.1 build: a **headless test harness**, a **full C# → GDScript port**, and the **export pipeline with runtime verification**, closing with a gotcha list from the trenches.
+[Wingload 0.0.1](/works/wingload_demo_0.0.1/) was developed end-to-end by an AI agent: the agent wrote the code, but it cannot play the game with its own hands. That constraint shaped the whole workflow — the game must ship with test hooks that a script can drive, otherwise the agent can say "the code is written" but never "the game works." This post covers the three main threads of the 0.0.1 build: a **headless test harness**, a **full C# → GDScript port**, and the **export pipeline with runtime verification**, closing with a gotcha list from the trenches.
 
 ## The headless test harness: the only regression net
 

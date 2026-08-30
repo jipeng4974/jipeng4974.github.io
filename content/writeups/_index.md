@@ -2,6 +2,7 @@
 title: Writeups
 description: Impose structure over unstructured realities
 menu: { main: { weight: 10 } }
+weight: 10
 type: blog
 icon: fa-solid fa-pen-nib
 sidebar_root_for: self

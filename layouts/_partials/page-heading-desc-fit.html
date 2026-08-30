@@ -1,6 +1,6 @@
 {{- /*
 Project helper: decide how a page's description is presented in the heading.
-Applies to the writeups/games/photos/about/gears sections. The theme's .lead
+Applies to the writeups/works/photos/about/gears sections. The theme's .lead
 paragraph is never used for these pages — every description renders as
 .td-page-heading__desc; this helper only picks the layout mode:
 
@@ -20,7 +20,7 @@ Input: a page. Returns: string; "" only for pages outside the listed sections
 or without a description (those keep the theme's heading-plus-lead layout).
 */ -}}
 {{- $mode := "" -}}
-{{- if and (in (slice "writeups" "games" "photos" "about" "gears") .Section) .Description -}}
+{{- if and (in (slice "writeups" "works" "photos" "about" "gears") .Section) .Description -}}
   {{- $tPx := mul (add (strings.CountRunes .Title) (len (findRE `[^\x00-\x7F]` .Title))) 15 -}}
   {{- $dUnits := add (strings.CountRunes .Description) (len (findRE `[^\x00-\x7F]` .Description)) -}}
   {{- $dRaw := mul $dUnits 9 -}}

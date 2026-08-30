@@ -2,6 +2,7 @@
 title: Gears
 description: Productivity tools and toys
 menu: { main: { weight: 20 } }
+weight: 20
 type: docs
 icon: fa-solid fa-gears
 sidebar_root_for: self

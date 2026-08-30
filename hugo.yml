@@ -1,4 +1,4 @@
-title: "Craft & Contemplation"
+title: "Crafts & Passages"
 enableRobotsTXT: true
 enableGitInfo: true
 enableEmoji: true
@@ -28,7 +28,7 @@ languages:
     label: English
     locale: en-US
     weight: 1
-    title: "Craft & Contemplation"
+    title: "Crafts & Passages"
     params:
       description: Writeups on systems, AI, math, and everything in between
   zh:
@@ -105,7 +105,7 @@ params:
   comments:
     enable: false
   ui:
-    quick_links: [writeups, games, photos, gears, about] # add `projects` back when the projects section is re-enabled
+    quick_links: [writeups, works, photos, gears, about] # add `projects` back when the projects section is re-enabled
     page_context_menu:
       enable: true
       links: []

@@ -1,11 +1,11 @@
-# Craft & Contemplation
+# Crafts & Passages
 
 ## Site index
 
 - [Home page](https://wujipeng.com/index.md)
 - [Writeups](https://wujipeng.com/writeups/index.md): Impose structure over unstructured realities
-- [Games](https://wujipeng.com/games/index.md): Small games and demos
 - [Gears](https://wujipeng.com/gears/index.md): Productivity tools and toys
+- [Works](https://wujipeng.com/works/index.md): Games, AIGC, and other works
 - [Photographs](https://wujipeng.com/photos/index.md): The World, Framed
 - [About](https://wujipeng.com/about/index.md): About me and this site
 

@@ -1,7 +1,8 @@
 ---
 title: 摄影
 description: 镜收天地
-menu: { main: { weight: 30 } }
+menu: { main: { weight: 40 } }
+weight: 40
 type: docs
 icon: fa-solid fa-camera
 sidebar_root_for: self

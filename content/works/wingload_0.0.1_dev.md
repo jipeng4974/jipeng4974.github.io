@@ -4,6 +4,7 @@ date: 2026-08-24
 description: "Field notes from AI-agent-driven Godot development: an in-game test harness, a full C# → GDScript port, the export pipeline with runtime verification, and a gotcha list."
 type: docs
 comments: false
+aliases: [/games/wingload_0.0.1_dev/]
 ---
 
 [Wingload 0.0.1]({{< relref "wingload_demo_0.0.1" >}}) was developed end-to-end by an AI agent: the agent wrote the code, but it cannot play the game with its own hands. That constraint shaped the whole workflow — the game must ship with test hooks that a script can drive, otherwise the agent can say "the code is written" but never "the game works." This post covers the three main threads of the 0.0.1 build: a **headless test harness**, a **full C# → GDScript port**, and the **export pipeline with runtime verification**, closing with a gotcha list from the trenches.

@@ -7,7 +7,7 @@ Personal site of [jipeng4974](https://github.com/jipeng4974), built with
 
 - `content/` — site content. `writeups/` holds the long-form posts migrated
   from the old terminal-theme site; `tags/` and `search.md` are scaffold pages
-  required by the theme; the remaining sections (games, photographs, projects,
+  required by the theme; the remaining sections (works, photographs, projects,
   publications, about) are first-level tabs.
 - `data/home/` — homepage composition (hero, gallery, cta, footer) per language.
 - `static/img/` — images referenced by the posts as

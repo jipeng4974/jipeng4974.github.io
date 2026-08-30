@@ -31,11 +31,11 @@ gallery:
       icon: fa-solid fa-pen-nib
       desc: Long-form notes on systems, AI, math, and philosophy.
       url: writeups/
-    - title: Games
-      badge: Demo
-      icon: fa-solid fa-gamepad
-      desc: Small games and engine experiments.
-      url: games/
+    - title: Works
+      badge: Art
+      icon: fa-solid fa-palette
+      desc: Games, AIGC, and other artistic works.
+      url: works/
     - title: Photographs
       badge: Gallery
       icon: fa-solid fa-camera
@@ -68,7 +68,7 @@ footer:
   brand:
     name: jipeng4974
     tagline: Impose Structure on Unstructured Realities
-    slogan: Personal site — writeups, projects, and demos
+    slogan: Personal site — writeups, photographs, and works
   columns:
     - title: Content
       links:
@@ -77,7 +77,7 @@ footer:
         - { label: Publications, url: publications/ }
     - title: More
       links:
-        - { label: Games, url: games/ }
+        - { label: Works, url: works/ }
         - { label: Photographs, url: photographs/ }
         - { label: Projects, url: projects/ }
     - title: About

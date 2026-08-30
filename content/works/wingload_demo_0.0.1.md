@@ -4,6 +4,7 @@ date: 2026-08-24
 description: "A vertical scrolling shooter where you redesign your ship's cabin layout between waves — playable web demo."
 type: docs
 comments: false
+aliases: [/games/wingload_demo_0.0.1/]
 ---
 
 **Wingload** is a roguelike, vertical scrolling shooter (shmup) I'm building in Godot. The twist: your ship is not a fixed sprite but a grid of **cabins**, and between waves you can retrofit it — install or remove propulsion, weapon, sensor, and AI systems, bolt on new cabins salvaged from enemies, or strip cabins off to shrink your hitbox and mass. Enemy fire can penetrate and explode, so a fat ship is a liability: bigger isn't better.
