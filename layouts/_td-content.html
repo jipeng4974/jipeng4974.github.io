@@ -16,6 +16,9 @@ heading (see page-heading-desc-fit.html).
 		{{ end -}}
 	</header>
 	{{ .Render "_td-content-after-header" -}}
+	{{ if eq .Section "photos" -}}
+		{{ partial "photo-guide.html" . }}
+	{{ end -}}
 	{{ .Content }}
 	{{ partial "feedback.html" . -}}
 	{{ partial "comments.html" . -}}

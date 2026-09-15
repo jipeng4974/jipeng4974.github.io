@@ -1,0 +1,37 @@
+{{- /* Client-side guide navigation for photographs.
+
+       The mosaic planner needs aspect ratios before thumbnails arrive, so
+       dimensions are supplied by generated Hugo data rather than decoded from
+       image headers in the browser. Thumbnails are expected to be uploaded to
+       R2 as /thumbs/<original stem>.jpg. */ -}}
+{{- $imageRE := `!\[[^\]]*\]\((https://assets\.wujipeng\.com/[^)\s]+)\)` -}}
+{{- $imageMatches := findRESubmatch $imageRE .RawContent -}}
+{{- if $imageMatches -}}
+  {{- $metrics := hugo.Data.photo_metrics.images -}}
+  {{- $items := slice -}}
+  {{- range $match := $imageMatches -}}
+    {{- $url := index $match 1 -}}
+    {{- $filename := path.Base $url -}}
+    {{- $stem := path.BaseName $filename -}}
+    {{- $matches := where $metrics "stem" "eq" $stem -}}
+    {{- if $matches -}}
+      {{- $metric := index $matches 0 -}}
+      {{- $aspect := div (float $metric.width) (float $metric.height) -}}
+      {{- $thumb := printf "https://assets.wujipeng.com/thumbs/%s.jpg" $stem -}}
+      {{- $items = $items | append (dict
+          "aspect" $aspect
+          "stem" $stem
+          "thumb" $thumb
+          "url" $url
+        ) -}}
+    {{- else -}}
+      {{- errorf "photo guide: missing dimensions for %s; regenerate data/photo_metrics.toml" $url -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- if $items -}}
+    <nav class="photo-guide" aria-label="{{ if eq .Lang "zh" }}照片导览{{ else }}Photo guide{{ end }}" hidden>
+      <script class="photo-guide-data" type="application/json">{{ $items | jsonify }}</script>
+    </nav>
+  {{- end -}}
+{{- end -}}

@@ -383,25 +383,40 @@
     }
   });
 
-  if ('IntersectionObserver' in window) {
-    // Start fetching one viewport ahead of the scroll position.
-    var io = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            io.unobserve(entry.target);
-            enqueue(entry.target, false);
-          }
-        });
-      },
-      { rootMargin: '100% 0px' }
-    );
-    pending.forEach(function (img) {
-      io.observe(img.closest('.photo-frame'));
-    });
+  // The thumbnail guide creates window.photoGuideReady before this script
+  // runs. Do not start the expensive original-photo queue until it resolves,
+  // so the small overview gets first use of the available bandwidth.
+  var originalsStarted = false;
+  function startOriginalQueue() {
+    if (originalsStarted) return;
+    originalsStarted = true;
+
+    if ('IntersectionObserver' in window) {
+      // Start fetching one viewport ahead of the scroll position.
+      var io = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              io.unobserve(entry.target);
+              enqueue(entry.target, false);
+            }
+          });
+        },
+        { rootMargin: '100% 0px' }
+      );
+      pending.forEach(function (img) {
+        io.observe(img.closest('.photo-frame'));
+      });
+    } else {
+      pending.forEach(function (img) {
+        enqueue(img.closest('.photo-frame'), false);
+      });
+    }
+  }
+
+  if (window.photoGuideReady instanceof Promise) {
+    window.photoGuideReady.then(startOriginalQueue, startOriginalQueue);
   } else {
-    pending.forEach(function (img) {
-      enqueue(img.closest('.photo-frame'), false);
-    });
+    startOriginalQueue();
   }
 })();
