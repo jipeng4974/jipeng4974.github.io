@@ -7,6 +7,9 @@ tmp
 # Local tooling
 .DS_Store
 /.idea/
+.agents/
+__pycache__/
 node_modules/
 go.work
 go.work.sum
+.agents
