@@ -593,3 +593,9 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 .section-index .entry {
   padding: 0.5rem 0;
 }
+
+// Pog pop (assets/js/pog-pop.js): hint that the brand logo is clickable.
+.td-shell-sidebar__brand img,
+.td-shell-subnav__brand img {
+  cursor: pointer;
+}

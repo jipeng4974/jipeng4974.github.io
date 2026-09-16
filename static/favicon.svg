@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="#F9E0E3"/>
+  <!-- soft shadow under the eyes -->
+  <g fill="#F1CACB" filter="url(#soft)">
+    <ellipse cx="215" cy="548" rx="48" ry="18"/>
+    <ellipse cx="810" cy="548" rx="48" ry="18"/>
+  </g>
+  <!-- snout -->
+  <ellipse cx="512" cy="563" rx="203" ry="106" fill="#F6BEBF"/>
+  <!-- eyes -->
+  <g fill="#24201F">
+    <ellipse cx="220" cy="456" rx="57" ry="85"/>
+    <ellipse cx="808" cy="456" rx="57" ry="85"/>
+    <ellipse cx="448" cy="563" rx="31" ry="36"/>
+    <ellipse cx="576" cy="563" rx="30" ry="36"/>
+  </g>
+  <!-- eye highlights -->
+  <g fill="#FEFEFE">
+    <circle cx="206" cy="427" r="21"/>
+    <circle cx="794" cy="427" r="21"/>
+  </g>
+</svg>

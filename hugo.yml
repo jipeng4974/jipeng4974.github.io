@@ -83,7 +83,7 @@ markup:
     noClasses: false # Required for dark-mode
 
 params:
-  logo: logo.png
+  logo: favicon.svg
 
   hugoMinVersion: &hugoMinVersion 0.160.1
   productionURL: &productionURL https://wujipeng.com
