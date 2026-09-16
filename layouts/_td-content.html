@@ -6,7 +6,8 @@ heading (see page-heading-desc-fit.html).
 */ -}}
 {{- $commentsState := partial "comments-state.html" . -}}
 {{- $headingDesc := partial "page-heading-desc-fit.html" . -}}
-<div class="td-content">
+{{- $photoMode := partial "photo-display-mode.html" . -}}
+<div class="td-content photo-mode-{{ $photoMode }}">
 	{{ partial "page-title.html" . }}
 	{{ with .Params.description }}{{ if not $headingDesc }}<div class="lead">{{ . | markdownify }}</div>{{ end }}{{ end }}
 	<header class="article-meta">
@@ -17,7 +18,7 @@ heading (see page-heading-desc-fit.html).
 	</header>
 	{{ .Render "_td-content-after-header" -}}
 	{{ if eq .Section "photos" -}}
-		{{ partial "photo-guide.html" . }}
+		{{ partial "photo-guide.html" (dict "page" . "mode" $photoMode) }}
 	{{ end -}}
 	{{ .Content }}
 	{{ partial "feedback.html" . -}}

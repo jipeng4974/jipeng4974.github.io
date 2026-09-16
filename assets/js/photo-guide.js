@@ -52,6 +52,34 @@
     return Math.min(MAX_CANVAS_ASPECT, Math.max(MIN_CANVAS_ASPECT, aspect));
   }
 
+  // Small deterministic rotations imitate physical prints without making the
+  // page look random after a reload.
+  var CARD_ROTATIONS = [1, -1.2, 0.8, -0.65, 1.4, -0.9];
+
+  function createStackedCards(cards) {
+    if (!cards.length) return;
+    var stack = document.createElement('div');
+    stack.className = 'photo-stack';
+    var firstWrapper = cards[0].wrapper;
+    firstWrapper.parentNode.insertBefore(stack, firstWrapper);
+
+    cards.forEach(function (card, index) {
+      var anchor = document.createElement('div');
+      anchor.className = 'photo-stack-anchor';
+      stack.appendChild(anchor);
+      stack.appendChild(card.wrapper);
+
+      card.anchor = anchor;
+      card.wrapper.__photoStackAnchor = anchor;
+      card.wrapper.style.setProperty('--photo-aspect', String(card.aspect));
+      card.wrapper.style.setProperty(
+        '--photo-card-rotate',
+        CARD_ROTATIONS[index % CARD_ROTATIONS.length] + 'deg'
+      );
+      card.wrapper.style.zIndex = String(index + 1);
+    });
+  }
+
   // More photographs get a smaller target canvas. The values are total row
   // aspect ratios: a desktop row near 3.4 holds few, large photographs while
   // one near 6.5 holds more, smaller photographs.
@@ -187,10 +215,14 @@
     }
 
     thumbnailTotal = usable.length;
-
     usable.forEach(function (item) {
       item.aspect = normalizeAspect(item);
+      item.img = mainFrameFor(item.url, frameByUrl);
+      item.wrapper = item.img.closest('.photo-frame');
     });
+
+    var stacked = root.dataset.photoDisplayMode === 'stacked';
+    if (stacked) createStackedCards(usable);
     var totalAspect = usable.reduce(function (sum, item) { return sum + item.aspect; }, 0);
     var targets = rowTargets(usable.length, totalAspect, pageSeed(window.location.pathname));
     var plannedRows = planRows(usable, targets);
@@ -251,6 +283,7 @@
         button.style.flexGrow = String(item.aspect);
         row.appendChild(button);
         buttons.push(button);
+        item.button = button;
       });
 
       grid.appendChild(row);
@@ -274,14 +307,68 @@
 
       var frame = mainFrameFor(button.dataset.photoUrl, frameByUrl);
       if (!frame) return;
-      if (!frame.id) frame.id = 'photo-' + button.dataset.photoUrl.split('/').pop().replace(/\.[^.]+$/, '');
+      var wrapper = frame.closest('.photo-frame');
+      var target = wrapper && wrapper.__photoStackAnchor
+        ? wrapper.__photoStackAnchor
+        : wrapper;
+      if (!target) return;
+      if (!target.id) {
+        target.id = 'photo-' + button.dataset.photoUrl.split('/').pop().replace(/\.[^.]+$/, '');
+      }
 
       activate(button);
-      frame.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      window.history.replaceState(null, '', '#' + frame.id);
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (typeof window.photoGalleryPrioritize === 'function') {
+        window.photoGalleryPrioritize(frame);
+      }
+      window.history.replaceState(null, '', '#' + target.id);
     });
 
-    if ('IntersectionObserver' in window) {
+    if (stacked) {
+      // Sticky cards remain visible after their slot has passed, so viewport
+      // intersection cannot identify the active photograph. Its invisible
+      // flow anchor can.
+      var activeCard = null;
+      var activeUpdateScheduled = false;
+
+      function updateStackedActive() {
+        activeUpdateScheduled = false;
+        var line = window.scrollY + Math.max(
+          120,
+          window.innerHeight * 0.35
+        );
+        var next = usable[0];
+
+        usable.forEach(function (item) {
+          if (!item.anchor) return;
+          var top = item.anchor.getBoundingClientRect().top + window.scrollY;
+          if (top <= line) next = item;
+        });
+
+        if (next && next !== activeCard) {
+          activeCard = next;
+          usable.forEach(function (item) {
+            item.wrapper.classList.toggle(
+              'photo-stack-card--active',
+              item === next
+            );
+          });
+          if (activeCard.button) activate(activeCard.button);
+        }
+      }
+
+      function scheduleStackedActiveUpdate() {
+        if (activeUpdateScheduled) return;
+        activeUpdateScheduled = true;
+        requestAnimationFrame(updateStackedActive);
+      }
+
+      window.addEventListener('scroll', scheduleStackedActiveUpdate, {
+        passive: true
+      });
+      window.addEventListener('resize', scheduleStackedActiveUpdate);
+      requestAnimationFrame(updateStackedActive);
+    } else if ('IntersectionObserver' in window) {
       var activeObserver = new IntersectionObserver(
         function (entries) {
           entries.forEach(function (entry) {

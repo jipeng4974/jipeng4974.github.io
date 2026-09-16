@@ -81,6 +81,10 @@
     load(frame);
   }
 
+  // The thumbnail guide can promote a jump target ahead of the background
+  // queue; otherwise a late guide click could wait behind dozens of photos.
+  window.photoGalleryPrioritize = prioritize;
+
   function load(frame) {
     var img = frame.querySelector('img');
     var status = frame.querySelector('.photo-frame__status');

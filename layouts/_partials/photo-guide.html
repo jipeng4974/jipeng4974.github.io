@@ -5,7 +5,9 @@
        image headers in the browser. Thumbnails are expected to be uploaded to
        R2 as /thumbs/<original stem>.jpg. */ -}}
 {{- $imageRE := `!\[[^\]]*\]\((https://assets\.wujipeng\.com/[^)\s]+)\)` -}}
-{{- $imageMatches := findRESubmatch $imageRE .RawContent -}}
+{{- $page := .page -}}
+{{- $displayMode := .mode -}}
+{{- $imageMatches := findRESubmatch $imageRE $page.RawContent -}}
 {{- if $imageMatches -}}
   {{- $metrics := hugo.Data.photo_metrics.images -}}
   {{- $items := slice -}}
@@ -30,7 +32,7 @@
   {{- end -}}
 
   {{- if $items -}}
-    <nav class="photo-guide" aria-label="{{ if eq .Lang "zh" }}照片导览{{ else }}Photo guide{{ end }}" hidden>
+    <nav class="photo-guide" aria-label="{{ if eq $page.Lang "zh" }}照片导览{{ else }}Photo guide{{ end }}" data-photo-display-mode="{{ $displayMode }}" hidden>
       <script class="photo-guide-data" type="application/json">{{ $items | jsonify }}</script>
     </nav>
   {{- end -}}

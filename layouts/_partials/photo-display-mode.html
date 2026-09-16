@@ -1,0 +1,8 @@
+{{- $mode := site.Params.photos.display | default "mosaic" -}}
+{{- with .Params.photoDisplay -}}
+  {{- $mode = . -}}
+{{- end -}}
+{{- if not (in (slice "mosaic" "stacked") $mode) -}}
+  {{- errorf "invalid photo display mode %q (use mosaic or stacked)" $mode -}}
+{{- end -}}
+{{- return $mode -}}
