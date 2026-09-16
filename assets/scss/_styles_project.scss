@@ -174,7 +174,8 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   aspect-ratio: var(--photo-aspect, 1.5);
   margin: 18svh auto 8svh;
   overflow: hidden;
-  border-radius: 1.1rem;
+  // Keep corners subtle so the visible crop stays close to the photo corner.
+  border-radius: 0.5rem;
   background: var(--bs-body-bg, #fff);
   box-shadow:
     0 24px 60px rgba(0, 0, 0, 0.22),
@@ -185,11 +186,19 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 }
 
 .td-content.photo-mode-stacked .photo-stack .photo-frame img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  // The theme uses !important to force loaded content images back to
+  // width/height:auto. That makes the image smaller than its sticky card and
+  // vertically centered, creating the visible top/bottom bars.
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  object-fit: cover !important;
+  opacity: 1 !important;
+  // Fill the card exactly; slight edge cropping is preferable to exposing a
+  // light/dark background bar at the top or bottom.
 }
 
 // Several sticky cards are visible at the same time. Only the active card
