@@ -313,7 +313,7 @@
       }
     }
 
-    function animateGuideJump(targetY) {
+    function animateGuideJump(targetY, targetIndex) {
       cancelJumpAnimation();
       var token = jumpAnimationId;
       var startY = window.scrollY;
@@ -321,10 +321,12 @@
 
       // Keep jumps responsive: around 700ms for typical screen-sized moves,
       // with a little extra time for long jumps through the stack.
-      var duration = Math.min(
-        1100,
-        Math.max(480, Math.abs(distance) * 0.42)
-      );
+        // This is only the short photo-deck phase; the slow trip through the
+        // thumbnail section is skipped by the instant relocation above.
+        var duration = Math.min(
+          700,
+          Math.max(280, 220 + targetIndex * 55)
+        );
       var startTime = performance.now();
 
       function easeInOutCubic(progress) {
@@ -349,33 +351,41 @@
     }
 
     function jumpToStackedCard(item, anchor) {
-      var wrapper = item.wrapper;
-      var wrapperStyle = getComputedStyle(wrapper);
-      var stickyTop = parseFloat(wrapperStyle.top) || 0;
+      function centeredStackPosition(card) {
+        var wrapper = card.wrapper;
+        var wrapperStyle = getComputedStyle(wrapper);
+        var stickyTop = parseFloat(wrapperStyle.top) || 0;
       var slotMargin = parseFloat(wrapperStyle.marginTop) || 0;
-      var cardHeight = wrapper.offsetHeight;
-      var anchorTop =
-        anchor.getBoundingClientRect().top + window.scrollY;
+      var slotHeight = anchor.offsetHeight || 0;
+        var cardHeight = wrapper.offsetHeight;
+        var anchorTop =
+          card.anchor.getBoundingClientRect().top + window.scrollY;
 
-      // An anchor is immediately before its card's 18svh slot margin. To
-      // center the card, scroll far enough that the card's *natural* top is
-      // centered. The card becomes sticky only after a little further
-      // scrolling, preserving the normal deck behavior.
-      var desiredCardTop = Math.max(
-        stickyTop,
-        (window.innerHeight - cardHeight) / 2
-      );
-      var maxScroll =
-        document.documentElement.scrollHeight - window.innerHeight;
-      var targetY = Math.min(
-        maxScroll,
-        Math.max(0, anchorTop + slotMargin - desiredCardTop)
-      );
+        // An anchor is immediately before its card's 18svh slot margin. This
+        // places the card's natural top at the viewport center; the sticky
+        // threshold follows after a little further scrolling.
+        var desiredCardTop = Math.max(
+          stickyTop,
+          (window.innerHeight - cardHeight) / 2
+        );
+        var maxScroll =
+          document.documentElement.scrollHeight - window.innerHeight;
+        return Math.min(
+          maxScroll,
+          Math.max(0, anchorTop + slotMargin + slotHeight - desiredCardTop)
+        );
+      }
+
+      // Skip the guide section completely: snap to the beginning of the stack,
+      // then run only the short card-deck animation to the target photograph.
+      var startY = centeredStackPosition(usable[0]);
+      var targetY = centeredStackPosition(item);
+      window.scrollTo(0, startY);
 
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         window.scrollTo(0, targetY);
       } else {
-        animateGuideJump(targetY);
+        animateGuideJump(targetY, usable.indexOf(item));
       }
     }
 
@@ -401,7 +411,7 @@
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       if (typeof window.photoGalleryPrioritize === 'function') {
-        window.photoGalleryPrioritize(frame);
+        window.photoGalleryPrioritize(wrapper);
       }
       window.history.replaceState(null, '', '#' + target.id);
     });

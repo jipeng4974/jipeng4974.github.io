@@ -161,7 +161,7 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 }
 
 .photo-stack-anchor {
-  height: 0;
+  height: 18svh;
   // Account for the card's top margin as well as its sticky top offset, so a
   // guide click lands where that card actually reaches the sticky position.
   scroll-margin-top: calc(clamp(64px, 8svh, 92px) + 18svh);
@@ -172,7 +172,7 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   top: clamp(64px, 8svh, 92px);
   width: unquote("min(100%, 90vw, calc(78svh * var(--photo-aspect, 1.5)))");
   aspect-ratio: var(--photo-aspect, 1.5);
-  margin: 18svh auto 8svh;
+  margin: 0 auto 8svh;
   overflow: hidden;
   // Keep corners subtle so the visible crop stays close to the photo corner.
   border-radius: 0.5rem;
