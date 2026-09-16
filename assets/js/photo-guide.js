@@ -284,6 +284,7 @@
         row.appendChild(button);
         buttons.push(button);
         item.button = button;
+        button.__photoGuideItem = item;
       });
 
       grid.appendChild(row);
@@ -299,6 +300,83 @@
         if (active) candidate.setAttribute('aria-current', 'true');
         else candidate.removeAttribute('aria-current');
       });
+    }
+
+    var jumpAnimationId = 0;
+    var jumpAnimationFrame = 0;
+
+    function cancelJumpAnimation() {
+      jumpAnimationId += 1;
+      if (jumpAnimationFrame) {
+        cancelAnimationFrame(jumpAnimationFrame);
+        jumpAnimationFrame = 0;
+      }
+    }
+
+    function animateGuideJump(targetY) {
+      cancelJumpAnimation();
+      var token = jumpAnimationId;
+      var startY = window.scrollY;
+      var distance = targetY - startY;
+
+      // Keep jumps responsive: around 700ms for typical screen-sized moves,
+      // with a little extra time for long jumps through the stack.
+      var duration = Math.min(
+        1100,
+        Math.max(480, Math.abs(distance) * 0.42)
+      );
+      var startTime = performance.now();
+
+      function easeInOutCubic(progress) {
+        return progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      }
+
+      function step(now) {
+        if (token !== jumpAnimationId) return;
+        var linear = Math.min(1, (now - startTime) / duration);
+        var eased = easeInOutCubic(linear);
+        window.scrollTo(0, startY + distance * eased);
+        if (linear < 1) {
+          jumpAnimationFrame = requestAnimationFrame(step);
+        } else {
+          jumpAnimationFrame = 0;
+        }
+      }
+
+      jumpAnimationFrame = requestAnimationFrame(step);
+    }
+
+    function jumpToStackedCard(item, anchor) {
+      var wrapper = item.wrapper;
+      var wrapperStyle = getComputedStyle(wrapper);
+      var stickyTop = parseFloat(wrapperStyle.top) || 0;
+      var slotMargin = parseFloat(wrapperStyle.marginTop) || 0;
+      var cardHeight = wrapper.offsetHeight;
+      var anchorTop =
+        anchor.getBoundingClientRect().top + window.scrollY;
+
+      // An anchor is immediately before its card's 18svh slot margin. To
+      // center the card, scroll far enough that the card's *natural* top is
+      // centered. The card becomes sticky only after a little further
+      // scrolling, preserving the normal deck behavior.
+      var desiredCardTop = Math.max(
+        stickyTop,
+        (window.innerHeight - cardHeight) / 2
+      );
+      var maxScroll =
+        document.documentElement.scrollHeight - window.innerHeight;
+      var targetY = Math.min(
+        maxScroll,
+        Math.max(0, anchorTop + slotMargin - desiredCardTop)
+      );
+
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        window.scrollTo(0, targetY);
+      } else {
+        animateGuideJump(targetY);
+      }
     }
 
     root.addEventListener('click', function (event) {
@@ -317,7 +395,11 @@
       }
 
       activate(button);
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (stacked) {
+        jumpToStackedCard(button.__photoGuideItem, target);
+      } else {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
       if (typeof window.photoGalleryPrioritize === 'function') {
         window.photoGalleryPrioritize(frame);
       }
@@ -368,6 +450,10 @@
       });
       window.addEventListener('resize', scheduleStackedActiveUpdate);
       requestAnimationFrame(updateStackedActive);
+      window.addEventListener('wheel', cancelJumpAnimation, { passive: true });
+      window.addEventListener('touchstart', cancelJumpAnimation, {
+        passive: true
+      });
     } else if ('IntersectionObserver' in window) {
       var activeObserver = new IntersectionObserver(
         function (entries) {
