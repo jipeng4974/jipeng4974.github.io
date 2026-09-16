@@ -14,8 +14,8 @@
   <ellipse cx="512" cy="563" rx="203" ry="106" fill="#F6BEBF"/>
   <!-- eyes -->
   <g fill="#24201F">
-    <ellipse cx="220" cy="456" rx="57" ry="85"/>
-    <ellipse cx="808" cy="456" rx="57" ry="85"/>
+    <ellipse class="pog-eye" cx="220" cy="456" rx="57" ry="85"/>
+    <ellipse class="pog-eye" cx="808" cy="456" rx="57" ry="85"/>
     <ellipse cx="448" cy="563" rx="31" ry="36"/>
     <ellipse cx="576" cy="563" rx="30" ry="36"/>
   </g>
