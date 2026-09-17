@@ -30,6 +30,11 @@
   var MSG_ERROR = zh
     ? '加载失败，点击重试'
     : 'Failed to load — click to retry';
+  // Washi-tape tag states: "0%" (server-rendered initial) -> percent ->
+  // "#N" once loaded. Minimal by design; the photo itself is the content.
+  var TAG_RESTART = '0%'; // reset after a retry
+  var TAG_INDETERMINATE = '…'; // streamed progress unavailable (plainLoad)
+  var TAG_FAILED = '×'; // brief on-card mark; the frame click retries
 
   // Every photo on the page, in display order; each lives inside a
   // placeholder frame rendered by layouts/_markup/render-image.html.
@@ -48,6 +53,121 @@
   function frameOf(img) {
     return img.closest('.photo-frame');
   }
+
+  function tagOf(frame) {
+    return frame.querySelector('.photo-frame__tag');
+  }
+
+  function setTagText(frame, text) {
+    var tag = tagOf(frame);
+    if (tag) tag.textContent = text;
+  }
+
+  // "#6" — the photo's position on the page, stamped onto the tag by
+  // render-image.html.
+  function tagLoadedText(frame) {
+    var tag = tagOf(frame);
+    var n = parseInt(tag && tag.getAttribute('data-photo-index'), 10);
+    return n > 0 ? '#' + n : '';
+  }
+
+  // Tear the tag off a loaded photo: it splits into two halves; the left
+  // half gets a leftward force, the right half a rightward one, and both
+  // tumble down off-screen, leaving a clean photo card. Trajectory, spin,
+  // speed, and stagger are randomized per click so no two tears look the
+  // same. The halves are fixed-position clones on <body>, because the card
+  // clips its overflow.
+  function shatterTag(frame, tag) {
+    if (frame.__tagShattered) return;
+    frame.__tagShattered = true;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var width = tag.offsetWidth;
+    var height = tag.offsetHeight;
+    var rect = tag.getBoundingClientRect();
+    var centerX = rect.left + rect.width / 2;
+    var centerY = rect.top + rect.height / 2;
+
+    // Hide the original only after measuring, and clone fresh copies for
+    // the falling halves (the original carries visibility:hidden, so each
+    // clone must opt back in explicitly).
+    tag.style.visibility = 'hidden';
+
+    // Each half is clipped in the tag's local box (before the 45deg
+    // rotation), so the split runs exactly down the band's long axis.
+    var halves = [
+      { clip: 'inset(0 50% 0 0)', dir: -1 }, // flies left
+      { clip: 'inset(0 0 0 50%)', dir: 1 }   // flies right
+    ];
+
+    halves.forEach(function (half, index) {
+      var piece = tag.cloneNode(true);
+      // The piece leaves the frame's DOM, so the scoped .photo-frame__tag
+      // rules stop matching; .photo-tag-piece (same block in SCSS) restores
+      // the tag's visual identity at its fixed page position.
+      piece.classList.add('photo-tag-piece');
+      piece.style.visibility = 'visible';
+      piece.style.position = 'fixed';
+      piece.style.left = (centerX - width / 2) + 'px';
+      piece.style.top = (centerY - height / 2) + 'px';
+      piece.style.width = width + 'px';
+      piece.style.height = height + 'px';
+      piece.style.margin = '0';
+      piece.style.clipPath = half.clip;
+      piece.style.zIndex = '2000'; // over the page, under the lightbox
+      piece.style.pointerEvents = 'none';
+      document.body.appendChild(piece);
+
+      // Randomized physics: horizontal gust, drop distance, tumble, and
+      // speed all vary; the second half starts a beat later, as if the
+      // tear propagates through the paper.
+      var drift = half.dir * (24 + Math.random() * 18);      // vw
+      var drop = 110 + Math.random() * 20;                   // vh
+      var spin = half.dir * (120 + Math.random() * 100);     // deg
+      var duration = 800 + Math.random() * 300;              // ms
+      var delay = index * 50 + Math.random() * 60;           // ms; tear propagates
+
+      var animation = piece.animate(
+        [
+          { transform: 'translate(0, 0) rotate(-45deg) rotate(0deg)' },
+          {
+            // translate() leads the list, so the gust/drop act in screen
+            // space (gravity straight down, drift straight sideways) and
+            // only the piece's own orientation is rotated.
+            transform: 'translate(' + drift +
+              'vw, ' + drop + 'vh) rotate(-45deg) rotate(' + spin + 'deg)'
+          }
+        ],
+        {
+          duration: duration,
+          delay: Math.abs(delay),
+          // Accelerating like gravity: slow tear, fast drop.
+          easing: 'cubic-bezier(0.45, 0, 0.85, 0.5)',
+          fill: 'forwards'
+        }
+      );
+      animation.onfinish = function () { piece.remove(); };
+      animation.oncancel = function () { piece.remove(); };
+    });
+  }
+
+  // Every pending card shows its thumbnail immediately. These are the exact
+  // URLs the guide mosaic loads, so the HTTP cache serves them without a
+  // second download. The thumb paints below the original <img>, which stays
+  // transparent until its own bytes have arrived.
+  pending.forEach(function (img) {
+    var frame = frameOf(img);
+    var thumbUrl = frame.getAttribute('data-thumb');
+    if (!thumbUrl || frame.querySelector('.photo-frame__thumb')) return;
+    var thumb = document.createElement('img');
+    thumb.className = 'photo-frame__thumb';
+    thumb.alt = '';
+    thumb.setAttribute('aria-hidden', 'true');
+    thumb.decoding = 'async';
+    thumb.src = thumbUrl;
+    frame.insertBefore(thumb, img); // DOM order: thumb paints below original
+  });
 
   function enqueue(frame, front) {
     if (queued.has(frame) || frame.__loading) return;
@@ -86,8 +206,9 @@
   window.photoGalleryPrioritize = prioritize;
 
   function load(frame) {
-    var img = frame.querySelector('img');
-    var status = frame.querySelector('.photo-frame__status');
+    // The frame now also contains a .photo-frame__thumb before the original,
+    // so select the original explicitly instead of the first <img>.
+    var img = frame.querySelector('.photo-fit-screen');
     var url = img.getAttribute('data-src');
     var attempts = 0;
     active++;
@@ -96,8 +217,7 @@
 
     frame.__retry = function () {
       frame.classList.remove('photo-frame--error');
-      status.textContent = '';
-      status.removeAttribute('role');
+      setTagText(frame, TAG_RESTART);
       enqueue(frame, true);
     };
 
@@ -125,7 +245,7 @@
       }
 
       function plainLoad() {
-        status.textContent = ''; // spinner only, no percentage
+        setTagText(frame, TAG_INDETERMINATE); // no streamed progress
         img.onload = function () { settle(true); };
         img.onerror = function () { settle(false); };
         img.src = src;
@@ -139,7 +259,7 @@
         active--;
         frame.__loading = false;
         if (ok) {
-          status.textContent = '';
+          setTagText(frame, tagLoadedText(frame));
           frame.classList.remove(
             'photo-frame--pending',
             'photo-frame--loading',
@@ -153,8 +273,7 @@
           } else {
             frame.classList.remove('photo-frame--loading');
             frame.classList.add('photo-frame--error');
-            status.textContent = MSG_ERROR;
-            status.setAttribute('role', 'button');
+            setTagText(frame, TAG_FAILED);
           }
         }
         notify();
@@ -216,9 +335,9 @@
                   chunks.push(r.value);
                   loaded += r.value.length;
                   rearm();
-                  status.textContent = total
+                  setTagText(frame, total
                     ? Math.round((loaded / total) * 100) + '%'
-                    : (loaded / 1048576).toFixed(1) + ' MB';
+                    : (loaded / 1048576).toFixed(1) + ' MB');
                   notify();
                   read();
                 },
@@ -359,9 +478,10 @@
       var failed = frame.classList.contains('photo-frame--error');
       lb.spinner.style.display = failed ? 'none' : '';
       lb.status.style.cursor = failed ? 'pointer' : '';
+      var tag = tagOf(frame);
       lb.progress.textContent = failed
         ? MSG_ERROR
-        : frame.querySelector('.photo-frame__status').textContent;
+        : (tag ? tag.textContent : '');
     }
   }
 
@@ -385,6 +505,20 @@
       var idx = photos.indexOf(img);
       if (idx !== -1) openLightbox(idx);
     }
+  });
+
+  // Sticky-note tag clicks: tear the tag off once the original photo has
+  // loaded. While loading or on error, the card's own handlers keep
+  // control (progress display / retry hint).
+  document.addEventListener('click', function (ev) {
+    var tag = ev.target && ev.target.closest
+      ? ev.target.closest('.photo-frame__tag')
+      : null;
+    if (!tag) return;
+    var frame = tag.closest('.photo-frame');
+    if (!frame || !frame.classList.contains('photo-frame--loaded')) return;
+    ev.stopPropagation();
+    shatterTag(frame, tag);
   });
 
   // The thumbnail guide creates window.photoGuideReady before this script

@@ -2,12 +2,45 @@
 {{- if $isPhoto -}}
   {{- /* Photos pages reference many large JPEGs on R2. Every image is
          wrapped in a fixed-ratio placeholder frame with its real URL in
-         data-src; assets/js/photo-gallery.js fetches them on demand. */ -}}
-<span class="photo-frame photo-frame--pending"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+         data-src; assets/js/photo-gallery.js fetches them on demand.
+         R2 photos also carry data-thumb (the same small images the guide
+         mosaic uses, so the HTTP cache deduplicates them) and a
+         deterministic washi-tape tag: 0% -> percent -> #N when loaded. */ -}}
+  {{- $isR2 := hasPrefix .Destination "https://assets.wujipeng.com/" -}}
+  {{- $stem := path.BaseName (path.Base .Destination) -}}
+  {{- /* Photo number on this page: the 1-based position of this URL in the
+         page's Markdown images. Uses the same regex as photo-guide.html, so
+         the numbering matches the guide tile order. Stamped onto the tag as
+         data-photo-index; JS rewrites the tag to "#N" once loaded. */ -}}
+  {{- $photoIndex := 0 -}}
+  {{- if $isR2 -}}
+    {{- $pageImages := findRESubmatch `!\[[^\]]*\]\((https://assets\.wujipeng\.com/[^)\s]+)\)` $.Page.RawContent -}}
+    {{- range $i, $match := $pageImages -}}
+      {{- if and (eq $photoIndex 0) (eq (index $match 1) $.Destination) -}}
+        {{- $photoIndex = add $i 1 -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $seed := int (hash.FNV32a $stem) -}}
+  {{- /* Sticky-note palette: soft pastel backgrounds with readable ink. */ -}}
+  {{- $tagColors := slice
+      (dict "bg" "#fff3b0" "ink" "#7a5c00")
+      (dict "bg" "#ffd9e2" "ink" "#8a3b52")
+      (dict "bg" "#d3f2d9" "ink" "#2f6b3f")
+      (dict "bg" "#cfe6ff" "ink" "#2b5a83")
+      (dict "bg" "#e6ddff" "ink" "#55418f")
+      (dict "bg" "#ffe3c2" "ink" "#8a5426")
+      (dict "bg" "#f0ffb8" "ink" "#5b6b1f")
+      (dict "bg" "#ffd8c9" "ink" "#8f4433")
+  -}}
+  {{- $tagColor := index $tagColors (mod $seed (len $tagColors)) -}}
+<span class="photo-frame photo-frame--pending"{{ if $isR2 }} data-thumb="https://assets.wujipeng.com/thumbs/{{ $stem }}.jpg"{{ end }}><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
      data-src="{{ .Destination | safeURL }}"
      alt="{{ .Text }}"
      {{- with .Title }} title="{{ . }}"{{ end }}
-     class="photo-fit-screen" decoding="async"><span class="photo-frame__status" aria-hidden="true">{{ if eq .Page.Language.Lang "zh" }}原图体积大数量多，还在排队加载中{{ else }}The originals are large and numerous, so they are still queued for loading.{{ end }}</span></span>
+     class="photo-fit-screen" decoding="async">{{ if $isR2 }}<span class="photo-frame__tag" aria-hidden="true"
+      data-photo-index="{{ $photoIndex }}"
+      style="--photo-tag-bg: {{ $tagColor.bg }}; --photo-tag-ink: {{ $tagColor.ink }};">0%</span>{{ end }}</span>
 {{- else -}}
 <img src="{{ .Destination | safeURL }}"
      alt="{{ .Text }}"
