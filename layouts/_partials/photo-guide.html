@@ -6,7 +6,6 @@
        R2 as /thumbs/<original stem>.jpg. */ -}}
 {{- $imageRE := `!\[[^\]]*\]\((https://assets\.wujipeng\.com/[^)\s]+)\)` -}}
 {{- $page := .page -}}
-{{- $displayMode := .mode -}}
 {{- $imageMatches := findRESubmatch $imageRE $page.RawContent -}}
 {{- if $imageMatches -}}
   {{- $metrics := hugo.Data.photo_metrics.images -}}
@@ -32,7 +31,7 @@
   {{- end -}}
 
   {{- if $items -}}
-    <nav class="photo-guide" aria-label="{{ if eq $page.Lang "zh" }}照片导览{{ else }}Photo guide{{ end }}" data-photo-display-mode="{{ $displayMode }}" hidden>
+    <nav class="photo-guide" aria-label="{{ if eq $page.Lang "zh" }}照片导览{{ else }}Photo guide{{ end }}" hidden>
       <script class="photo-guide-data" type="application/json">{{ $items | jsonify }}</script>
     </nav>
   {{- end -}}

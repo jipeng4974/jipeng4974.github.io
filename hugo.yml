@@ -85,13 +85,6 @@ markup:
 params:
   logo: favicon.svg
 
-  photos:
-    # Photo page presentation: "stacked" (OpenAI-style sticky cards) is the
-    # default. "mosaic" preserves the former stream as an alternative. A photo
-    # page can override this with `photoDisplay: mosaic` or `photoDisplay:
-    # stacked` in front matter.
-    display: stacked
-
   hugoMinVersion: &hugoMinVersion 0.160.1
   productionURL: &productionURL https://wujipeng.com
   copyright:

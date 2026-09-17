@@ -23,6 +23,17 @@
     resolveThumbnails = resolve;
   });
 
+  // Display mode is decided by the viewport, not by configuration: portrait
+  // screens (phones) read the legacy tiled flow; wider screens get the
+  // sticky-card deck. The class here drives every photo-mode-* CSS rule.
+  var stacked = window.innerWidth >= window.innerHeight;
+  var contentRoot = document.querySelector('.td-content');
+  if (contentRoot) {
+    contentRoot.classList.add(
+      stacked ? 'photo-mode-stacked' : 'photo-mode-mosaic'
+    );
+  }
+
   function settleThumbnail() {
     thumbnailSettled += 1;
     if (thumbnailSettled >= thumbnailTotal) resolveThumbnails();
@@ -221,7 +232,6 @@
       item.wrapper = item.img.closest('.photo-frame');
     });
 
-    var stacked = root.dataset.photoDisplayMode === 'stacked';
     if (stacked) createStackedCards(usable);
     var totalAspect = usable.reduce(function (sum, item) { return sum + item.aspect; }, 0);
     var targets = rowTargets(usable.length, totalAspect, pageSeed(window.location.pathname));
