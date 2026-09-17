@@ -88,6 +88,11 @@
     var rect = tag.getBoundingClientRect();
     var centerX = rect.left + rect.width / 2;
     var centerY = rect.top + rect.height / 2;
+    var tiltDeg = parseFloat(
+      getComputedStyle(tag).getPropertyValue('--photo-tag-rotate')
+    );
+    if (!Number.isFinite(tiltDeg)) tiltDeg = -45;
+    var rest = 'rotate(' + tiltDeg + 'deg)'; // the tag's at-rest orientation
 
     // Hide the original only after measuring, and clone fresh copies for
     // the falling halves (the original carries visibility:hidden, so each
@@ -130,13 +135,13 @@
 
       var animation = piece.animate(
         [
-          { transform: 'translate(0, 0) rotate(-45deg) rotate(0deg)' },
+          { transform: 'translate(0, 0) ' + rest + ' rotate(0deg)' },
           {
             // translate() leads the list, so the gust/drop act in screen
             // space (gravity straight down, drift straight sideways) and
             // only the piece's own orientation is rotated.
             transform: 'translate(' + drift +
-              'vw, ' + drop + 'vh) rotate(-45deg) rotate(' + spin + 'deg)'
+              'vw, ' + drop + 'vh) ' + rest + ' rotate(' + spin + 'deg)'
           }
         ],
         {
