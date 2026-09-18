@@ -39,18 +39,13 @@ OpGraph -> TSOWB(e.g. late hlo) -> CGASel -> HHO(e.g. Linalg) -> MHA(e.g. stripe
 ```
 
 Triton的大致流程如下：
-```
-面向用户的Python/C++的kernel代码
---> [ML Compiler前端，有时候可能只是某种动转静工具，forward一次，然后转写]
-设备无关的 High-level IR
---> [ML Compiler后端Passes，图优化+算子选择+内存优化]
-硬件特化的 Low-level IR [Schedule/Plan]
---> [ML Compiler后端Passes，把自己内部的Schedule/Plan翻译到LLVM IR]
-LLVM IR 
---> [LLVM's NVPTX back-end，进入Language Compilation层面]
-PTX
---> [CUDA ptxas assembler]
-CUBIN
+```mermaid
+flowchart TD
+  SRC["面向用户的Python/C++的kernel代码"] -->|"ML Compiler前端，有时候可能只是某种动转静工具，forward一次，然后转写"| HIR["设备无关的 High-level IR"]
+  HIR -->|"ML Compiler后端Passes，图优化+算子选择+内存优化"| LIR["硬件特化的 Low-level IR [Schedule/Plan]"]
+  LIR -->|"ML Compiler后端Passes，把自己内部的Schedule/Plan翻译到LLVM IR"| LLVM["LLVM IR"]
+  LLVM -->|"LLVM's NVPTX back-end，进入Language Compilation层面"| PTX["PTX"]
+  PTX -->|"CUDA ptxas assembler"| CUBIN["CUBIN"]
 ```
 
 Intel MLIR graph compiler的lowering pipeline如下：

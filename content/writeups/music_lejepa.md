@@ -26,40 +26,29 @@ The success of both VAE and LeJEPA stems from this inductive bias, or design phi
 
 ## The Evolution of SSL Before LeJEPA
 
-```
 One lineage evolved from AE into generative models.
-                Autoencoder (AE)
-                      │
-      ┌───────────────┼────────────────┐
-      │               │                │
-      ▼               ▼                ▼
-Denoising AE     Sparse AE         Contractive AE
-      │               │
-      │               ▼
-      │        LLM Interpretability
-      │
-      ▼
-Variational AE (VAE)
-      │
-      ▼
-Latent Diffusion
-      │
-      ▼
-Stable Diffusion
+
+```mermaid
+flowchart TD
+  AE["Autoencoder (AE)"]
+  AE --> DAE["Denoising AE"]
+  AE --> SAE["Sparse AE"]
+  AE --> CAE["Contractive AE"]
+  DAE --> VAE["Variational AE (VAE)"]
+  VAE --> LD["Latent Diffusion"]
+  LD --> SD["Stable Diffusion"]
+  SAE --> LLMI["LLM Interpretability"]
+```
 
 The other lineage is self-supervised representation learning.
 
-Autoencoder
-      │
-      ▼
-Masked Autoencoder (MAE)
-      │
-      ▼
-Self-Supervised Vision Models
-      │
-      ▼
-JEPA / LeJEPA
+```mermaid
+flowchart TD
+  AE2["Autoencoder"] --> MAE["Masked Autoencoder (MAE)"]
+  MAE --> SSV["Self-Supervised Vision Models"]
+  SSV --> JEPA["JEPA / LeJEPA"]
 ```
+
 
 SSL is not limited to the masked generative self-supervision line. The most natural route is contrastive SSL, such as SimCLR and MoCo, which rely on constructing positive/negative sample pairs and hard mining — a direct transfer of supervised contrastive learning into the self-supervised domain, and one that naturally inherits a whole series of pain points from supervised contrastive learning: contrastive loss training instability, the difficulty of building a reliable hard mining pipeline, and the need for huge batch sizes.
 

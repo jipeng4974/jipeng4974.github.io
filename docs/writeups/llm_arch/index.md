@@ -20,26 +20,17 @@ At a high level:
 
 A standard pre-norm decoder block looks like:
 
-```text
-Input x
-  ↓
-LayerNorm
-  ↓
-QKV projection
-  ↓
-Multi-Head Self-Attention
-  ↓
-Output projection
-  ↓
-Residual Add
-  ↓
-LayerNorm
-  ↓
-FFN / MLP or MoE
-  ↓
-Residual Add
-  ↓
-Output
+```mermaid
+flowchart TD
+  IN["Input x"] --> LN1["LayerNorm"]
+  LN1 --> QKV["QKV projection"]
+  QKV --> MHA["Multi-Head Self-Attention"]
+  MHA --> OUTP["Output projection"]
+  OUTP --> RES1["Residual Add"]
+  RES1 --> LN2["LayerNorm"]
+  LN2 --> FFN["FFN / MLP or MoE"]
+  FFN --> RES2["Residual Add"]
+  RES2 --> OUT["Output"]
 ```
 
 The hidden state usually has shape:
@@ -85,14 +76,14 @@ The main pressure on LLM architecture is scaling along three axes:
 
 The architecture path can be summarized as:
 
-```text
-Vanilla MHA
-→ FlashAttention-optimized MHA
-→ Linear Attention / MLA
-→ DeltaNet
-→ Gated DeltaNet
-→ KDA / Kimi Linear
-→ Hybrid KDA + Gated MLA + MoE + AttnRes
+```mermaid
+flowchart TD
+  V["Vanilla MHA"] --> FA["FlashAttention-optimized MHA"]
+  FA --> LA["Linear Attention / MLA"]
+  LA --> DN["DeltaNet"]
+  DN --> GDN["Gated DeltaNet"]
+  GDN --> KDA["KDA / Kimi Linear"]
+  KDA --> HY["Hybrid KDA + Gated MLA + MoE + AttnRes"]
 ```
 
 ### 3.1 Vanilla MHA

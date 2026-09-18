@@ -28,40 +28,29 @@ VAE和LeJEPA的成功，都源于这样的inductive bias或者说设计哲学：
 
 ## LeJEPA之前SSL的发展脉络
 
-```
 AE演化出的一条线是生成模型。
-                Autoencoder (AE)
-                      │
-      ┌───────────────┼────────────────┐
-      │               │                │
-      ▼               ▼                ▼
-Denoising AE     Sparse AE         Contractive AE
-      │               │
-      │               ▼
-      │        LLM Interpretability
-      │
-      ▼
-Variational AE (VAE)
-      │
-      ▼
-Latent Diffusion
-      │
-      ▼
-Stable Diffusion
+
+```mermaid
+flowchart TD
+  AE["Autoencoder (AE)"]
+  AE --> DAE["Denoising AE"]
+  AE --> SAE["Sparse AE"]
+  AE --> CAE["Contractive AE"]
+  DAE --> VAE["Variational AE (VAE)"]
+  VAE --> LD["Latent Diffusion"]
+  LD --> SD["Stable Diffusion"]
+  SAE --> LLMI["LLM Interpretability"]
+```
 
 另一条线则是自监督表征学习。
 
-Autoencoder
-      │
-      ▼
-Masked Autoencoder (MAE)
-      │
-      ▼
-Self-Supervised Vision Models
-      │
-      ▼
-JEPA / LeJEPA
+```mermaid
+flowchart TD
+  AE2["Autoencoder"] --> MAE["Masked Autoencoder (MAE)"]
+  MAE --> SSV["Self-Supervised Vision Models"]
+  SSV --> JEPA["JEPA / LeJEPA"]
 ```
+
 
 SSL不止Masked生成式自监督这一条线，最自然而然的一个路线是contrastive SSL，如SimCLR、MoCo，依赖构造正负样本对和hard mining，是有监督对比学习在自监督领域的直接迁移，自然免不了supervised contrastive learning的一系列痛点——contrastive loss训练不稳定，很难构造可靠的hard mining链路，需要巨大的batch size。
 

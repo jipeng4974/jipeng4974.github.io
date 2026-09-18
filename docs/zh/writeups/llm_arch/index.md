@@ -20,26 +20,17 @@ LLMS index: [llms.txt](/llms.txt)
 
 一个标准的 pre-norm decoder block 如下所示：
 
-```text
-Input x
-  ↓
-LayerNorm
-  ↓
-QKV projection
-  ↓
-Multi-Head Self-Attention
-  ↓
-Output projection
-  ↓
-Residual Add
-  ↓
-LayerNorm
-  ↓
-FFN / MLP or MoE
-  ↓
-Residual Add
-  ↓
-Output
+```mermaid
+flowchart TD
+  IN["Input x"] --> LN1["LayerNorm"]
+  LN1 --> QKV["QKV projection"]
+  QKV --> MHA["Multi-Head Self-Attention"]
+  MHA --> OUTP["Output projection"]
+  OUTP --> RES1["Residual Add"]
+  RES1 --> LN2["LayerNorm"]
+  LN2 --> FFN["FFN / MLP or MoE"]
+  FFN --> RES2["Residual Add"]
+  RES2 --> OUT["Output"]
 ```
 
 hidden state 的形状通常为：
@@ -85,14 +76,14 @@ LLM 架构面临的主要压力是沿三个维度扩展（scaling）：
 
 其架构演化路径可以概括为：
 
-```text
-Vanilla MHA
-→ FlashAttention-optimized MHA
-→ Linear Attention / MLA
-→ DeltaNet
-→ Gated DeltaNet
-→ KDA / Kimi Linear
-→ Hybrid KDA + Gated MLA + MoE + AttnRes
+```mermaid
+flowchart TD
+  V["Vanilla MHA"] --> FA["FlashAttention-optimized MHA"]
+  FA --> LA["Linear Attention / MLA"]
+  LA --> DN["DeltaNet"]
+  DN --> GDN["Gated DeltaNet"]
+  GDN --> KDA["KDA / Kimi Linear"]
+  KDA --> HY["Hybrid KDA + Gated MLA + MoE + AttnRes"]
 ```
 
 ### 3.1 Vanilla MHA

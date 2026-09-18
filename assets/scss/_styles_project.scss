@@ -153,6 +153,55 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   background-color: #6d93b9; // #5f88b0, one step lighter on the dark page
 }
 
+// Mermaid diagrams: the render hook turns ```mermaid into <pre class="mermaid">
+// and the theme's scripts/mermaid.html draws the SVG on load (self-hosted
+// mermaid.min.js, follows the light/dark toggle). Mermaid sizes that SVG to its
+// own content, so a narrow vertical chain would otherwise hug the left edge —
+// centre it instead.
+.td-content pre.mermaid {
+  text-align: center;
+}
+
+// Light-mode mermaid palette. Mermaid's default (lavender nodes, purple borders,
+// drawn on the code block's wash) is the one thing on the site that ignores the
+// paper-toned scheme, so it follows the page instead: nodes take the body
+// background, borders, connectors and arrowheads go plain black, and the diagram
+// sits directly on the page rather than inside a block. Dark mode keeps mermaid's
+// own dark theme, which already matches the shell — hence the light-mode scope.
+// !important is unavoidable here: mermaid injects its rules as
+// `#mermaid-<id> .node rect { … }`, an id selector no class-based rule can
+// outrank.
+[data-bs-theme='light'] .td-content pre.mermaid {
+  background-color: transparent;
+
+  .node rect,
+  .node circle,
+  .node ellipse,
+  .node polygon,
+  .node path {
+    fill: var(--bs-body-bg) !important;
+    stroke: #000 !important;
+  }
+
+  .edgeLabel,
+  .edgeLabel p,
+  .edgeLabel span,
+  .edgeLabel .labelBkg,
+  .edgeLabel foreignObject > div {
+    background-color: transparent !important;
+  }
+
+  .flowchart-link,
+  .edgePath path {
+    stroke: #000 !important;
+  }
+
+  marker path {
+    fill: #000 !important;
+    stroke: #000 !important;
+  }
+}
+
 // Article previous/next: tag-shaped controls instead of solid primary buttons.
 // Each points the way it goes — a clip-path tip sits outside the body, so that
 // edge squares off while the other keeps its radius. At rest they sit on a tint

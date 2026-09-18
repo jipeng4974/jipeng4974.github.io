@@ -39,18 +39,13 @@ OpGraph -> TSOWB(e.g. late hlo) -> CGASel -> HHO(e.g. Linalg) -> MHA(e.g. stripe
 ```
 
 Triton's rough pipeline is as follows:
-```
-User-facing Python/C++ kernel code
---> [ML Compiler frontend; sometimes possibly just a dynamic-to-static tool: run forward once, then transcribe]
-Device-agnostic high-level IR
---> [ML Compiler backend passes: graph optimization + operator selection + memory optimization]
-Hardware-specialized low-level IR [Schedule/Plan]
---> [ML Compiler backend passes: translate the internal Schedule/Plan to LLVM IR]
-LLVM IR 
---> [LLVM's NVPTX back-end, entering the language compilation layer]
-PTX
---> [CUDA ptxas assembler]
-CUBIN
+```mermaid
+flowchart TD
+  SRC["User-facing Python/C++ kernel code"] -->|"ML Compiler frontend; sometimes possibly just a dynamic-to-static tool: run forward once, then transcribe"| HIR["Device-agnostic high-level IR"]
+  HIR -->|"ML Compiler backend passes: graph optimization + operator selection + memory optimization"| LIR["Hardware-specialized low-level IR [Schedule/Plan]"]
+  LIR -->|"ML Compiler backend passes: translate the internal Schedule/Plan to LLVM IR"| LLVM["LLVM IR"]
+  LLVM -->|"LLVM's NVPTX back-end, entering the language compilation layer"| PTX["PTX"]
+  PTX -->|"CUDA ptxas assembler"| CUBIN["CUBIN"]
 ```
 
 The lowering pipeline of Intel's MLIR graph compiler is as follows:
