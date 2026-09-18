@@ -13,19 +13,31 @@ theme version:
   - a transparent sheet backdrop is appended after the float: on phone
     portrait the rail opens as a full-width top sheet (~40dvh) and a tap on
     the visible article below closes it (assets/js/toc-sheet.js).
+  - the sheet grows a first row of three tab buttons (contents / tags /
+    actions) and takes over the global actions the phone no longer reaches —
+    email and RSS join the icon row, since below md the left drawer (and with
+    it the sidebar footer holding them) is gone. Both are sheet-only: CSS
+    shows them under the portrait breakpoint (assets/scss/_styles_project.scss).
+  - the contents group also renders for pages without a heading tree, listing
+    their child pages instead (shell/section-pages.html). The phone sheet opens
+    on contents whenever that group has anything to show (heading tree or child
+    list), and on the actions group for a heading-less article page.
 */ -}}
 {{- $p := .page -}}
 {{- $hasToc := .hasToc -}}
 {{- $rssURL := .rssURL | default "" -}}
 {{- $config := partial "shell/config.html" $p -}}
 {{- $baseURL := urls.Parse $p.Site.BaseURL -}}
+{{- $sectionPages := $p.Pages -}}
 <aside class="td-shell-toc d-print-none" aria-label="{{ T "toc_on_this_page" }}">
   <div class="td-shell-toc__panel">
+    {{/* One row: quick links left, the sheet's segmented control centred, the
+         global actions and the close button right. The two side groups are
+         equal-width flex items, which is what centres the pill without a
+         spacer element — and keeps the actions pinned right outside the sheet,
+         where the pill is not rendered at all. */ -}}
     <div class="td-shell-toc__actions">
-      <button type="button" class="td-shell-toc__title-btn" data-td-shell-right-toggle
-        title="{{ T "ui_toc_hide" }}" aria-label="{{ T "ui_toc_hide" }}">
-        {{- partialCached "shell/icon.html" "x" "x" -}}
-      </button>
+      <div class="td-shell-toc__actions-group">
       {{- range $p.Site.Menus.main -}}
         {{- $key := .Identifier -}}
         {{- with .Page }}{{ if not $key }}{{ $key = .Section }}{{ end }}{{ end -}}
@@ -47,7 +59,36 @@ theme version:
       </a>
         {{- end -}}
       {{- end -}}
-      <span class="td-shell-toc__actions-spacer"></span>
+      </div>
+      {{/* Sheet-only segmented control ("dynamic island"): one pill holding the
+           three group toggles, the active one filled. Hidden outside the phone
+           sheet, where the groups keep their own headings. Each button is a
+           disclosure control (aria-expanded + aria-controls), not a tab: the
+           groups can all be closed, and the tags button's target id is assigned
+           by the script because the taxonomy group derives it. */ -}}
+      <div class="td-shell-sheet-tabs">
+        {{ if or $hasToc $sectionPages -}}
+        <button type="button" class="td-shell-sheet-tab" data-td-sheet-tab="toc"
+          aria-expanded="false" aria-controls="td-shell-aside-toc">{{ T "ui_sheet_contents" }}</button>
+        {{- end }}
+        <button type="button" class="td-shell-sheet-tab" data-td-sheet-tab="tags"
+          aria-expanded="false">{{ partial "taxonomy-label.html" (dict "page" $p "key" "tags") }}</button>
+        <button type="button" class="td-shell-sheet-tab" data-td-sheet-tab="actions"
+          aria-expanded="false" aria-controls="td-shell-aside-actions">{{ T "ui_page_actions" }}</button>
+      </div>
+      <div class="td-shell-toc__actions-group td-shell-toc__actions-group--end">
+      {{/* Sheet-only global actions: the left drawer's footer is unreachable
+           below md, so email and RSS move into this icon row there. */ -}}
+      {{- with $p.Site.Params.email }}
+      <a class="td-shell-iconbtn td-shell-iconbtn--sm td-shell-sheet-extra" href="mailto:{{ . }}"
+        title="Email" aria-label="Email"><svg class="td-shell-icon td-shell-icon--mail" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></a>
+      {{- end }}
+      {{- if in ($p.Site.Params.rss_sections | default (slice)) $p.Section }}
+      {{- with $p.CurrentSection.OutputFormats.Get "rss" }}
+      <a class="td-shell-iconbtn td-shell-iconbtn--sm td-shell-sheet-extra" href="{{ .RelPermalink | safeURL }}"
+        target="_blank" rel="noopener" title="RSS" aria-label="RSS"><i class="fa-solid fa-rss" aria-hidden="true"></i></a>
+      {{- end }}
+      {{- end }}
       {{ partial "language-selector.html" (dict "page" $p "class" "td-shell-language-selector" "icon" "shell") }}
       {{- $darkMode := partialCached "dark-mode-config.html" "dark-mode-global" -}}
       {{- if $darkMode.enable }}
@@ -63,16 +104,25 @@ theme version:
         {{- partialCached "shell/icon.html" "github" "github" -}}
       </a>
       {{- end }}
+      {{/* Close sits last: leaving the row is the rightmost, outermost action,
+           and it mirrors the sidebar's own close button on the other side. */ -}}
+      <button type="button" class="td-shell-toc__title-btn" data-td-shell-right-toggle
+        title="{{ T "ui_toc_hide" }}" aria-label="{{ T "ui_toc_hide" }}">
+        {{- partialCached "shell/icon.html" "x" "x" -}}
+      </button>
+      </div>
     </div>
     {{/* The groups below the controls row stay in this rail at every
          breakpoint; see the header comment. Keep the block one element. */ -}}
     <div class="td-shell-aside" data-td-shell-aside>
-      {{ if $hasToc -}}
-      {{/* Collapsible like the groups below it, but open by default — it is
-           the reason the rail exists. */ -}}
+      {{ if or $hasToc $sectionPages -}}
+      {{/* Which group the phone sheet opens on: contents wherever it has
+           something to show — a heading tree or a section's child list — and
+           otherwise the actions, so a heading-less writeup still lands on
+           something useful instead of an empty sheet. */ -}}
       <div class="td-shell-aside-group td-shell-aside-group--toc">
         <button type="button" class="td-shell-tree__row td-shell-aside-group__head"
-          data-td-shell-tree-toggle data-td-shell-aside-keep-open
+          data-td-shell-tree-toggle{{ if or $hasToc $sectionPages }} data-td-shell-aside-keep-open{{ end }}
           aria-expanded="true" aria-controls="td-shell-aside-toc"
           aria-label="{{ T "ui_sidebar_collapse_section" }}: {{ T "toc_on_this_page" }}"
           data-label-expand="{{ T "ui_sidebar_expand_section" }}: {{ T "toc_on_this_page" }}"
@@ -84,7 +134,8 @@ theme version:
         </button>
         <div id="td-shell-aside-toc" class="td-shell-tree__children is-open">
           <div class="td-shell-tree__children-inner">
-            {{ partial "shell/toc.html" $p }}
+            {{ if $hasToc }}{{ partial "shell/toc.html" $p }}{{ end }}
+            {{ if $sectionPages }}{{ partial "shell/section-pages.html" $p }}{{ end }}
           </div>
         </div>
       </div>
@@ -93,7 +144,7 @@ theme version:
       {{/* Taxonomy pages have no single source file or meaningful page actions. */}}
       {{ if not (in (slice "term" "taxonomy") $p.Kind) -}}
       <div class="td-shell-aside-group">
-        <button type="button" class="td-shell-tree__row td-shell-aside-group__head" data-td-shell-tree-toggle
+        <button type="button" class="td-shell-tree__row td-shell-aside-group__head" data-td-shell-tree-toggle{{ if and (not $hasToc) (not $sectionPages) }} data-td-shell-aside-keep-open{{ end }}
           aria-expanded="true" aria-controls="td-shell-aside-actions"
           aria-label="{{ T "ui_sidebar_collapse_section" }}: {{ T "ui_page_actions" }}"
           data-label-expand="{{ T "ui_sidebar_expand_section" }}: {{ T "ui_page_actions" }}"

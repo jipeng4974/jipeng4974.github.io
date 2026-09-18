@@ -1,3 +1,9 @@
 ai_assisted: AI assisted
 ui_pager_prev: Previous post
 ui_pager_next: Next post
+ui_copy_link: Copy link
+ui_copy_bibtex: Copy BibTeX
+ui_copied: Copied
+ui_copy_failed: Could not copy
+ui_scroll_mode: Enter scroll mode
+ui_sheet_contents: Contents

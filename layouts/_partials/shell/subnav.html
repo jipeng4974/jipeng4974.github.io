@@ -1,12 +1,15 @@
 {{/*
-Project override of the theme's subnav (mobile topbar) partial. Difference
+Project override of the theme's subnav (mobile topbar) partial. Differences
 from the theme version:
-  - a right-rail (TOC sidebar) toggle is added as the last button. On phones
-    the floating restore button would sit on top of this header and cover the
-    search / drawer buttons, so below md _styles_project.scss hides the float
-    and this button takes over (docs-shell.js wires every
-    data-td-shell-right-toggle the same way). It uses the "text" list glyph
-    instead of "panel-right" so it does not mirror the drawer's "panel-left".
+  - a right-rail (TOC sheet) toggle is added as the last button. On phones the
+    floating restore button would sit on top of this header and cover the
+    search button, so below md _styles_project.scss hides the float and this
+    button takes over (docs-shell.js wires every data-td-shell-right-toggle the
+    same way). It uses the "text" list glyph instead of "panel-right" so it does
+    not mirror a drawer button.
+  - the drawer (main navigation) button is gone: on phones the section tree had
+    no room to be useful, and the sheet's "contents" tab now covers in-section
+    navigation (see toc-aside.html, section-pages.html).
 */ -}}
 {{- $config := partial "shell/config.html" . -}}
 <header class="td-shell-subnav d-md-none d-print-none">
@@ -23,17 +26,8 @@ from the theme version:
   <button type="button" class="td-shell-iconbtn td-shell-subnav__btn" data-td-shell-search-open
     aria-label="{{ T "ui_search" }}" aria-controls="td-shell-search" aria-expanded="false">{{ partialCached "shell/icon.html" "search" "search" }}</button>
   {{- end }}
-  {{/* The TOC toggle sits left of the drawer button, so the main-navigation
-       button keeps the far-right slot. */ -}}
   <button type="button" class="td-shell-iconbtn td-shell-subnav__btn" data-td-shell-right-toggle
     title="{{ T "ui_toc_show" }}" aria-label="{{ T "ui_toc_show" }}">
     {{- partialCached "shell/icon.html" "text" "text" -}}
   </button>
-  {{- if partial "shell/sidebar-enabled.html" . }}
-  <button type="button" class="td-shell-iconbtn td-shell-subnav__btn" data-td-shell-drawer-open
-    title="{{ T "ui_drawer_open" }}" aria-label="{{ T "ui_drawer_open" }}"
-    aria-controls="td-shell-sidebar" aria-expanded="false">
-    {{- partialCached "shell/icon.html" "panel-left" "panel-left" -}}
-  </button>
-  {{- end }}
 </header>

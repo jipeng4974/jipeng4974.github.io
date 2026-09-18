@@ -93,6 +93,13 @@ params:
     to_year: present
   github_subdir: ''
   email: wjp4974@qq.com
+  # BibTeX data for the page actions ("Copy BibTeX" in the TOC rail). The cite
+  # key is <key_prefix>-<page slug>, e.g. wujipeng-dspark. Overridable per
+  # language under languages.<lang>.params.citation — e.g. to put a Chinese
+  # author name on the zh site.
+  citation:
+    author: Wu Jipeng
+    key_prefix: wujipeng
   time_format_blog: Monday, January 02, 2006
   time_format_default: January 2, 2006
   rss_sections: [writeups]

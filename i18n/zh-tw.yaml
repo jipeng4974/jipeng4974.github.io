@@ -1,3 +1,9 @@
 ai_assisted: AI 輔助
 ui_pager_prev: 上一篇
 ui_pager_next: 下一篇
+ui_copy_link: 複製連結
+ui_copy_bibtex: 複製 BibTeX
+ui_copied: 已複製
+ui_copy_failed: 複製失敗
+ui_scroll_mode: 進入卷軸模式
+ui_sheet_contents: 目錄

@@ -47,6 +47,25 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   }
 }
 
+// Footer language list (English / 简体中文, shell/footer-line.html with the
+// list mode): the current language wears the same filled pill as the sheet's
+// contents/tags/actions control — primary fill, inverted label — so the two
+// look like one family, and both labels step a notch below the footline's 12px
+// so the pill keeps some air around the text instead of hugging it.
+.td-shell-footline__lang {
+  .td-language-selector__item {
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+  }
+
+  .td-language-selector__item.active {
+    background: var(--td-shell-primary);
+    color: var(--bs-body-bg);
+    font-weight: 600;
+  }
+}
+
 // Page heading: the writeups section pairs its bare title with the section
 // description, set in a quiet serif to the right of the h1. The description
 // box starts at 22em (the width the fit helper in page-heading-desc-fit.html
@@ -134,14 +153,19 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   background-color: #6d93b9; // #5f88b0, one step lighter on the dark page
 }
 
-// Article previous/next controls keep the primary button's quiet blue-gray at
-// rest, but replace the global icy gradient with the same faint highlight used
-// by pagination/chip-style controls.
+// Article previous/next: quiet tinted buttons instead of solid primary ones.
+// At rest they sit on the faint wash the icon buttons only show on hover, and
+// hovering lifts that wash one step — no colour inversion, so the label stays
+// readable throughout. The light-mode wash is a touch stronger than
+// --td-shell-accent (rgba(15,23,42,.05)), which is nearly invisible on the
+// paper background; the dark-mode one keeps the rail wash's blue cast.
 .article-pager .btn-primary {
+  --article-pager-bg: rgba(15, 23, 42, 0.08);
+  --article-pager-bg-hover: rgba(15, 23, 42, 0.15);
   background-image: none;
-  background-color: #5f88b0;
+  background-color: var(--article-pager-bg);
   border-color: transparent;
-  color: #fff;
+  color: var(--bs-body-color);
   transition:
     background-color 100ms ease,
     color 100ms ease;
@@ -149,10 +173,15 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   &:hover,
   &:focus-visible {
     background-image: none;
-    background-color: var(--td-shell-accent);
+    background-color: var(--article-pager-bg-hover);
     border-color: transparent;
     color: var(--bs-body-color);
   }
+}
+
+[data-bs-theme='dark'] .article-pager .btn-primary {
+  --article-pager-bg: rgba(83, 155, 245, 0.1);
+  --article-pager-bg-hover: rgba(83, 155, 245, 0.18);
 }
 
 // Handwriting font for the photo-tag washi tape (digits + "#/%" only, so a
@@ -709,6 +738,106 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   z-index: 24;
 }
 
+// Below md the left drawer is gone for good, not just hidden: its subnav button
+// was removed (layouts/_partials/shell/subnav.html) and the sheet's contents
+// tab now covers in-section navigation (shell/section-pages.html). A drawer
+// that no control can open is unreachable furniture, so the panel and its
+// backdrop are dropped at this breakpoint — the panel's contents still exist
+// for the desktop column above md.
+@include media-breakpoint-down(md) {
+  .td-shell-sidebar__panel,
+  .td-shell-drawer-backdrop {
+    display: none;
+  }
+}
+
+// Rail icon row: the two side groups are equal-width flex items, which lands a
+// centred pill in the middle of the row without a spacer element — and keeps
+// the actions pinned right on every breakpoint, including the ones where the
+// pill is not rendered at all.
+.td-shell-toc__actions-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.td-shell-toc__actions-group--end {
+  justify-content: flex-end;
+}
+
+// Sheet-only segmented control ("dynamic island"): one pill holding the three
+// group toggles, the active one filled, sitting between the quick links and the
+// global actions. Hidden outside the phone sheet, where each group keeps its own
+// heading instead.
+.td-shell-sheet-tabs {
+  display: none;
+  flex: 0 0 auto;
+  gap: 1px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--td-shell-accent);
+}
+
+.td-shell-sheet-tab {
+  padding: 3px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--td-shell-muted-fg);
+  font: inherit;
+  font-size: 11.5px;
+  line-height: 1.25;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--bs-body-color);
+  }
+
+  // Filled like the pagination's current page. --bs-body-bg as the label colour
+  // keeps it readable in both themes: dark ink on the light-mode blue, light ink
+  // on the dark-mode one.
+  &.is-active {
+    background: var(--td-shell-primary);
+    color: var(--bs-body-bg);
+  }
+}
+
+.td-shell-sheet-extra {
+  display: none;
+}
+
+// Contents group for pages without a heading tree (shell/section-pages.html):
+// a section's child pages, styled like the TOC links it stands in for.
+.td-shell-toc__body.td-shell-pages {
+  .td-shell-pages__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  a {
+    display: block;
+    padding: 6px 0;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--td-shell-muted-fg);
+    overflow-wrap: anywhere;
+    transition: color 150ms ease;
+
+    &:hover {
+      color: var(--bs-body-color);
+      text-decoration: none;
+    }
+  }
+}
+
 @media (max-width: 767.98px) and (orientation: portrait) {
   .td-shell-toc__panel {
     inset-block: 56px auto;
@@ -716,12 +845,38 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
     width: auto;
     max-width: none;
     height: auto;
-    max-height: 40vh;
-    max-height: 40dvh;
+    // Three tab bodies instead of one heading tree: the cap grows, and
+    // .td-shell-toc__panel > .td-shell-aside keeps scrolling inside it.
+    max-height: 60vh;
+    max-height: 60dvh;
     z-index: 25;
     border-inline-start: 0;
     border-block-end: 1px solid var(--bs-border-color);
     background: color-mix(in srgb, var(--bs-body-bg) 96%, transparent);
+  }
+
+  // The segmented control is the sheet's group switch: the per-group headings
+  // would be a second, competing set of toggles right under it.
+  .td-shell-sheet-tabs {
+    display: flex;
+  }
+
+  .td-shell-sheet-extra {
+    display: inline-flex;
+  }
+
+  // Tighten the icon row so the centred pill still fits between the icons on a
+  // 375px phone: 22px buttons instead of 24px, 1px gaps.
+  .td-shell-toc__actions {
+    gap: 1px;
+  }
+
+  .td-shell-toc__actions .td-shell-iconbtn--sm {
+    padding: 3px;
+  }
+
+  .td-shell-aside > .td-shell-aside-group > .td-shell-aside-group__head {
+    display: none;
   }
 
   [data-td-shell-toc='collapsed'] .td-shell-toc__panel,
@@ -731,6 +886,29 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 
   html:not([data-td-shell-toc='collapsed']) .td-shell-toc-sheet-backdrop {
     display: block;
+  }
+}
+
+// Below ~420px ten icons plus the pill no longer fit on one line: the pill
+// drops to its own centred line instead of colliding with the icons. 430px
+// phones keep it inline, which is where the inline form was designed to fit.
+@media (max-width: 419.98px) and (orientation: portrait) {
+  .td-shell-toc__actions {
+    flex-wrap: wrap;
+  }
+
+  .td-shell-sheet-tabs {
+    order: 3;
+    flex-basis: 100%;
+    justify-content: center;
+  }
+
+  .td-shell-toc__actions-group {
+    order: 1;
+  }
+
+  .td-shell-toc__actions-group--end {
+    order: 2;
   }
 }
 

@@ -1,0 +1,26 @@
+{{- /*
+In-section navigation for the right rail's "contents" group.
+
+The rail's contents group normally shows the page's own heading tree
+(shell/toc.html). Section and taxonomy pages have no headings to show, so they
+get the pages they list instead — one row per post/gallery, which is what
+turns the phone sheet's "contents" tab into usable in-section navigation now
+that the left drawer is gone below md.
+
+Deliberately styled like the TOC body (.td-shell-toc__body) so both flavours
+of the group read the same. Renders nothing for a page with no children.
+
+Context: a page. Renders: the child-page list, or nothing.
+*/ -}}
+{{- $p := . -}}
+{{- with $p.Pages -}}
+<div class="td-shell-toc__inner">
+  <div class="td-shell-toc__body td-shell-pages">
+    <ul class="td-shell-pages__list">
+      {{- range . }}
+      <li><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></li>
+      {{- end }}
+    </ul>
+  </div>
+</div>
+{{- end -}}

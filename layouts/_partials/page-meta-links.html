@@ -1,0 +1,165 @@
+{{/* cSpell:ignore querify subdir bibtex */ -}}
+{{/* Project override of the theme's page-meta-links partial — the TOC rail's
+     "Actions" group. Differences from the theme version:
+
+       - the "Print this page" button is gone. Printing one writeup from the
+         rail was legacy Docsy furniture; the section-level print output stays
+         reachable further down, relabelled "scroll mode" because it opens the
+         whole section as one continuous page rather than a print dialog.
+       - two clipboard actions are added: "Copy link" (whatever the address bar
+         shows, anchors included) and "Copy BibTeX" (an @online entry assembled
+         from params.citation in hugo.yml plus the page's title/date/permalink).
+         Both are handled by assets/js/page-actions.js and reuse the theme's
+         copy feedback — .is-copied swaps the icon for a check, the label
+         flashes the button's data-t-copied text, and the shared aria-live
+         status announces it.
+
+     Everything else is the theme version verbatim, including the GitHub
+     edit/child/issue branches. They render nothing on this site today (no
+     github_repo is configured), but keeping them means turning that on later
+     still works. */ -}}
+
+{{ if .File -}}
+{{ $p := . -}}
+{{ $enabled := true -}}
+{{ with $p.Site.Params.ui.page_context_menu -}}
+  {{ if reflect.IsMap . -}}
+    {{ if isset . "enable" }}{{ $enabled = .enable }}{{ end -}}
+  {{ else -}}
+    {{ $enabled = . -}}
+  {{ end -}}
+{{ end -}}
+{{ if isset $p.Params "context_menu" }}{{ $enabled = $p.Params.context_menu }}{{ end -}}
+
+{{ if $enabled -}}
+{{ $markdownURL := "" -}}
+{{ with $p.AlternativeOutputFormats.Get "markdown" }}{{ $markdownURL = .RelPermalink }}{{ end -}}
+{{ $printURL := "" -}}
+{{ with $p.CurrentSection.AlternativeOutputFormats.Get "print" }}{{ $printURL = .RelPermalink }}{{ end -}}
+
+{{/* BibTeX, mirroring the @online entry style used on kexue.fm: the cite key
+     is <key_prefix>-<page slug>, month uses the three-letter BibTeX macro
+     (Aug, Sep, ...). Year/month stay empty for undated pages and the script
+     then drops those fields. */ -}}
+{{ $cite := $p.Site.Params.citation -}}
+{{ $citeAuthor := "Wu Jipeng" -}}
+{{ $citePrefix := "cite" -}}
+{{ with $cite }}{{ with .author }}{{ $citeAuthor = . }}{{ end }}{{ with .key_prefix }}{{ $citePrefix = . }}{{ end }}{{ end -}}
+{{ $citeSlug := path.Base $p.RelPermalink -}}
+{{ if in (slice "" "/" ".") $citeSlug }}{{ $citeSlug = "home" }}{{ end -}}
+{{ $citeYear := "" -}}
+{{ $citeMonth := "" -}}
+{{ if not $p.Date.IsZero -}}
+  {{ $citeYear = $p.Date.Format "2006" -}}
+  {{ $citeMonth = $p.Date.Format "Jan" -}}
+{{ end -}}
+
+{{ $editURL := "" -}}
+{{ $childURL := "" -}}
+{{ $issueURL := "" -}}
+{{ $projectIssueURL := "" -}}
+{{ $ghRepo := $p.Param "github_repo" -}}
+{{ $ghURL := $p.Param "github_url" -}}
+{{ $ghProjectRepo := $p.Param "github_project_repo" -}}
+{{ if $ghURL -}}
+  {{ warnf "Warning: use of `github_url` is deprecated. For details, see https://oink.pgsty.com/docs/content/repository-links/#github_url-optional" -}}
+  {{ $editURL = $ghURL -}}
+{{ else if $ghRepo -}}
+  {{ $path := strings.TrimPrefix (add hugo.WorkingDir "/") $p.File.Filename -}}
+  {{ $ghSubdir := $p.Param "github_subdir" | default "" -}}
+  {{ $ghBranch := $p.Param "github_branch" | default "main" -}}
+  {{ $ghsBase := $p.Param "path_base_for_github_subdir" -}}
+  {{ $ghsRename := "" -}}
+  {{ if reflect.IsMap $ghsBase -}}
+    {{ $ghsRename = $ghsBase.to -}}
+    {{ $ghsBase = $ghsBase.from -}}
+  {{ end -}}
+  {{ with $ghsBase }}{{ $path = replaceRE . $ghsRename $path }}{{ end -}}
+  {{ $repoPath := printf "%s/%s/%s" $ghBranch $ghSubdir $path | replaceRE "//+" "/" -}}
+  {{ $editURL = printf "%s/edit/%s" $ghRepo $repoPath -}}
+  {{/* querify, not safeURL: a title containing &, #, ? or + has to survive as
+       a single query value. */ -}}
+  {{ $issueURL = printf "%s/issues/new?%s" $ghRepo (querify "title" $p.Title) -}}
+  {{ $stub := resources.Get "stubs/new-page-template.md" -}}
+  {{ $childQS := querify "value" $stub.Content "filename" "change-me.md" -}}
+  {{ $childURL = printf "%s/new/%s?%s" $ghRepo (path.Dir $repoPath) $childQS -}}
+  {{ with $ghProjectRepo }}{{ $projectIssueURL = printf "%s/issues/new" . }}{{ end -}}
+{{ end -}}
+
+{{ $customLinks := slice -}}
+{{ with $p.Site.Params.ui.page_context_menu.links }}{{ $customLinks = . }}{{ end -}}
+
+<div class="td-page-meta" data-td-page-context
+  data-t-copied="{{ T "ui_copy_success" }}" data-t-copy-error="{{ T "ui_copy_error" }}">
+  {{- with $markdownURL }}
+  <button type="button" class="td-page-meta__action" data-td-page-copy data-url="{{ . }}">
+    <span class="td-page-meta__icon">{{ partialCached "shell/icon.html" "copy" "copy" }}</span>
+    <span class="td-page-meta__icon td-page-meta__icon--done">{{ partialCached "shell/icon.html" "check" "check" }}</span>
+    <span data-td-page-copy-label>{{ T "ui_copy_markdown" }}</span>
+  </button>
+  <a class="td-page-meta__action td-page-meta__markdown" href="{{ . }}" target="_blank" rel="noopener">
+    {{ partialCached "shell/icon.html" "markdown" "markdown" }}<span>{{ T "post_view_markdown" }}</span>
+  </a>
+  {{- end }}
+  {{/* Copy link / Copy BibTeX. The lucide link and braces glyphs are inlined
+       here rather than added to the theme's icon dispenser, which this project
+       otherwise leaves alone. */ -}}
+  <button type="button" class="td-page-meta__action" data-td-copy-link
+    data-t-copied="{{ T "ui_copied" }}" data-t-copy-error="{{ T "ui_copy_failed" }}">
+    <span class="td-page-meta__icon"><svg class="td-shell-icon td-shell-icon--link" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
+    <span class="td-page-meta__icon td-page-meta__icon--done">{{ partialCached "shell/icon.html" "check" "check" }}</span>
+    <span data-td-page-copy-label>{{ T "ui_copy_link" }}</span>
+  </button>
+  <button type="button" class="td-page-meta__action" data-td-copy-bibtex
+    data-t-copied="{{ T "ui_copied" }}" data-t-copy-error="{{ T "ui_copy_failed" }}"
+    data-bibtex-key="{{ printf "%s-%s" $citePrefix $citeSlug }}"
+    data-bibtex-title="{{ $p.Title }}"
+    data-bibtex-author="{{ $citeAuthor }}"
+    data-bibtex-year="{{ $citeYear }}"
+    data-bibtex-month="{{ $citeMonth }}"
+    data-bibtex-url="{{ $p.Permalink }}">
+    <span class="td-page-meta__icon"><svg class="td-shell-icon td-shell-icon--braces" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></svg></span>
+    <span class="td-page-meta__icon td-page-meta__icon--done">{{ partialCached "shell/icon.html" "check" "check" }}</span>
+    <span data-td-page-copy-label>{{ T "ui_copy_bibtex" }}</span>
+  </button>
+  {{- with $editURL }}
+  <a class="td-page-meta__action td-page-meta__edit" href="{{ . }}" target="_blank" rel="noopener">
+    {{ partialCached "shell/icon.html" "pencil" "pencil" }}<span>{{ T "post_edit_this" }}</span>
+  </a>
+  {{- end }}
+  {{- with $childURL }}
+  <a class="td-page-meta__action td-page-meta__child" href="{{ . | safeURL }}" target="_blank" rel="noopener">
+    {{ partialCached "shell/icon.html" "file-plus" "file-plus" }}<span>{{ T "post_create_child_page" }}</span>
+  </a>
+  {{- end }}
+  {{- with $issueURL }}
+  <a class="td-page-meta__action td-page-meta__issue" href="{{ . | safeURL }}" target="_blank" rel="noopener">
+    {{ partialCached "shell/icon.html" "circle-help" "circle-help" }}<span>{{ T "post_create_issue" }}</span>
+  </a>
+  {{- end }}
+  {{- with $projectIssueURL }}
+  <a class="td-page-meta__action td-page-meta__project-issue" href="{{ . }}" target="_blank" rel="noopener">
+    {{ partialCached "shell/icon.html" "circle-alert" "circle-alert" }}<span>{{ T "post_create_project_issue" }}</span>
+  </a>
+  {{- end }}
+  {{/* The section-level print output is a single continuous page holding the
+       whole section: "scroll mode" in the UI rather than a printing chore. */ -}}
+  {{- with $printURL }}
+  <a class="td-page-meta__action" href="{{ . }}">
+    {{ partialCached "shell/icon.html" "newspaper" "newspaper" }}<span>{{ T "ui_scroll_mode" }}</span>
+  </a>
+  {{- end }}
+  {{- with $customLinks }}
+  <span class="td-page-meta__separator" role="separator"></span>
+    {{- range . -}}
+      {{- $url := partial "url-template.html" (dict "template" .url "values" (dict
+        "url" $p.Permalink "title" $p.Title "markdown_url" $markdownURL)) -}}
+  <a class="td-page-meta__action" href="{{ $url | safeURL }}" target="_blank" rel="noopener noreferrer">
+    {{ with .icon }}<i class="{{ . }}" aria-hidden="true"></i>{{ else }}{{ partialCached "shell/icon.html" "external-link" "external-link" }}{{ end }}<span>{{ .name }}</span>
+  </a>
+    {{- end }}
+  {{- end }}
+  <span class="visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-td-page-context-status></span>
+</div>
+{{ end -}}
+{{ end -}}
