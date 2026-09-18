@@ -71,8 +71,6 @@ ELF被设计为具备双重属性：
 - 加载视角下是即将放入内存的loadable segments：在加载器看来，ELF是由program header描述的一组分段，无需关心分区。可执行分段只有廖廖几个。典型的BFD-ld或Gold链接的Linux ELF一般将其分为2个loadable分段：RE（只读可执行，包含.text，.rodata等）、RW（读写，包含.data，.bss等）。这样可以减少内核mmap次数到2次，但把只读数据放进只读可执行分段总归牺牲了安全性。比较新的Linux出于安全考虑分成3个分段R、RE、RW。将ELF header和.rodata放进R。更新一些的BFD-ld虽然把ELF header和.rodata分在R分段，但忘记合并这两个R了，导致出现4个loadable分段。[^1]
 - 链接视角下是磁盘上的linkable sections：分区机制允许链接器对ELF进一步加工。单个分段由若干分区（section）组成。比如一个loadable read-only分段可以包含可执行代码、只读数据、动态链接符号这三个分区。Relocatables有分区表。Executables有ELF header表。Shared objects则兼具二者。典型的ELF可重定位程序包含十余个分区，例如.text、.data、.rodata、.bss、.rel.text（代码分区的重定位信息）、.rel.data、.rel.rodata、.init（C++全局变量构造函数）、.fini（C++全局变量析构函数）、.symtab（符号表）、.dynsym（动态库符号表）、.strtab、.dynstr、.interp（解释器路径）。可执行ELF和重定位ELF在格式上基本一致，只不过数据被重新安排，使文件能直接映射到内存，即pageable。
 
-![sections_segments](https://149520725.v2.pressablecdn.com//wp-content/uploads/2018/01/Image5.png)
-
 
 ## 静态库和动态库
 静态库本质上是一组对象文件，再稍微多加一点点信息（甚至有些系统直接把对象文件拼接起来就算是合法的静态链接库了）。

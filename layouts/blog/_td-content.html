@@ -32,21 +32,9 @@ heading (see page-heading-desc-fit.html).
 	<header class="article-meta article-meta-row mb-4">
 		{{ with .Params.author }}<span class="article-author">{{ T "post_byline_by" }} <b>{{ . | markdownify }}</b></span>{{ end }}
 		<time class="article-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ $dateLabel }}</time>
-		{{/* Tag chips: the hue comes from an FNV-1a hash of the tag name, so a
-		     tag keeps the same tint on every page; if two tags on one page
-		     land on the same hue, the later one walks to the next free slot
-		     (the .article-tag--t* ramp lives in _styles_project.scss). */}}
-		{{ with .GetTerms "tags" }}
-			{{- $usedHues := slice -}}
-			<ul class="article-tag-list">
-				{{ range . }}
-					{{- $hue := mod (int (hash.FNV32a .LinkTitle)) 8 -}}
-					{{- range seq 0 7 -}}{{ if in $usedHues $hue }}{{ $hue = mod (add $hue 1) 8 }}{{ end }}{{ end -}}
-					{{- $usedHues = $usedHues | append $hue -}}
-					<li><a class="article-tag article-tag--t{{ $hue }}" href="{{ .Permalink }}" data-taxonomy-term="{{ urlize .LinkTitle }}">{{ .LinkTitle }}</a></li>
-				{{ end }}
-			</ul>
-		{{ end }}
+		{{/* Tag chips come from the shared partial, so the article row and the
+		     writeups list cards render identical chips. */}}
+		{{ partial "article-tags.html" . }}
 		{{ if .Params.aiAssisted }}<span class="ai-assisted-hint">{{ T "ai_assisted" }}</span>{{ end }}
 		{{ if (and (not .Params.hide_readingtime) (.Site.Params.ui.readingtime.enable)) }}
 			{{ partial "reading-time.html" . }}

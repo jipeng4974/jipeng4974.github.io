@@ -106,6 +106,34 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   font-size: 0.85rem;
 }
 
+// Pagination: no brand-gradient hover. The theme groups the active page with
+// the primary buttons and flips them to the blue → platinum wordmark gradient
+// (plus dark text) on hover/focus; on a page number that reads as legacy shine,
+// because hovering the page you are already on carries no meaning. The active
+// page keeps its quiet blue-gray and only deepens (light mode) / lifts (dark
+// mode) a step, and keyboard focus stays visible through Bootstrap's focus ring,
+// recolored to the same blue-gray instead of Bootstrap's unbranded #006be6.
+.pagination {
+  --bs-pagination-focus-box-shadow: 0 0 0 0.2rem rgba(95, 136, 176, 0.35);
+}
+
+.pagination .page-item.active .page-link {
+  background-image: none;
+
+  &:hover,
+  &:focus-visible {
+    background-image: none;
+    background-color: #54799f; // #5f88b0, one step deeper
+    border-color: transparent;
+    color: #fff;
+  }
+}
+
+[data-bs-theme='dark'] .pagination .page-item.active .page-link:hover,
+[data-bs-theme='dark'] .pagination .page-item.active .page-link:focus-visible {
+  background-color: #6d93b9; // #5f88b0, one step lighter on the dark page
+}
+
 // Article previous/next controls keep the primary button's quiet blue-gray at
 // rest, but replace the global icy gradient with the same faint highlight used
 // by pagination/chip-style controls.
@@ -738,11 +766,16 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   color: var(--bs-secondary-color);
 }
 
-.article-meta-row .article-tag-list {
+// Tag chips: a tinted, right-rounded rectangle with a pointed left tip. Used
+// both in the writeup article meta row (.article-meta-row) and in the writeups
+// list cards (.td-blog-posts-list__meta) — both render the same markup through
+// layouts/_partials/article-tags.html.
+.article-tag-list {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem;
+  // Beats Bootstrap's `ul { margin-bottom: 1rem }` on the bare element.
   margin: 0;
   padding: 0;
   list-style: none;
@@ -751,20 +784,32 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 // A chip is a right-rounded rectangle plus a separate pointed tip, so the
 // silhouette shadow has to come from the <li>: box-shadow would hug the
 // rectangle and leave the tip bare, while drop-shadow follows the painted
-// shape. The tip overlaps the body by a hair and repeats its color, which
-// hides the anti-aliased seam between the two boxes.
+// shape.
 // The `.td-content ul li` bottom margin (0.5rem) outranks a bare
-// `.article-tag-list > li`, so the reset is scoped through the row.
-// It matters: that margin inflated the list box by 8px, which pushed the chips
-// half of that above the date's baseline (the row centers items, so the li's
-// margin box carried the offset).
-.article-meta-row .article-tag-list > li {
+// `.article-tag-list > li`, so the reset is scoped through the two rows that
+// carry chips. It matters in the article row: that margin inflated the list box
+// by 8px, which pushed the chips half of that above the date's baseline (the
+// row centers items, so the li's margin box carried the offset).
+.article-meta-row .article-tag-list > li,
+.td-blog-posts-list__meta .article-tag-list > li {
   display: flex;
-  // The left tip (0.42em) sits outside the chip body, so it is paid for with a
-  // matching start margin: the flex gaps then measure between visible edges
-  // instead of between boxes that the tip eats into.
-  margin: 0 0 0 0.42em;
+  margin: 0;
   filter: drop-shadow(0 1px 1px rgba(63, 52, 30, 0.22));
+}
+
+// The writeups list row: date + section + chips, one wrapping line where the
+// chips sit next to the date instead of on a separate "Tags:" row.
+.td-blog-posts-list__meta {
+  --article-meta-band: 1.125rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.6rem;
+  margin-bottom: 0.5rem;
+
+  @include media-breakpoint-up(md) {
+    margin-bottom: 1rem;
+  }
 }
 
 .article-tag {
@@ -778,11 +823,18 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   display: inline-flex;
   align-items: center;
   min-height: var(--article-meta-band, 1.125rem);
+  // The left tip (0.42em) sits outside the chip body, so it is paid for with a
+  // matching start margin: the flex gaps then measure between visible edges
+  // instead of between boxes that the tip eats into. Both are em-based on the
+  // chip's own font size, so they stay in step.
+  margin-left: 0.42em;
   padding: 0 0.55em 0 0.7em;
   border-radius: 0 4px 4px 0;
   background: var(--tag-bg);
   color: var(--tag-fg);
-  font-size: 1em; // matches the row's size
+  // Fixed label size so a chip looks the same in the article row and in a list
+  // card, whatever the surrounding type size is.
+  font-size: 0.75rem;
   font-weight: 500;
   line-height: 1.2;
   text-decoration: none;
@@ -857,26 +909,34 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   --tag-fg: hsl(var(--tag-h) 60% 84%);
 }
 
-[data-bs-theme='dark'] .article-meta-row .article-tag-list > li {
+[data-bs-theme='dark'] .article-meta-row .article-tag-list > li,
+[data-bs-theme='dark'] .td-blog-posts-list__meta .article-tag-list > li {
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
 }
 
-// AI-assisted hint: a quiet note appended to the article's tags row for
-// posts carrying aiAssisted = true in their front matter. It keeps its italic
-// voice in both places it appears: the writeup meta row above (where it stays
-// at the row's size) and the blog list rows, whose tags still come from the
-// theme's taxonomy partial.
+// AI-assisted hint: a quiet italic note that trails the tag chips for posts
+// carrying aiAssisted = true in their front matter. It appears in three places:
+// the writeup article meta row, the writeups list cards (both render the chips
+// through layouts/_partials/article-tags.html) and the docs-type pages, whose
+// tags still come from the theme's taxonomy partial (.taxo-tags).
 .taxo-tags .ai-assisted-hint,
-.article-meta-row .ai-assisted-hint {
+.article-meta-row .ai-assisted-hint,
+.td-blog-posts-list__meta .ai-assisted-hint {
   color: var(--bs-secondary-color);
-  font-size: 0.85em;
   font-style: italic;
   opacity: 0.75;
 }
 
-.article-meta-row .ai-assisted-hint {
-  font-size: 1em;
+// 0.85em would land near 10px in the article row and near 14px in a list card,
+// so the two chip rows pin the hint to the chip size instead.
+.article-meta-row .ai-assisted-hint,
+.td-blog-posts-list__meta .ai-assisted-hint {
+  font-size: 0.75rem;
   opacity: 0.8;
+}
+
+.taxo-tags .ai-assisted-hint {
+  font-size: 0.85em;
 }
 
 // Sidebar root menu icons: the theme paints every icon with the accent
