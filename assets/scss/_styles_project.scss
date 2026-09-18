@@ -698,13 +698,177 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   }
 }
 
+// ---------------------------------------------------------------------------
+// Writeup article meta line (layouts/blog/_td-content.html). The date, the tag
+// chips and the optional AI-assisted note used to stack as two blocks (a
+// byline paragraph plus a "Tags:" list); here they share one wrapping flex row
+// directly under the page heading. Only the writeups section is type: blog, so
+// .article-meta-row and .article-tag* stay scoped to writeup pages.
+// ---------------------------------------------------------------------------
+.article-meta-row {
+  // One type size and one line band for the whole row: the date, the chips and
+  // the AI note all inherit them (the chip pins its tinted box to the same
+  // band), so nothing in the line is taller than anything else.
+  --article-meta-band: 1.125rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.55rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.75rem;
+  line-height: var(--article-meta-band);
+}
+
+.article-meta-row .article-date {
+  color: var(--bs-secondary-color);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.article-meta-row .article-author {
+  color: var(--bs-secondary-color);
+}
+
+.article-meta-row .article-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// A chip is a right-rounded rectangle plus a separate pointed tip, so the
+// silhouette shadow has to come from the <li>: box-shadow would hug the
+// rectangle and leave the tip bare, while drop-shadow follows the painted
+// shape. The tip overlaps the body by a hair and repeats its color, which
+// hides the anti-aliased seam between the two boxes.
+// The `.td-content ul li` bottom margin (0.5rem) outranks a bare
+// `.article-tag-list > li`, so the reset is scoped through the row.
+// It matters: that margin inflated the list box by 8px, which pushed the chips
+// half of that above the date's baseline (the row centers items, so the li's
+// margin box carried the offset).
+.article-meta-row .article-tag-list > li {
+  display: flex;
+  // The left tip (0.42em) sits outside the chip body, so it is paid for with a
+  // matching start margin: the flex gaps then measure between visible edges
+  // instead of between boxes that the tip eats into.
+  margin: 0 0 0 0.42em;
+  filter: drop-shadow(0 1px 1px rgba(63, 52, 30, 0.22));
+}
+
+.article-tag {
+  --tag-h: 210; // overwritten by the .article-tag--t* hue ramp below
+  --tag-bg: hsl(var(--tag-h) 46% 88%);
+  --tag-fg: hsl(var(--tag-h) 45% 27%);
+  position: relative;
+  // inline-flex + a pinned min-height keeps the tinted box exactly one text
+  // band tall, so the chip never rises above (or sinks below) the date and the
+  // AI note next to it; the label then centers itself in that band.
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--article-meta-band, 1.125rem);
+  padding: 0 0.55em 0 0.7em;
+  border-radius: 0 4px 4px 0;
+  background: var(--tag-bg);
+  color: var(--tag-fg);
+  font-size: 1em; // matches the row's size
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    left: -0.36em;
+    width: 0.42em;
+    background: var(--tag-bg);
+    clip-path: polygon(100% 0, 100% 100%, 0 50%);
+    transition: background-color 120ms ease;
+  }
+
+  &:hover,
+  &:focus-visible {
+    --tag-bg: hsl(var(--tag-h) 52% 83%);
+    --tag-fg: hsl(var(--tag-h) 50% 22%);
+  }
+}
+
+// Hue ramp: eight neighboring cool hues at one shared saturation/lightness, so
+// the chips on a page read as one family with a faint difference between them
+// instead of a rainbow. The template assigns one hue per tag.
+.article-tag--t0 {
+  --tag-h: 158;
+}
+
+.article-tag--t1 {
+  --tag-h: 176;
+}
+
+.article-tag--t2 {
+  --tag-h: 194;
+}
+
+.article-tag--t3 {
+  --tag-h: 212;
+}
+
+.article-tag--t4 {
+  --tag-h: 232;
+}
+
+.article-tag--t5 {
+  --tag-h: 254;
+}
+
+.article-tag--t6 {
+  --tag-h: 276;
+}
+
+.article-tag--t7 {
+  --tag-h: 300;
+}
+
+// Dark mode: the same hues as deep tinted surfaces on the #111 body. The
+// shadow stays black (a light shadow reads as a glow) but gets stronger,
+// because a dark chip on a dark page needs the edge more than the light one.
+[data-bs-theme='dark'] .article-tag {
+  --tag-bg: hsl(var(--tag-h) 26% 21%);
+  --tag-fg: hsl(var(--tag-h) 55% 76%);
+}
+
+[data-bs-theme='dark'] .article-tag:hover,
+[data-bs-theme='dark'] .article-tag:focus-visible {
+  --tag-bg: hsl(var(--tag-h) 30% 27%);
+  --tag-fg: hsl(var(--tag-h) 60% 84%);
+}
+
+[data-bs-theme='dark'] .article-meta-row .article-tag-list > li {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+}
+
 // AI-assisted hint: a quiet note appended to the article's tags row for
-// posts carrying aiAssisted = true in their front matter.
-.taxo-tags .ai-assisted-hint {
+// posts carrying aiAssisted = true in their front matter. It keeps its italic
+// voice in both places it appears: the writeup meta row above (where it stays
+// at the row's size) and the blog list rows, whose tags still come from the
+// theme's taxonomy partial.
+.taxo-tags .ai-assisted-hint,
+.article-meta-row .ai-assisted-hint {
   color: var(--bs-secondary-color);
   font-size: 0.85em;
   font-style: italic;
   opacity: 0.75;
+}
+
+.article-meta-row .ai-assisted-hint {
+  font-size: 1em;
+  opacity: 0.8;
 }
 
 // Sidebar root menu icons: the theme paints every icon with the accent
