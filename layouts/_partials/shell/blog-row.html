@@ -1,0 +1,119 @@
+{{- $manualLink := cond (isset .Params "manuallink") .Params.manualLink .RelPermalink -}}
+{{- $isExternal := isset .Params "manuallink" -}}
+{{- $pageTitle := .Title -}}
+{{- $descriptionHTML := "" -}}
+
+{{- if $isExternal -}}
+  {{- $descriptionHTML = .Description | default .Params.summary | plainify | htmlUnescape -}}
+{{- else -}}
+  {{- with .Description -}}
+  {{- $descriptionHTML = $.RenderString (dict "display" "inline") . -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $excerpt := "" -}}
+{{- $showExcerpt := false -}}
+{{- $excerptHasMath := false -}}
+{{- $isPhotoPage := eq .Section "photos" -}}
+{{- if not $isExternal -}}
+  {{- /* Photo pages are image manifests: their rendered content contains lazy
+         loading placeholders, so never turn that content into a summary. */ -}}
+  {{- if not $isPhotoPage -}}
+  {{- /* Rebuild a compact opening from the article's own Markdown blocks.       */ -}}
+  {{- /* Keep headings, lists, and display math so a tag card preserves the      */ -}}
+  {{- /* article's look, but stop at roughly 4–6 rendered lines.                 */ -}}
+  {{- $blocks := split .RawContent "\n\n" -}}
+  {{- $openingBlocks := slice -}}
+  {{- $openingLines := 0 -}}
+  {{- $openingBlockCount := 0 -}}
+  {{- range $index, $block := $blocks -}}
+    {{- if ge $openingBlockCount 5 -}}{{ break }}{{ end -}}
+    {{- $trimmed := strings.TrimSpace $block -}}
+    {{- if gt (len $trimmed) 0 -}}
+      {{- $skippable := or
+        (strings.HasPrefix $trimmed "![")
+        (strings.HasPrefix $trimmed "{{<")
+        (strings.HasPrefix $trimmed "<!--")
+        (strings.HasPrefix $trimmed "```")
+        (strings.HasPrefix $trimmed "---")
+      -}}
+      {{- if not $skippable -}}
+        {{- $plain := $trimmed | plainify | htmlUnescape | strings.TrimSpace -}}
+        {{- $chars := countrunes $plain -}}
+        {{- $blockLines := 1 -}}
+        {{- if strings.HasPrefix $trimmed "$$" -}}
+          {{- $blockLines = 3 -}}
+        {{- else if strings.HasPrefix $trimmed "#" -}}
+          {{- $blockLines = 1 -}}
+        {{- else -}}
+          {{- $blockLines = math.Ceil (div (float $chars) 95.0) -}}
+        {{- end -}}
+        {{- $totalLines := add $openingLines $blockLines -}}
+        {{- /* Always take one real block, then stay close to a 6-line budget. */ -}}
+        {{- if or (eq $openingBlockCount 0) (le $totalLines 7) -}}
+          {{- $openingBlocks = $openingBlocks | append $trimmed -}}
+          {{- $openingLines = $totalLines -}}
+          {{- $openingBlockCount = add $openingBlockCount 1 -}}
+        {{- else -}}
+          {{- break -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $opening := delimit $openingBlocks "\n\n" -}}
+  {{- $opening = replaceRE `\[\^[^\]]+\]` "" $opening -}}
+  {{- with $opening -}}{{ $excerpt = $.RenderString . }}{{ end -}}
+  {{- /* The same excerpt is rendered for desktop and mobile, so remove
+         generated heading IDs to avoid duplicate IDs. */ -}}
+  {{- $excerpt = replaceRE ` id="[^"]+"` "" $excerpt | safeHTML -}}
+  {{- if not $excerpt -}}{{ $excerpt = .Summary }}{{ end -}}
+  {{- end -}}
+  {{- $excerptText := $excerpt | plainify | htmlUnescape | strings.TrimSpace -}}
+  {{- $descriptionText := .Description | default "" | plainify | htmlUnescape | strings.TrimSpace -}}
+  {{- $showExcerpt = and $excerptText (ne $excerptText $descriptionText) -}}
+  {{- $excerptHasMath = in $excerpt "katex" -}}
+{{- end -}}
+
+<li class="td-blog-posts-list__item">
+  <div class="td-blog-posts-list__body">
+    <h2 class="h5 mt-0 mb-1">
+      <a href="{{ $manualLink }}"{{ if $isExternal }} target="_blank" rel="noopener"{{ end }}>{{ .Title }}</a>
+      {{ if $isExternal }}<i class="fa-solid fa-arrow-up-right-from-square fa-xs text-muted" aria-hidden="true"></i>{{ end }}
+    </h2>
+    {{- with $descriptionHTML }}<p class="td-blog-posts-list__description">{{ . }}</p>{{ end -}}
+    {{- if not .Date.IsZero }}
+    <p class="mb-2 mb-md-3"><small class="text-body-secondary">
+      {{- .Date.Format (.Param "time_format_blog") }} {{ T "ui_in" }} <a class="td-blog-posts-list__section-link" href="{{ .CurrentSection.RelPermalink }}">{{ .CurrentSection.LinkTitle }}</a>
+    </small></p>
+    {{- end }}
+    <header class="article-meta">
+      {{- if and (not .Params.hide_readingtime) (.Site.Params.ui.readingtime.enable) }}
+        {{- partial "reading-time.html" . -}}
+      {{- end }}
+    </header>
+    {{- $featuredImage := partial "featured-image-src.html" . -}}
+    {{- $summaryArgs := dict
+      "description" ""
+      "showExcerpt" $showExcerpt
+      "excerpt" $excerpt
+      "hasMath" $excerptHasMath
+      "fallback" ""
+    -}}
+
+    <div class="td-blog-posts-list__summary-row d-none d-md-flex align-items-start gap-3 mt-1{{ if $featuredImage }} td-blog-posts-list__summary-row--with-image{{ end }}">
+      {{- with $featuredImage }}
+      <figure class="td-blog-posts-list__thumbnail flex-shrink-0 mb-0" style="width: 250px">
+        <a href="{{ $manualLink }}"{{ if $isExternal }} target="_blank" rel="noopener"{{ end }}>
+          <img src="{{ . }}" alt="{{ $pageTitle }}" width="250" height="125" style="object-fit: cover;">
+        </a>
+      </figure>
+      {{- end }}
+      <div class="td-blog-posts-list__summary flex-grow-1">
+        {{- partial "blog-row-summary.html" $summaryArgs -}}
+      </div>
+    </div>
+    <div class="td-blog-posts-list__summary-mobile d-md-none">
+      {{- partial "blog-row-summary.html" $summaryArgs -}}
+    </div>
+  </div>
+</li>

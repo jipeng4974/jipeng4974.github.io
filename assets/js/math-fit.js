@@ -14,6 +14,7 @@
     var katex = display.firstElementChild; // .katex root
     if (!katex) return;
     katex.style.fontSize = ""; // restore natural size before measuring
+    display.classList.remove("katex-display--scroll");
     var available = display.clientWidth;
     var needed = display.scrollWidth;
     if (!available || needed <= available) return;
@@ -21,6 +22,9 @@
     if (!base) return;
     var scale = Math.max(available / needed, MIN_SCALE);
     katex.style.fontSize = base * scale + "px";
+    if (display.scrollWidth > display.clientWidth) {
+      display.classList.add("katex-display--scroll");
+    }
   }
 
   function fitAll() {

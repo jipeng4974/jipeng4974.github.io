@@ -8,4 +8,4 @@ cascade:
   toc_hide: true
 ---
 
-Browse writeups by topic.
+Browse content across the site by topic.

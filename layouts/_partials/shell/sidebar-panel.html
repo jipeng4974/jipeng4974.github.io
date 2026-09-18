@@ -12,6 +12,9 @@ theme version:
     utils row, left of the language selector.
 */ -}}
 {{- $config := partial "shell/config.html" . -}}
+{{- /* Tag pages already show the global section tree, so the extra root switcher
+       would duplicate the same navigation as a dropdown. */ -}}
+{{- $isTagsTaxonomyPage := and (or (eq .Kind "taxonomy") (eq .Kind "term")) (eq (.Data.Plural | default "") "tags") -}}
 <div class="td-shell-sidebar__panel">
   <div class="td-shell-sidebar__header">
     <div class="td-shell-sidebar__brand-row">
@@ -33,7 +36,7 @@ theme version:
       <button type="button" class="td-shell-iconbtn td-shell-sidebar__close" data-td-shell-drawer-close
         aria-label="{{ T "ui_drawer_close" }}" aria-controls="td-shell-sidebar">{{ partialCached "shell/icon.html" "x" "x" }}</button>
     </div>
-    {{ partial "shell/root-menu.html" . }}
+    {{ if not $isTagsTaxonomyPage }}{{ partial "shell/root-menu.html" . }}{{ end }}
   </div>
   <div class="td-shell-sidebar__viewport" data-td-shell-sidebar-scroll>
     {{ partial "shell/sidebar.html" . }}

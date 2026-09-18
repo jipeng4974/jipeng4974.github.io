@@ -8,4 +8,4 @@ cascade:
   toc_hide: true
 ---
 
-按主题浏览随笔。
+按主题浏览全站内容。

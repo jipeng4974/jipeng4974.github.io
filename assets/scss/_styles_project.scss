@@ -98,6 +98,27 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   font-size: 0.85rem;
 }
 
+// Article previous/next controls keep the primary button's quiet blue-gray at
+// rest, but replace the global icy gradient with the same faint highlight used
+// by pagination/chip-style controls.
+.article-pager .btn-primary {
+  background-image: none;
+  background-color: #5f88b0;
+  border-color: transparent;
+  color: #fff;
+  transition:
+    background-color 100ms ease,
+    color 100ms ease;
+
+  &:hover,
+  &:focus-visible {
+    background-image: none;
+    background-color: var(--td-shell-accent);
+    border-color: transparent;
+    color: var(--bs-body-color);
+  }
+}
+
 // Handwriting font for the photo-tag washi tape (digits + "#/%" only, so a
 // latin subset suffices). Self-hosted: no third-party request at runtime.
 @font-face {
@@ -487,12 +508,94 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   transform: translateY(-50%);
 }
 
-// Display math: KaTeX equations never line-break, so math-fit.js scales them
-// down to fit the container. Equations still too wide at the minimum scale
-// fall back to horizontal scrolling instead of breaking the page layout.
-.td-content .katex-display {
-  overflow-x: auto;
-  overflow-y: hidden;
+// KaTeX defaults to 1.21em, which is noticeably larger than the surrounding
+// prose. Keep math close to the text size; this also keeps wide inline and
+// display formulas from unnecessarily overflowing `.katex-html`.
+.td-content .katex,
+.td-blog-posts .katex {
+  font-size: 1.05em;
+}
+
+.td-content .katex-display,
+.td-blog-posts .katex-display {
+  margin-block: 0.75em;
+  padding-block: 0.2em;
+  // Tall KaTeX vlists legitimately extend outside the nominal line box.
+  // Clipping this axis hides superscripts and arrow labels, so the container
+  // must stay visible; math-fit.js adds the scroll modifier only for the rare
+  // formula that is still too wide at the minimum scale.
+  overflow: visible;
+}
+
+// Tag pages show the curated description first, then the rendered opening
+// excerpt. The excerpt is deliberately quieter and can contain KaTeX because
+// Hugo's rendered .Summary preserves math markup.
+.td-blog-posts-list__description {
+  margin: 0 0 0.35rem;
+  font-family: Georgia, 'Times New Roman', 'Songti SC', 'SimSun', serif;
+  font-size: 0.825rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--bs-body-color) 55%, transparent);
+}
+
+.td-blog-posts-list__excerpt {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--bs-secondary-color);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  overflow: hidden;
+
+  // Include Markdown headings in richer excerpts, but make them read as card
+  // content rather than as a second page title.
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0.15rem 0 0.3rem;
+    font-family: var(--bs-body-font-family);
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--bs-body-color);
+  }
+
+  p,
+  ul,
+  ol {
+    margin: 0 0 0.3rem;
+  }
+
+  ul,
+  ol {
+    padding-inline-start: 1.15rem;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+
+  // A line-clamp box is wrong for display math: it measures text lines and
+  // can clip KaTeX's absolutely positioned vlists. Let math excerpts size
+  // themselves naturally.
+  &.td-blog-posts-list__excerpt--math {
+    display: block;
+    overflow: visible;
+    -webkit-line-clamp: unset;
+  }
+
+  .katex-display {
+    margin-block: 0.35rem;
+    padding-block: 0.15rem;
+  }
+}
+
+.katex-display.katex-display--scroll {
+  overflow: auto;
+  scrollbar-width: thin;
 }
 
 @keyframes photo-frame-spin {

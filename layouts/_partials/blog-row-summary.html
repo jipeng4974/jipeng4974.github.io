@@ -1,0 +1,3 @@
+{{- with .description }}<p class="td-blog-posts-list__description">{{ . }}</p>{{ end -}}
+{{- if .showExcerpt }}<div class="td-blog-posts-list__excerpt{{ if .hasMath }} td-blog-posts-list__excerpt--math{{ end }}">{{ .excerpt }}</div>{{ end -}}
+{{- if and (not .description) (not .showExcerpt) .fallback }}<p class="pt-0 mt-0 mb-0">{{ .fallback }}</p>{{ end -}}
