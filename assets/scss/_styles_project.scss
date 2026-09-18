@@ -48,17 +48,25 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 }
 
 // Page heading: the writeups section pairs its bare title with the section
-// description, set in a quiet serif to the right of the h1 and kept narrow;
-// it wraps below the title when the row runs out of room.
+// description, set in a quiet serif to the right of the h1. The description
+// box starts at 22em (the width the fit helper in page-heading-desc-fit.html
+// budgets for) and grows into whatever room the row has left, so a short
+// description stays a one-line deck next to the title instead of trailing off
+// in a narrow column; 34em caps the grown box so the lines stay readable. When
+// the row cannot fit even 22em the description wraps below the title (row-gap
+// keeps that fallback from crowding the h1), which is the same shape as block
+// mode, only narrower.
 .td-content > .td-page-heading {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   column-gap: 1.25rem;
+  row-gap: 0.35rem;
 
   .td-page-heading__desc {
+    flex: 1 1 22em;
     margin: 0;
-    max-width: 22em;
+    max-width: 34em;
     font-family: Georgia, 'Times New Roman', 'Songti SC', 'SimSun', serif;
     font-size: 1rem;
     line-height: 1.5;

@@ -4,28 +4,39 @@ Applies to the writeups/works/photos/about/gears sections. The theme's .lead
 paragraph is never used for these pages — every description renders as
 .td-page-heading__desc; this helper only picks the layout mode:
 
-  "inline" — the description sits to the right of the h1 in a narrow (22em)
-             box. Allowed to occupy up to two lines in that box.
-  "block"  — longer descriptions sit under the h1 across the full content
-             width.
+  "inline" — the description sits to the right of the h1 in a box that starts
+             at 22em and grows to fill the room left in the row (capped at
+             34em); when even 22em no longer fit, the row wraps and the
+             description drops under the title on its own line.
+  "block"  — descriptions that would need more than two lines in that box sit
+             under the h1 across the full content width.
 
-Width model: the h1 (1.75rem bold sans) costs ≈15px per Latin char and ≈30px
-per CJK char; the description (1rem serif) ≈9px / ≈18px. The inline box is
-22em ≈ 352px wide, i.e. ≈39 Latin or ≈19 CJK chars per line, so "two lines"
-is 78 width units (Latin char = 1, CJK/wide char = 2 — rune count +
-non-ASCII count). On the row, the description never costs more than its box
-width (352px); the row fits under ~620px of content width plus a 20px gap.
+Width model, calibrated against the rendered page rather than guessed (h1 is
+Georgia 28px bold, the description Georgia 16px; measured on
+writeups/music_jepa_reg, dpdk, dspark, on-nco, linkers-and-loaders,
+efficient-anns-at-scale):
+
+  title: 12.8px per Latin char, 28px per CJK char (a full-width glyph is 1em)
+  desc:   6.7px per Latin char, 16px per CJK char
+
+Row budget: the widest content column is the article's 1050px max-width minus
+2 × 48px article padding = 954px; budgeted at 940px so a borderline row still
+fits at the widest layout. What is left for the description box is
+940 − title − 20px gap, clamped to [22em, 34em] — the same 22em the CSS uses as
+the flex basis, and the same 34em it caps the grown box at. A description that
+needs more than two lines of that box reads as a paragraph rather than a deck,
+so it goes under the title instead.
 
 Input: a page. Returns: string; "" only for pages outside the listed sections
 or without a description (those keep the theme's heading-plus-lead layout).
 */ -}}
 {{- $mode := "" -}}
 {{- if and (in (slice "writeups" "works" "photos" "about" "gears") .Section) .Description -}}
-  {{- $tPx := mul (add (strings.CountRunes .Title) (len (findRE `[^\x00-\x7F]` .Title))) 15 -}}
-  {{- $dUnits := add (strings.CountRunes .Description) (len (findRE `[^\x00-\x7F]` .Description)) -}}
-  {{- $dRaw := mul $dUnits 9 -}}
-  {{- $dPx := cond (gt $dRaw 352) 352 $dRaw -}}
-  {{- if and (le $dUnits 78) (le (add $tPx $dPx 20) 620) -}}
+  {{- $tPx := add (mul (len (findRE `[\x00-\x7F]` .Title)) 12.8) (mul (len (findRE `[^\x00-\x7F]` .Title)) 28.0) -}}
+  {{- $dPx := add (mul (len (findRE `[\x00-\x7F]` .Description)) 6.7) (mul (len (findRE `[^\x00-\x7F]` .Description)) 16.0) -}}
+  {{- $room := sub 940 (add $tPx 20) -}}
+  {{- $box := cond (lt $room 352) 0 (cond (gt $room 544) 544 $room) -}}
+  {{- if and (gt $box 0) (le $dPx (mul $box 2)) -}}
     {{- $mode = "inline" -}}
   {{- else -}}
     {{- $mode = "block" -}}
