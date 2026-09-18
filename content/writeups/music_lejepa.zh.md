@@ -2,17 +2,11 @@
 title = "Music LeJEPA"
 date = "2026-07-13"
 tags = ["AI"]
-description = "初试Music LeJEPA（未完待续）"
+description = "初试Music LeJEPA"
 showFullContent = false
 +++
 
 # 表征学习的发展脉络
-## 我们是表征派在音乐领域的践行者
-ByteCover3的成功建立在谢赛宁和何凯明的ResNeST的成功之上，也用到了Yann Lecun的对比学习。
-
-Music LeJEPA则是试图将LeCun在视觉领域的新方法复刻到音乐表征中。虽然没有世界模型那么玄乎（预测/对齐的不是世界表征，而仅仅是旋律表征），但确实是一个根本上的范式转变。
-
-我们的音乐识别模型是正统的表征派路线。Yann Lecun、谢赛宁是表征派的代表人物，在JEPA框架下取得了一些进展，目前正在尝试从表征学习入手建立Real World AI。
 
 ## 表征派的元信念
 表征派的核心哲学观点认为：AI的核心不是 multimodal，也不是 generation，而是 representation。生成是理解的副产物。

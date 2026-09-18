@@ -16,7 +16,7 @@ Section pages:
 - [DSpark](/zh/writeups/dspark/): DSpark = 半自回归 draft（重并行骨干 + 轻量顺序头） + 置信度感知的动态验证调度
 - [自由意志的可度量指标](/zh/writeups/free_will/): 由己度 = 内敏性 - 外敏性。
 - [Kimi K3：沿序列、深度与宽度扩展 LLM](/zh/writeups/llm_arch/): LLM架构演化，从dense transformer到Kimi K3。
-- [Music LeJEPA](/zh/writeups/music_lejepa/): 初试Music LeJEPA（未完待续）
+- [Music LeJEPA](/zh/writeups/music_lejepa/): 初试Music LeJEPA
 - [镜头与编码器的同构性](/zh/writeups/lens_encoder/): 相机镜头和编码器呈现惊人的同构性。
 - [超越表征学习：预测驱动的编码器+可学习的传感器](/zh/writeups/beyond_representation_learning/): 现有的多模态表征学习原始、孤立且残缺，还需要预测驱动的编码器+可学习的传感器。
 - [认知相变](/zh/writeups/cognitive-phase-transitions/): 人类智能价值穿越周期的不变量，是认知相变能力。

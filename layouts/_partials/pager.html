@@ -1,15 +1,25 @@
 {{- if or .PrevInSection .NextInSection -}}
+{{/* Each control is shaped like a tag pointing the way it goes: the previous
+     post's tip sits on its left edge, the next post's on its right. The label is
+     the target post's own title (the tip carries the direction, so a "Previous
+     post" string would only eat space), truncated by .td-pager__label; the full
+     title stays in the title attribute and the screen-reader label keeps the
+     direction. */ -}}
 <ul class="article-pager list-unstyled d-flex justify-content-between align-items-center mb-0 pt-5">
   {{- with .PrevInSection }}
-  <li>
-    <a href="{{ .RelPermalink }}" class="btn btn-primary"
-      aria-label="{{ T "ui_pager_prev" }} - {{ .Title }}">{{ T "ui_pager_prev" }}</a>
+  <li class="td-pager__item">
+    <a href="{{ .RelPermalink }}" class="btn btn-primary td-pager-prev" title="{{ .Title }}"
+      aria-label="{{ T "ui_pager_prev" }} - {{ .Title }}">
+      <span class="td-pager__label">{{ .Title }}</span>
+    </a>
   </li>
   {{- end }}
   {{- with .NextInSection }}
-  <li>
-    <a href="{{ .RelPermalink }}" class="btn btn-primary"
-      aria-label="{{ T "ui_pager_next" }} - {{ .Title }}">{{ T "ui_pager_next" }}</a>
+  <li class="td-pager__item">
+    <a href="{{ .RelPermalink }}" class="btn btn-primary td-pager-next" title="{{ .Title }}"
+      aria-label="{{ T "ui_pager_next" }} - {{ .Title }}">
+      <span class="td-pager__label">{{ .Title }}</span>
+    </a>
   </li>
   {{- end }}
 </ul>

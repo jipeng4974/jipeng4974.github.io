@@ -16,7 +16,7 @@ Section pages:
 - [DSpark](/writeups/dspark/): DSpark = semi-autoregressive draft (heavy parallel backbone + lightweight serial head) + confidence-scheduled verification.
 - [A Measurable Metric of Free Will](/writeups/free_will/): Self-origination = internal sensitivity - external sensitivity.
 - [Kimi K3: Scaling LLMs Across Sequence, Depth, and Width](/writeups/llm_arch/): LLM Arch: From dense transformer to Kimi K3。
-- [Music LeJEPA](/writeups/music_lejepa/): First attempt at Music LeJEPA (to be continued)
+- [Music LeJEPA](/writeups/music_lejepa/): First attempt at Music LeJEPA
 - [The Isomorphism Between Lenses and Encoders](/writeups/lens_encoder/): Camera lenses and encoders exhibit a striking isomorphism.
 - [Beyond Representation Learning: Prediction-Driven Encoders + Learnable Sensors](/writeups/beyond_representation_learning/): Existing multimodal representation learning is primitive, isolated, and incomplete — it still needs prediction-driven encoders and learnable sensors.
 - [Cognitive Phase Transitions](/writeups/cognitive-phase-transitions/): The invariant of human intelligence's value across cycles is the capacity for cognitive phase transitions.

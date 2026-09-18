@@ -1,6 +1,6 @@
 # Music LeJEPA
 
-> First attempt at Music LeJEPA (to be continued)
+> First attempt at Music LeJEPA
 
 ---
 
@@ -9,12 +9,6 @@ LLMS index: [llms.txt](/llms.txt)
 ---
 
 # The Evolution of Representation Learning
-## We Are Practitioners of the Representation School in Music
-ByteCover3's success was built on the success of Saining Xie and Kaiming He's ResNeST, and also made use of Yann LeCun's contrastive learning.
-
-Music LeJEPA attempts to replicate LeCun's new method from the vision domain in music representation. Although it is not as mystical as a world model (what gets predicted/aligned is not world representations but merely melody representations), it is indeed a fundamental paradigm shift.
-
-Our music recognition model follows the orthodox representation school. Yann LeCun and Saining Xie are leading figures of this school, having made some progress under the JEPA framework, and are currently attempting to build Real World AI starting from representation learning.
 
 ## The Meta-Belief of the Representation School
 The core philosophical view of the representation school is that the essence of AI is neither multimodal nor generation, but representation. Generation is a byproduct of understanding.

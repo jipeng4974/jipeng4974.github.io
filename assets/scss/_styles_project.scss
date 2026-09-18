@@ -153,35 +153,149 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   background-color: #6d93b9; // #5f88b0, one step lighter on the dark page
 }
 
-// Article previous/next: quiet tinted buttons instead of solid primary ones.
-// At rest they sit on the faint wash the icon buttons only show on hover, and
-// hovering lifts that wash one step — no colour inversion, so the label stays
-// readable throughout. The light-mode wash is a touch stronger than
-// --td-shell-accent (rgba(15,23,42,.05)), which is nearly invisible on the
-// paper background; the dark-mode one keeps the rail wash's blue cast.
+// Article previous/next: tag-shaped controls instead of solid primary buttons.
+// Each points the way it goes — a clip-path tip sits outside the body, so that
+// edge squares off while the other keeps its radius. At rest they sit on a tint
+// the icon buttons only show on hover, and hovering deepens that tint one step —
+// no colour inversion, so the label stays readable throughout. The label uses the
+// link colour rather than the body colour: near-black on the light tint and grey
+// on the dark one both read as dirty next to a coloured background, while the ink
+// blue (and its dark-mode counterpart) belongs to the same family as the tint. 600
+// keeps the titles from looking thin inside a filled block. Light mode uses a pale
+// cyan tint — hsl(194 46% 88%), one step down for hover; dark mode keeps the rail
+// wash's blue cast.
+//
+// Tip geometry lives in SCSS variables, not custom properties: the clip-path
+// needs the tip/width ratio at compile time so the diagonal lands exactly on the
+// body's corners. Plain division, not sass:math — Hugo compiles this with
+// LibSass, which has no module system.
+$pager-tip: 0.7rem; // how far the tip juts out
+$pager-tip-overlap: 0.25rem; // how far it runs back into the body (hides the seam)
+$pager-tip-width: $pager-tip + $pager-tip-overlap;
+$pager-tip-edge: ($pager-tip / $pager-tip-width) * 100%;
+$pager-tip-inset: ($pager-tip-overlap / $pager-tip-width) * 100%;
+
+.article-pager {
+  .td-pager__item {
+    max-width: 46%;
+    min-width: 0;
+  }
+}
+
+// Dark mode swaps both tints. This block has to stay *before* the rule below:
+// it ties with `.article-pager .btn-primary:hover` on specificity (0,3,0), and
+// the hover rule rebinds --article-pager-bg to the hover tint, so a later dark
+// block would win and pin the dark tip to its resting colour.
+[data-bs-theme='dark'] .article-pager .btn-primary {
+  --article-pager-bg: rgba(83, 155, 245, 0.1);
+  --article-pager-bg-hover: rgba(83, 155, 245, 0.18);
+}
+
 .article-pager .btn-primary {
-  --article-pager-bg: rgba(15, 23, 42, 0.08);
-  --article-pager-bg-hover: rgba(15, 23, 42, 0.15);
+  --article-pager-bg: hsl(194 46% 88%);
+  --article-pager-bg-hover: hsl(194 46% 82%);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  // drop-shadow, not box-shadow: it follows the painted outline, tip included.
+  filter: drop-shadow(0 1px 1px rgba(63, 52, 30, 0.22));
   background-image: none;
   background-color: var(--article-pager-bg);
   border-color: transparent;
-  color: var(--bs-body-color);
+  color: var(--bs-link-color);
+  font-weight: 600;
   transition:
     background-color 100ms ease,
     color 100ms ease;
 
   &:hover,
   &:focus-visible {
+    // Rebind the variable, not just background-color, so the tip follows.
+    --article-pager-bg: var(--article-pager-bg-hover);
     background-image: none;
-    background-color: var(--article-pager-bg-hover);
+    background-color: var(--article-pager-bg);
     border-color: transparent;
-    color: var(--bs-body-color);
+    color: var(--bs-link-hover-color);
   }
 }
 
 [data-bs-theme='dark'] .article-pager .btn-primary {
-  --article-pager-bg: rgba(83, 155, 245, 0.1);
-  --article-pager-bg-hover: rgba(83, 155, 245, 0.18);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+}
+
+// Post titles are long: the row caps each button at 46% and the label ellipsises
+// inside it. The full title stays in the title attribute.
+.td-pager__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Previous post: tip on the left edge, left corners squared off.
+.td-pager-prev {
+  margin-inline-start: $pager-tip;
+  // Much less than the standard .75rem button padding: the tip already supplies
+  // the visual edge, so full padding here leaves the label looking pushed inward.
+  padding-inline-start: 0.3rem;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+
+  &::before {
+    content: '';
+    position: absolute;
+    // An absolutely positioned pseudo-element is sized against the button's
+    // padding box, but .btn carries a 1px border — so a plain `0` leaves the tip
+    // 1px short at each end and the body's square corners poke out as two steps.
+    // Accounting for the border makes the tip span the full border box.
+    inset-block: calc(-1 * var(--bs-btn-border-width, 1px));
+    inset-inline-start: calc(
+      -1 * #{$pager-tip} - var(--bs-btn-border-width, 1px)
+    );
+    width: $pager-tip-width;
+    background: var(--article-pager-bg);
+    // Five points, not three. A plain triangle wide enough to overlap the body
+    // has a shallower diagonal, so it is only ~75% of the body's height where it
+    // crosses the body's edge — the two square corners stick out beside it. This
+    // shape keeps the diagonal pinned to the corners and runs a rectangle into
+    // the body instead, which is what the overlap is for.
+    clip-path: polygon(
+      #{$pager-tip-edge} 0,
+      100% 0,
+      100% 100%,
+      #{$pager-tip-edge} 100%,
+      0 50%
+    );
+    transition: background-color 100ms ease;
+  }
+}
+
+// Next post: mirrored.
+.td-pager-next {
+  margin-inline-end: $pager-tip;
+  padding-inline-end: 0.3rem;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset-block: calc(-1 * var(--bs-btn-border-width, 1px));
+    inset-inline-end: calc(
+      -1 * #{$pager-tip} - var(--bs-btn-border-width, 1px)
+    );
+    width: $pager-tip-width;
+    background: var(--article-pager-bg);
+    clip-path: polygon(
+      0 0,
+      #{$pager-tip-inset} 0,
+      100% 50%,
+      #{$pager-tip-inset} 100%,
+      0 100%
+    );
+    transition: background-color 100ms ease;
+  }
 }
 
 // Handwriting font for the photo-tag washi tape (digits + "#/%" only, so a
