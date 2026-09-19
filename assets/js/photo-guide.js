@@ -252,13 +252,12 @@
         button.type = 'button';
         button.className = 'photo-guide__tile';
         button.dataset.photoUrl = canonicalUrl(item.url);
-        button.title = item.stem;
-        button.setAttribute(
-          'aria-label',
-          document.documentElement.lang.startsWith('zh')
-            ? '跳转到照片 ' + item.stem
-            : 'Jump to photograph ' + item.stem
-        );
+        var isChinese = document.documentElement.lang.startsWith('zh');
+        var jumpLabel = isChinese
+          ? '跳转到#' + item.index + ' ' + item.stem
+          : 'Jump to #' + item.index + ' ' + item.stem;
+        button.title = jumpLabel;
+        button.setAttribute('aria-label', jumpLabel);
 
         var image = document.createElement('img');
         image.alt = '';
@@ -302,15 +301,6 @@
 
     root.appendChild(grid);
     root.removeAttribute('hidden');
-
-    function activate(button) {
-      buttons.forEach(function (candidate) {
-        var active = candidate === button;
-        candidate.classList.toggle('photo-guide__tile--active', active);
-        if (active) candidate.setAttribute('aria-current', 'true');
-        else candidate.removeAttribute('aria-current');
-      });
-    }
 
     var jumpAnimationId = 0;
     var jumpAnimationFrame = 0;
@@ -414,7 +404,6 @@
         target.id = 'photo-' + button.dataset.photoUrl.split('/').pop().replace(/\.[^.]+$/, '');
       }
 
-      activate(button);
       if (stacked) {
         jumpToStackedCard(button.__photoGuideItem, target);
       } else {
@@ -455,7 +444,6 @@
               item === next
             );
           });
-          if (activeCard.button) activate(activeCard.button);
         }
       }
 
@@ -473,22 +461,6 @@
       window.addEventListener('wheel', cancelJumpAnimation, { passive: true });
       window.addEventListener('touchstart', cancelJumpAnimation, {
         passive: true
-      });
-    } else if ('IntersectionObserver' in window) {
-      var activeObserver = new IntersectionObserver(
-        function (entries) {
-          entries.forEach(function (entry) {
-            if (!entry.isIntersecting) return;
-            var match = buttons.find(function (button) {
-              return mainFrameFor(button.dataset.photoUrl, frameByUrl) === entry.target;
-            });
-            if (match) activate(match);
-          });
-        },
-        { rootMargin: '-35% 0px -55% 0px', threshold: 0 }
-      );
-      frames.forEach(function (frame) {
-        activeObserver.observe(frame.closest('.photo-frame'));
       });
     }
   }

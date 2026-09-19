@@ -864,9 +864,6 @@ $pager-tip-inset: ($pager-tip-overlap / $pager-tip-width) * 100%;
     outline-offset: -2px;
   }
 
-  &.photo-guide__tile--active::after {
-    opacity: 0.28;
-  }
 }
 
 .photo-lightbox {

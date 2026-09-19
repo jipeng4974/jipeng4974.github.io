@@ -21,6 +21,7 @@
       {{- $thumb := printf "https://assets.wujipeng.com/thumbs/%s.jpg" $stem -}}
       {{- $items = $items | append (dict
           "aspect" $aspect
+          "index" (add (len $items) 1)
           "stem" $stem
           "thumb" $thumb
           "url" $url
