@@ -1602,7 +1602,7 @@ html[lang^='zh'] .article-length::after {
   min-width: 0;
   gap: 4px;
   min-height: 30px;
-  padding: 4px 5px;
+  padding: 4px 7px;
   border-radius: 999px;
   color: var(--td-shell-muted-fg);
   text-decoration: none;
@@ -1617,6 +1617,7 @@ html[lang^='zh'] .article-length::after {
 
   &.is-active {
     flex: 0 1 auto;
+    padding-inline: 10px;
     background: var(--td-shell-primary);
     color: var(--bs-body-bg);
   }
