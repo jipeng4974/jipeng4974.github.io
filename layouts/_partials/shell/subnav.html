@@ -10,8 +10,13 @@ from the theme version:
   - the drawer (main navigation) button is gone: on phones the section tree had
     no room to be useful, and the sheet's "contents" tab now covers in-section
     navigation (see toc-aside.html, section-pages.html).
+  - the language selector and theme toggle move out of the portrait contents
+    sheet and into this bar, between search and the contents button, so they
+    stay reachable without opening the sheet; the sheet's own copies are hidden
+    in portrait CSS.
 */ -}}
 {{- $config := partial "shell/config.html" . -}}
+{{- $darkMode := partialCached "dark-mode-config.html" "dark-mode-global" -}}
 <header class="td-shell-subnav d-md-none d-print-none">
   <a class="td-shell-subnav__brand" href="{{ .Site.Home.RelPermalink }}" aria-label="{{ $config.brandName }} home">
     {{- if $config.wordmarkURL }}
@@ -25,6 +30,15 @@ from the theme version:
   {{- if partial "shell/search-enabled.html" . }}
   <button type="button" class="td-shell-iconbtn td-shell-subnav__btn" data-td-shell-search-open
     aria-label="{{ T "ui_search" }}" aria-controls="td-shell-search" aria-expanded="false">{{ partialCached "shell/icon.html" "search" "search" }}</button>
+  {{- end }}
+  {{ partial "language-selector.html" (dict "page" . "class" "td-shell-subnav__lang" "icon" "shell") }}
+  {{- if $darkMode.showMenu }}
+  <button type="button" class="td-shell-iconbtn td-shell-subnav__btn td-shell-quick-theme" data-td-theme-toggle
+    title="{{ T "ui_theme_toggle" }}" aria-label="{{ T "ui_theme_toggle" }}">
+    {{- partialCached "shell/icon.html" "moon" "moon" -}}
+    {{- partialCached "shell/icon.html" "sun" "sun" -}}
+    <svg class="td-shell-icon td-shell-icon--tea" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a3 3 0 1 1 0 6h-1"/><path d="M3 8h14v6a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5Z"/><path d="M7 2c0 1-1 1.5-1 2.5S7 6 7 7"/><path d="M11 2c0 1-1 1.5-1 2.5S11 6 11 7"/></svg>
+  </button>
   {{- end }}
   <button type="button" class="td-shell-iconbtn td-shell-subnav__btn" data-td-shell-right-toggle
     title="{{ T "ui_toc_show" }}" aria-label="{{ T "ui_toc_show" }}">

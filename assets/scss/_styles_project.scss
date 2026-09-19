@@ -199,7 +199,8 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 // !important is unavoidable here: mermaid injects its rules as
 // `#mermaid-<id> .node rect { … }`, an id selector no class-based rule can
 // outrank.
-[data-bs-theme='light'] .td-content pre.mermaid {
+[data-bs-theme='light'] .td-content pre.mermaid,
+[data-bs-theme='classic'] .td-content pre.mermaid {
   background-color: transparent;
 
   .node rect,
@@ -258,15 +259,14 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   filter: drop-shadow(var(--td-read-progress-halo));
 }
 
-// Light mode draws the line in white gold. The first pass (#c9b487) was a muted
-// champagne: it cleared the paper but was too desaturated to look like metal and
-// carried almost no halo, so the whole thing read as a stain rather than a
-// light. This is a saturated amber with a much wider glow, and the spark keeps a
-// near-white core so the head is the brightest point. Dark mode keeps the
-// shell's blue — on #111 that already reads as a phosphor trace.
-[data-bs-theme='light'] .td-read-progress {
-  --td-read-progress-ink: #e8ae2b;
-  --td-read-progress-core: #fff6cf;
+// Light mode draws the line in orange-red: a warm vermilion-orange body
+// (`#e25822`) with a pale warm spark core and a short halo. It needs to stay
+// visible against the warm paper, unlike the earlier silver pass. Dark mode
+// keeps the shell's blue — on #111 that already reads as a phosphor trace.
+[data-bs-theme='light'] .td-read-progress,
+[data-bs-theme='classic'] .td-read-progress {
+  --td-read-progress-ink: #e25822;
+  --td-read-progress-core: #ffe0cf;
   --td-read-progress-halo: 0 0 5px
     color-mix(in srgb, var(--td-read-progress-ink) 80%, transparent);
 }
@@ -291,8 +291,9 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 
 // The head is the brightest point of the line, so its own bloom is pushed a
 // step further than the line's halo.
-[data-bs-theme='light'] .td-read-progress__spark {
-  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--td-read-progress-ink) 85%, transparent);
+[data-bs-theme='light'] .td-read-progress__spark,
+[data-bs-theme='classic'] .td-read-progress__spark {
+  box-shadow: 0 0 7px 1px color-mix(in srgb, var(--td-read-progress-ink) 82%, transparent);
 }
 
 @keyframes td-read-spark {
@@ -381,15 +382,12 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 
 // Article previous/next: tag-shaped controls instead of solid primary buttons.
 // Each points the way it goes — a clip-path tip sits outside the body, so that
-// edge squares off while the other keeps its radius. At rest they sit on a tint
-// the icon buttons only show on hover, and hovering deepens that tint one step —
-// no colour inversion, so the label stays readable throughout. The label uses the
-// link colour rather than the body colour: near-black on the light tint and grey
-// on the dark one both read as dirty next to a coloured background, while the ink
-// blue (and its dark-mode counterpart) belongs to the same family as the tint. 600
-// keeps the titles from looking thin inside a filled block. Light mode uses a pale
-// cyan tint — hsl(194 46% 88%), one step down for hover; dark mode keeps the rail
-// wash's blue cast.
+// edge squares off while the other keeps its radius. The fill is an opaque
+// tone-on-tone mix of the page surface (see below) so the tag reads as a clear
+// material rather than a coloured block; hover lifts the mix one step. The
+// label is body-coloured at rest and only turns link-coloured on hover, so the
+// pair never reads as two solid blue buttons. 600 keeps the titles from looking
+// thin.
 //
 // Tip geometry lives in SCSS variables, not custom properties: the clip-path
 // needs the tip/width ratio at compile time so the diagonal lands exactly on the
@@ -408,33 +406,45 @@ $pager-tip-inset: ($pager-tip-overlap / $pager-tip-width) * 100%;
   }
 }
 
-// Dark mode swaps both tints. The tints are opaque composites over the page
-// surface: the tip overlaps the body by $pager-tip-overlap, so a translucent
-// rgba would composite twice inside that strip and show a darker seam where
-// triangle and rectangle meet. Mixing the same blue into --bs-body-bg keeps the
-// colour identical while removing the alpha. This block has to stay *before*
-// the rule below: it ties with `.article-pager .btn-primary:hover` on
-// specificity (0,3,0), and the hover rule rebinds --article-pager-bg to the
-// hover tint, so a later dark block would win and pin the dark tip to its
-// resting colour.
+// Dark and classic swap both tints. The tints are opaque composites over the
+// page surface: the tip overlaps the body by $pager-tip-overlap, so a
+// translucent rgba would composite twice inside that strip and show a darker
+// seam where triangle and rectangle meet. Mixing the target colour into
+// --bs-body-bg keeps the colour identical while removing the alpha. These
+// blocks have to stay *before* the rule below: they tie with
+// `.article-pager .btn-primary:hover` on specificity (0,3,0), and the hover
+// rule rebinds --article-pager-bg to the hover tint, so a later block would win
+// and pin the tip to its resting colour.
 [data-bs-theme='dark'] .article-pager .btn-primary {
-  --article-pager-bg: color-mix(in srgb, #539bf5 10%, var(--bs-body-bg));
-  --article-pager-bg-hover: color-mix(in srgb, #539bf5 18%, var(--bs-body-bg));
+  --article-pager-bg: color-mix(in srgb, var(--bs-body-bg) 90%, #fff 10%);
+  --article-pager-bg-hover: color-mix(in srgb, var(--bs-body-bg) 82%, #fff 18%);
+}
+
+// Classic reads as a translucent white-jade chip laid over the xuan paper:
+// mostly the cool jade tile, with a little paper showing through the equivalent
+// opaque mix. Hover deepens one jade step instead of adding blue.
+[data-bs-theme='classic'] .article-pager .btn-primary {
+  --article-pager-bg: color-mix(in srgb, #f3f6f3 82%, var(--bs-body-bg) 18%);
+  --article-pager-bg-hover: color-mix(in srgb, #e6ede8 82%, var(--bs-body-bg) 18%);
 }
 
 .article-pager .btn-primary {
-  --article-pager-bg: hsl(194 46% 88%);
-  --article-pager-bg-hover: hsl(194 46% 82%);
+  // Match the light navbar: --td-brand-header-bg is 75% white, so on the flat
+  // light page the opaque equivalent is white mixed 75/25 into --bs-body-bg.
+  // (The tag tip overlaps the body; a real rgba would double-composite there
+  // and show a seam, so the composite colour keeps the same appearance.)
+  --article-pager-bg: color-mix(in srgb, #ffffff 75%, var(--bs-body-bg) 25%);
+  --article-pager-bg-hover: color-mix(in srgb, #ffffff 88%, var(--bs-body-bg) 12%);
   position: relative;
   display: inline-flex;
   align-items: center;
   max-width: 100%;
   // drop-shadow, not box-shadow: it follows the painted outline, tip included.
-  filter: drop-shadow(0 1px 1px rgba(63, 52, 30, 0.22));
+  filter: drop-shadow(0 1px 1px rgba(63, 52, 30, 0.16));
   background-image: none;
   background-color: var(--article-pager-bg);
   border-color: transparent;
-  color: var(--bs-link-color);
+  color: var(--bs-body-color);
   font-weight: 600;
   transition:
     background-color 100ms ease,
@@ -447,12 +457,26 @@ $pager-tip-inset: ($pager-tip-overlap / $pager-tip-width) * 100%;
     background-image: none;
     background-color: var(--article-pager-bg);
     border-color: transparent;
-    color: var(--bs-link-hover-color);
+    color: var(--bs-link-color);
   }
 }
 
 [data-bs-theme='dark'] .article-pager .btn-primary {
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.55));
+}
+
+[data-bs-theme='classic'] .article-pager .btn-primary {
+  filter: drop-shadow(0 1px 1px rgba(40, 52, 48, 0.18));
+  // Opaque white-jade chip: the Onyx tile is multiplied into the base at
+  // 256px so the veining reads on a small control, then lifted with a white
+  // layer. Fixed attachment keeps the texture glued to the viewport so the
+  // tip pseudo and the body sample the same pixels in their overlap strip.
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)),
+    url('/textures/white-jade-512.jpg');
+  background-size: 256px 256px, 256px 256px;
+  background-blend-mode: normal, multiply;
+  background-attachment: fixed, fixed;
 }
 
 // Post titles are long: the row caps each button at 46% and the label ellipsises
@@ -527,6 +551,19 @@ $pager-tip-inset: ($pager-tip-overlap / $pager-tip-width) * 100%;
     );
     transition: background-color 100ms ease;
   }
+}
+
+// Classic mode gives the tips the same opaque Onyx stone as the chip body.
+// Fixed attachment keeps both layers sampling the same viewport pixels, so the
+// overlap strip stays seamless even though the pseudo is offset.
+[data-bs-theme='classic'] .td-pager-prev::before,
+[data-bs-theme='classic'] .td-pager-next::after {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)),
+    url('/textures/white-jade-512.jpg');
+  background-size: 256px 256px, 256px 256px;
+  background-blend-mode: normal, multiply;
+  background-attachment: fixed, fixed;
 }
 
 // Handwriting font for the photo-tag washi tape (digits + "#/%" only, so a
@@ -1615,20 +1652,46 @@ html[lang^='zh'] .article-length::after {
   font-size: 12px;
 }
 
-// Light mode: swap the pure-white page background for a soft paper tone
-// (warm gray-yellow, near white). The sidebar takes the same hue but
+// Sidebar active post: the theme's pale-blue fill is too loud for a long title
+// list. Keep the row quiet — no colour block — and let the heavier title plus
+// a slightly stronger text/box shadow carry the selected state.
+.td-shell-tree__row.td-shell-active {
+  background: transparent;
+  box-shadow: 0 2px 5px rgba(63, 52, 30, 0.2);
+}
+
+.td-shell-tree__row.td-shell-active > .td-shell-tree__link,
+.td-shell-tree__row.td-shell-active:hover > .td-shell-tree__link {
+  color: var(--bs-emphasis-color);
+  font-weight: 800;
+  text-shadow: 0 1px 1px rgba(63, 52, 30, 0.35);
+}
+
+[data-bs-theme='dark'] .td-shell-tree__row.td-shell-active {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+}
+
+[data-bs-theme='dark'] .td-shell-tree__row.td-shell-active > .td-shell-tree__link,
+[data-bs-theme='dark'] .td-shell-tree__row.td-shell-active:hover > .td-shell-tree__link {
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.9);
+}
+
+// Light and classic themes: swap the pure-white page background for a soft
+// paper tone (warm gray-yellow, near white). The sidebar takes the same hue but
 // pulled grayer and darker so the rail still reads as a separate surface;
-// dark mode is untouched.
-[data-bs-theme='light'] {
+// classic adds the xuan-paper texture below, and dark mode is untouched.
+[data-bs-theme='light'],
+[data-bs-theme='classic'] {
   --bs-body-bg: #f7f1e5;
   --bs-body-bg-rgb: 247, 241, 229;
   --td-shell-card: color-mix(in srgb, var(--bs-body-bg) 92%, #8b8474 8%);
 }
 
-// Light-mode material pass: Paper001 grain stays on the page, but the jade
-// sidebar experiment was too strong — the rail is a flat page-coloured surface
-// again, separated from the textured body by the shell's existing border.
-[data-bs-theme='light'] body {
+// The default light surface is the flat --bs-body-bg. 古韵 (classic) is the
+// third value of the same `data-bs-theme` switch and opts back into the
+// original ×1.00 Paper001 paper grain; the flat light theme and dark theme
+// stay texture-free.
+[data-bs-theme='classic'] body {
   background-color: var(--bs-body-bg);
   background-image: url('/textures/paper001-512.jpg');
   background-repeat: repeat;
@@ -1636,13 +1699,112 @@ html[lang^='zh'] .article-length::after {
   background-blend-mode: multiply;
 }
 
+// Light keeps the flat rail; classic gets a milky white-jade surface with the
+// yellow cast pulled out. The same wash is applied to the mobile subnav topbar
+// so portrait and landscape share one material, and the root switcher/trigger
+// reads as part of that rail instead of a yellow field.
 [data-bs-theme='light'] .td-shell-sidebar__panel {
   background: var(--bs-body-bg);
 }
 
+[data-bs-theme='classic'] .td-shell-sidebar__panel,
+[data-bs-theme='classic'] .td-shell-subnav,
+[data-bs-theme='classic'] .td-shell-footline {
+  background-color: #f3f6f3;
+  background-image:
+    linear-gradient(rgba(248, 251, 248, 0.72), rgba(248, 251, 248, 0.72)),
+    url('/textures/white-jade-512.jpg');
+  background-repeat: repeat;
+  background-size: 512px 512px;
+  background-blend-mode: normal, multiply;
+}
+
+[data-bs-theme='classic'] .td-shell-root__trigger {
+  background: transparent;
+}
+
+[data-bs-theme='classic'] .td-shell-root__trigger:hover,
+[data-bs-theme='classic'] .td-shell-root__trigger[aria-expanded='true'] {
+  background: var(--td-shell-accent);
+}
+
+[data-bs-theme='classic'] .td-shell-root__pop {
+  background: color-mix(in srgb, #f3f6f3 84%, transparent);
+}
+
+// Classic code surfaces: replace the plain light tertiary wash with the same
+// jade material as the rail. The outer .highlight owns the texture; its nested
+// pre/chroma goes transparent so the code text sits on one layer. Inline code
+// falls back to the solid jade through --td-pre-bg.
+[data-bs-theme='classic'] {
+  --td-pre-bg: #f3f6f3;
+}
+
+[data-bs-theme='classic'] .td-content .highlight {
+  background-color: #f3f6f3;
+  background-image:
+    linear-gradient(rgba(248, 251, 248, 0.72), rgba(248, 251, 248, 0.72)),
+    url('/textures/white-jade-512.jpg');
+  background-repeat: repeat;
+  background-size: 512px 512px;
+  background-blend-mode: normal, multiply;
+}
+
+[data-bs-theme='classic'] .td-content .highlight pre,
+[data-bs-theme='classic'] .td-content .highlight .chroma {
+  background-color: transparent;
+  background-image: none;
+}
+
+// Mobile topbar now carries the language and theme controls (they moved out of
+// the portrait contents sheet); size the language trigger like its neighbours.
+.td-shell-subnav__lang .td-language-selector__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 8px;
+  border-radius: 8px;
+  color: var(--td-shell-muted-fg);
+
+  > span {
+    display: none;
+  }
+
+  .td-shell-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  // The language selector and theme toggle now live in the subnav on phones;
+  // hide the duplicates inside the opened contents sheet.
+  .td-shell-toc__panel .td-shell-language-selector,
+  .td-shell-toc__panel .td-shell-quick-theme {
+    display: none !important;
+  }
+}
+
+// Portrait contents sheet opened from the subnav: same jade material, but
+// translucent so the page still reads through it. The soft tile carries its
+// own alpha; the base colour keeps the remaining transparency.
+@media (max-width: 767.98px) and (orientation: portrait) {
+  [data-bs-theme='classic'] .td-shell-toc__panel {
+    background-color: color-mix(in srgb, #f3f6f3 62%, transparent);
+    background-image: url('/textures/white-jade-soft.png');
+    background-repeat: repeat;
+    background-size: 512px 512px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+
 // Link color: replace the theme's vivid blue with a lower-saturation ink
-// blue. Hover states go a shade deeper (light) / lighter (dark).
-[data-bs-theme='light'] {
+// blue. Hover states go a shade deeper (light/classic) / lighter (dark).
+[data-bs-theme='light'],
+[data-bs-theme='classic'] {
   --bs-link-color: #3a517e;
   --bs-link-color-rgb: 58, 81, 126;
   --bs-link-hover-color: #2d3f63;
@@ -1654,6 +1816,40 @@ html[lang^='zh'] .article-length::after {
   --bs-link-color-rgb: 142, 166, 205;
   --bs-link-hover-color: #a8bdd9;
   --bs-link-hover-color-rgb: 168, 189, 217;
+}
+
+// Theme toggle: the project color-modes.js cycles light → classic → dark and
+// swaps the glyph accordingly — light shows the tea cup (古韵 target), classic
+// shows the moon (dark target), dark shows the sun (light target).
+[data-td-theme-toggle] > .td-shell-icon--tea {
+  display: none !important;
+}
+
+html[data-bs-theme='light'] [data-td-theme-toggle] > .td-shell-icon--moon,
+html[data-bs-theme='light'] [data-td-theme-toggle] > .td-shell-icon--sun {
+  display: none !important;
+}
+
+html[data-bs-theme='light'] [data-td-theme-toggle] > .td-shell-icon--tea {
+  display: inline-block !important;
+}
+
+html[data-bs-theme='classic'] [data-td-theme-toggle] > .td-shell-icon--moon {
+  display: inline-block !important;
+}
+
+html[data-bs-theme='classic'] [data-td-theme-toggle] > .td-shell-icon--sun,
+html[data-bs-theme='classic'] [data-td-theme-toggle] > .td-shell-icon--tea {
+  display: none !important;
+}
+
+html[data-bs-theme='dark'] [data-td-theme-toggle] > .td-shell-icon--sun {
+  display: inline-block !important;
+}
+
+html[data-bs-theme='dark'] [data-td-theme-toggle] > .td-shell-icon--moon,
+html[data-bs-theme='dark'] [data-td-theme-toggle] > .td-shell-icon--tea {
+  display: none !important;
 }
 
 // Section index entries (photos/gears section pages): tighten the gap
