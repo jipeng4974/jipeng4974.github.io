@@ -157,28 +157,30 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
 // the primary buttons and flips them to the blue → platinum wordmark gradient
 // (plus dark text) on hover/focus; on a page number that reads as legacy shine,
 // because hovering the page you are already on carries no meaning. The active
-// page keeps its quiet blue-gray and only deepens (light mode) / lifts (dark
-// mode) a step, and keyboard focus stays visible through Bootstrap's focus ring,
-// recolored to the same blue-gray instead of Bootstrap's unbranded #006be6.
+// page uses the sidebar section rail's navy capsule tokens instead, and its
+// keyboard focus ring follows that same primary ink.
 .pagination {
-  --bs-pagination-focus-box-shadow: 0 0 0 0.2rem rgba(95, 136, 176, 0.35);
+  --bs-pagination-focus-box-shadow: 0 0 0
+    0.2rem color-mix(in srgb, var(--td-shell-primary) 35%, transparent);
 }
 
 .pagination .page-item.active .page-link {
   background-image: none;
+  background-color: var(--td-shell-primary);
+  border-color: transparent;
+  color: var(--bs-body-bg);
 
   &:hover,
   &:focus-visible {
     background-image: none;
-    background-color: #54799f; // #5f88b0, one step deeper
+    background-color: color-mix(
+      in srgb,
+      var(--td-shell-primary) 88%,
+      var(--bs-body-bg)
+    );
     border-color: transparent;
-    color: #fff;
+    color: var(--bs-body-bg);
   }
-}
-
-[data-bs-theme='dark'] .pagination .page-item.active .page-link:hover,
-[data-bs-theme='dark'] .pagination .page-item.active .page-link:focus-visible {
-  background-color: #6d93b9; // #5f88b0, one step lighter on the dark page
 }
 
 // Mermaid diagrams: the render hook turns ```mermaid into <pre class="mermaid">
