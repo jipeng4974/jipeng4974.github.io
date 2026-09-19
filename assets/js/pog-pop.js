@@ -1,9 +1,11 @@
-// Pog pop: clicking the brand logo plays a grow-then-shrink overlay
+// Pog pop: clicking the brand favicon plays a grow-then-shrink overlay
 // animation on a fixed-position clone, so the layout never shifts. The
 // clone is the logo SVG inlined, so the eyes can morph from tall ovals to
-// round "surprised" circles in sync with the face growing.
+// round "surprised" circles in sync with the face growing. The favicon is
+// randomly tilted on every page load (head-end hook); a poke also straightens
+// it again.
 (() => {
-  const SELECTOR = ".td-shell-sidebar__brand img, .td-shell-subnav__brand img";
+  const SELECTOR = ".td-shell-brand-logo";
   const SCALE = 6;
   const GROW_MS = 500;
   const SHRINK_MS = 900;
@@ -32,21 +34,32 @@
     if (event.target.closest(".pog-pop-clone")) return;
     const logo = event.target.closest(SELECTOR);
     if (!logo) return;
+
+    // A poke straightens the random tilt; the next page load re-randomises it
+    // from the head-end hook. Do this before the reduced-motion early return so
+    // repeated pokes always end upright.
+    logo.style.transform = "rotate(0deg)";
+
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     // The logo sits inside the home link: the animation takes over the click.
     event.preventDefault();
 
     const rect = logo.getBoundingClientRect();
+    // The favicon may be rotated, which inflates the axis-aligned bounding
+    // box; use the untransformed layout box so the upright clone starts at the
+    // same size and is centred on the visible tilted logo.
+    const width = logo.offsetWidth || rect.width;
+    const height = logo.offsetHeight || rect.height;
     const host = document.createElement("div");
     host.className = "pog-pop-clone";
     host.setAttribute("aria-hidden", "true");
     Object.assign(host.style, {
       position: "fixed",
-      left: `${rect.left}px`,
-      top: `${rect.top}px`,
-      width: `${rect.width}px`,
-      height: `${rect.height}px`,
+      left: `${rect.left + (rect.width - width) / 2}px`,
+      top: `${rect.top + (rect.height - height) / 2}px`,
+      width: `${width}px`,
+      height: `${height}px`,
       margin: "0",
       zIndex: "2000",
       pointerEvents: "none",

@@ -1,0 +1,15 @@
+{{/*
+  Brand favicon tilt: pick a small random angle before the body paints so the
+  logo never shows up upright on a refresh. The magnitude floor keeps the
+  tilt visible; pog-pop.js straightens the clicked logo.
+*/ -}}
+<script>
+  (() => {
+    const degrees = 2.5 + Math.random() * 3;
+    const sign = Math.random() < 0.5 ? -1 : 1;
+    document.documentElement.style.setProperty(
+      '--favicon-tilt',
+      `${sign * degrees}deg`
+    );
+  })();
+</script>

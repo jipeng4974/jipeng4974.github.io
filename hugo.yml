@@ -114,6 +114,9 @@ params:
   comments:
     enable: false
   ui:
+    # The site is shallow (section -> page), so breadcrumbs are disabled
+    # globally; the shell sidebar/topbar already communicates location.
+    breadcrumb_disable: true
     quick_links: [writeups, works, photos, gears, about] # add `projects` back when the projects section is re-enabled
     page_context_menu:
       enable: true

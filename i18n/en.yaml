@@ -11,3 +11,4 @@ ui_copied: Copied
 ui_copy_failed: Could not copy
 ui_scroll_mode: Enter scroll mode
 ui_sheet_contents: Contents
+ui_back_to: "Back to "
