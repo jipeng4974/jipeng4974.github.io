@@ -100,9 +100,9 @@ params:
   citation:
     author: Wu Jipeng
     key_prefix: wujipeng
-  # Blog list cards show a date without the weekday; the article page has its
-  # own fuller date format in layouts/blog/_td-content.html.
-  time_format_blog: January 2, 2006
+  # Blog list cards and writeup article meta rows use a short, abbreviated
+  # English date (no weekday); zh overrides this under languages.zh.params.
+  time_format_blog: Jan. 2, 2006
   time_format_default: January 2, 2006
   rss_sections: [writeups]
   offlineSearch: true

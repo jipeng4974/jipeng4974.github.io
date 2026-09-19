@@ -119,6 +119,26 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   font-size: 1.4rem;
 }
 
+// Title row: the AI-assisted hint sits to the right of the title itself,
+// baseline-aligned, instead of in the date/chip row below.
+.td-blog-posts-list__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.5rem;
+
+  > a {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .ai-assisted-hint {
+    flex: 0 0 auto;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+}
+
 // The card body is the sole flex item of the list row; without a growing
 // basis it shrink-wraps short cards, which made the right-aligned length label
 // stop short of the card edge instead of sitting at the far right.
@@ -1470,25 +1490,26 @@ html[lang^='zh'] .article-length::after {
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
 }
 
-// AI-assisted hint: a quiet italic note that trails the tag chips for posts
-// carrying aiAssisted = true in their front matter. It appears in three places:
-// the writeup article meta row, the writeups list cards (both render the chips
-// through layouts/_partials/article-tags.html) and the docs-type pages, whose
-// tags still come from the theme's taxonomy partial (.taxo-tags).
+// AI-assisted hint: a quiet italic note for posts carrying aiAssisted = true
+// in their front matter. It sits in the writeup article meta row, next to the
+// card title in the writeups list (the card's date/chip row is reserved for
+// metadata), and in docs-type pages whose tags still come from the theme's
+// taxonomy partial (.taxo-tags).
 .taxo-tags .ai-assisted-hint,
 .article-meta-row .ai-assisted-hint,
-.td-blog-posts-list__meta .ai-assisted-hint {
+.td-blog-posts-list__title .ai-assisted-hint {
   color: var(--bs-secondary-color);
   font-style: italic;
-  opacity: 0.75;
+  font-weight: 400;
+  opacity: 0.55;
 }
 
-// The hint follows the same row-level metadata size as the date, chips and
-// length label, so a list card reads as one type band instead of three sizes.
+// Title and article-meta hints follow their row's type size: the title hint
+// has no metadata var of its own, so it falls back to the 0.75rem note size.
+// They stay deliberately light — normal weight, not the 600 of the title.
 .article-meta-row .ai-assisted-hint,
-.td-blog-posts-list__meta .ai-assisted-hint {
+.td-blog-posts-list__title .ai-assisted-hint {
   font-size: var(--article-meta-font-size, 0.75rem);
-  opacity: 0.8;
 }
 
 .taxo-tags .ai-assisted-hint {

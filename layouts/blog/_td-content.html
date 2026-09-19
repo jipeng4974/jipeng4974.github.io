@@ -9,26 +9,7 @@ heading (see page-heading-desc-fit.html).
 <div class="td-content">
 		{{ partial "page-title.html" . }}
 	{{ with .Params.description }}{{ if not $headingDesc }}<div class="lead">{{ . | markdownify }}</div>{{ end }}{{ end }}
-	{{- $dateLabel := "" -}}
-	{{- if eq .Lang "zh" -}}
-		{{- $dateLabel = .Date.Format "2006年1月2日" -}}
-	{{- else -}}
-		{{- $monthAbbrs := dict
-			"January" "Jan."
-			"February" "Feb."
-			"March" "Mar."
-			"April" "Apr."
-			"May" "May"
-			"June" "June"
-			"July" "July"
-			"August" "Aug."
-			"September" "Sept."
-			"October" "Oct."
-			"November" "Nov."
-			"December" "Dec."
-		-}}
-		{{- $dateLabel = printf "%s %s" (index $monthAbbrs (.Date.Format "January")) (.Date.Format "2, 2006") -}}
-	{{- end -}}
+	{{- $dateLabel := .Date.Format (.Param "time_format_blog") -}}
 	<header class="article-meta article-meta-row mb-4">
 		{{ with .Params.author }}<span class="article-author">{{ T "post_byline_by" }} <b>{{ . | markdownify }}</b></span>{{ end }}
 		<time class="article-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ $dateLabel }}</time>
