@@ -1620,6 +1620,19 @@ html[lang^='zh'] .article-length::after {
     padding-inline: 10px;
     background: var(--td-shell-primary);
     color: var(--bs-body-bg);
+
+    // The active pill is still a link, so it needs a visible hover state.
+    // Brighten the primary fill in dark mode and deepen it in light/classic,
+    // then add a soft same-hue shadow for the cue without a hard outline.
+    &:hover,
+    &:focus-visible {
+      background: color-mix(
+        in srgb,
+        var(--td-shell-primary) 88%,
+        var(--bs-body-bg)
+      );
+      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.16);
+    }
   }
 }
 
