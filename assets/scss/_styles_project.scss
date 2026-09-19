@@ -408,13 +408,18 @@ $pager-tip-inset: ($pager-tip-overlap / $pager-tip-width) * 100%;
   }
 }
 
-// Dark mode swaps both tints. This block has to stay *before* the rule below:
-// it ties with `.article-pager .btn-primary:hover` on specificity (0,3,0), and
-// the hover rule rebinds --article-pager-bg to the hover tint, so a later dark
-// block would win and pin the dark tip to its resting colour.
+// Dark mode swaps both tints. The tints are opaque composites over the page
+// surface: the tip overlaps the body by $pager-tip-overlap, so a translucent
+// rgba would composite twice inside that strip and show a darker seam where
+// triangle and rectangle meet. Mixing the same blue into --bs-body-bg keeps the
+// colour identical while removing the alpha. This block has to stay *before*
+// the rule below: it ties with `.article-pager .btn-primary:hover` on
+// specificity (0,3,0), and the hover rule rebinds --article-pager-bg to the
+// hover tint, so a later dark block would win and pin the dark tip to its
+// resting colour.
 [data-bs-theme='dark'] .article-pager .btn-primary {
-  --article-pager-bg: rgba(83, 155, 245, 0.1);
-  --article-pager-bg-hover: rgba(83, 155, 245, 0.18);
+  --article-pager-bg: color-mix(in srgb, #539bf5 10%, var(--bs-body-bg));
+  --article-pager-bg-hover: color-mix(in srgb, #539bf5 18%, var(--bs-body-bg));
 }
 
 .article-pager .btn-primary {

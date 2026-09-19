@@ -117,6 +117,26 @@ def erode(mask: np.ndarray, radius: int) -> np.ndarray:
     return ~dilate(~mask, radius)
 
 
+def masks_from_image(path: str, plate_px: int) -> tuple[np.ndarray, np.ndarray]:
+    """Split an already-rendered seal into its plate and its characters.
+
+    Sources like Kimi's come as red-on-white with *white* characters, so the
+    glyphs and the paper share a colour and cannot be told apart by colour alone.
+    Flood-filling the paper from the corners settles it: whatever the fill cannot
+    reach is inside the plate, and the pale pixels in there are the characters.
+    """
+    im = Image.open(path).convert("RGB").resize((plate_px, plate_px), Image.LANCZOS)
+    filled = im.copy()
+    ImageDraw.floodfill(filled, (0, 0), (0, 255, 0), thresh=32)
+    a = np.asarray(filled)
+    paper = (a[..., 1] > 200) & (a[..., 0] < 110) & (a[..., 2] < 110)
+    plate = ~paper
+
+    rgb = np.asarray(im)
+    pale = (rgb[..., 0] > 170) & (rgb[..., 1] > 170) & (rgb[..., 2] > 170)
+    return plate, plate & pale
+
+
 def rounded_plate(size: int, radius: int) -> np.ndarray:
     img = Image.new("L", (size, size), 0)
     ImageDraw.Draw(img).rounded_rectangle([0, 0, size - 1, size - 1],
@@ -259,10 +279,12 @@ def weather_plate(plate: np.ndarray, rng: np.random.Generator,
                   strength: float) -> np.ndarray:
     """Chip the rim of the plate: knocks, nibbles and the odd pinhole."""
     rim = dilate(plate, 12) & ~erode(plate, 12)
+    # Low-frequency dominant noise: the rim should lose a few chunks, not turn
+    # into an even furry edge all the way round.
     rank = to_rank(fractal_field(rng, plate.shape,
-                                 octaves=((90, 1.0), (30, 0.55), (10, 0.28))))
+                                 octaves=((150, 1.0), (45, 0.5), (12, 0.2))))
     wear = np.full(plate.shape, 0.004 * strength, np.float32)
-    wear[rim] += 0.42 * strength
+    wear[rim] += 0.34 * strength
     plate = plate & ~(rank < wear)
 
     # Pinholes: ink that never reached the paper.
@@ -277,20 +299,33 @@ def weather_plate(plate: np.ndarray, rng: np.random.Generator,
 
 def build(text: str, *, font_path: str, size: int, ink: tuple[int, int, int],
           seed: int | None, thicken: int, squeeze: float, wear: float,
-          radius_ratio: float, work: int, fill: float) -> Image.Image:
+          radius_ratio: float, work: int, fill: float,
+          source_image: str | None = None) -> Image.Image:
     rng = np.random.default_rng(seed)
     plate_px = work
+    if source_image:
+        plate, strokes = masks_from_image(source_image, plate_px)
+        tip = "image"
+    else:
+        plate, strokes = None, None
+        tip = "font"
     # --thicken is quoted in pixels of a 1200px seal, independent of --size and
     # --work: scaling it by work/size silently multiplied the stroke weight by
     # 6.7x when a small output was requested, welding the glyphs together.
     thicken_px = max(1, int(round(thicken * plate_px / 1200)))
 
-    strokes = layout_glyphs(text, plate_px, font_path, rng, squeeze, fill=fill)
-    strokes = dilate(strokes, thicken_px)
-    strokes = rough_edge(strokes, rng, strength=0.45, sigma=max(3.0, thicken_px * 0.7))
+    if tip == "font":
+        strokes = layout_glyphs(text, plate_px, font_path, rng, squeeze, fill=fill)
+    if thicken_px:
+        strokes = dilate(strokes, thicken_px)
+    # The blur has to stay well under half the stroke width, or the threshold
+    # step dissolves the strokes instead of roughening their edges.
+    strokes = rough_edge(strokes, rng, strength=0.45,
+                         sigma=max(2.5, min(thicken_px * 0.7, plate_px * 0.005)))
     strokes = weather_strokes(strokes, rng, wear)
 
-    plate = rounded_plate(plate_px, int(plate_px * radius_ratio))
+    if plate is None:
+        plate = rounded_plate(plate_px, int(plate_px * radius_ratio))
     plate = weather_plate(plate, rng, wear)
 
     ink_layer = plate & ~strokes
@@ -306,7 +341,10 @@ def build(text: str, *, font_path: str, size: int, ink: tuple[int, int, int],
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("text", help="four characters, e.g. 時俗工巧")
+    ap.add_argument("text", nargs="?", help="four characters, e.g. 時俗工巧")
+    ap.add_argument("--from-image", help="weather an existing seal image instead of "
+                                        "rendering text (its plate and glyphs are "
+                                        "separated automatically)")
     ap.add_argument("--out", required=True, help="output PNG path")
     ap.add_argument("--font", default=DEFAULT_FONT)
     ap.add_argument("--size", type=int, default=1200, help="output pixels (default 1200)")
@@ -322,16 +360,18 @@ def main() -> None:
     ap.add_argument("--preview", help="also write a white-background preview PNG")
     args = ap.parse_args()
 
-    if len(args.text) != 4:
+    if bool(args.text) == bool(args.from_image):
+        raise SystemExit("give either four characters or --from-image")
+    if args.text and len(args.text) != 4:
         raise SystemExit("expected exactly four characters")
 
     ink = args.ink.lstrip("#")
     ink_rgb = tuple(int(ink[i:i + 2], 16) for i in (0, 2, 4))
 
-    img = build(args.text, font_path=args.font, size=args.size, ink=ink_rgb,
+    img = build(args.text or "", font_path=args.font, size=args.size, ink=ink_rgb,
                 seed=args.seed, thicken=args.thicken, squeeze=args.squeeze,
                 wear=args.wear, radius_ratio=args.radius, work=args.work,
-                fill=args.fill)
+                fill=args.fill, source_image=args.from_image)
     img.save(args.out)
     print(f"wrote {args.out}  ({img.width}×{img.height})")
 
