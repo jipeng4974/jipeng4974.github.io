@@ -1,0 +1,42 @@
+{{- /*
+Landscape sidebar section rail. This deliberately replaces the theme's
+dropdown switcher with a non-interactive segmented pill: the five roots are
+always visible, and the active root expands from its icon to show its label.
+*/ -}}
+{{- $slugs := slice "writeups" "gears" "works" "photos" "about" -}}
+{{- $entries := slice -}}
+{{- range $slug := $slugs -}}
+  {{- with $.Site.GetPage (printf "/%s" $slug) -}}
+    {{- $entries = $entries | append . -}}
+  {{- end -}}
+{{- end -}}
+
+{{- with $entries -}}
+  {{- $current := index . 0 -}}
+  {{- $matched := false -}}
+  {{- range . -}}
+    {{- if or (eq $ .) ($.IsDescendant .) -}}
+      {{- $current = . -}}
+      {{- $matched = true -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if not $matched -}}
+    {{- /* The homepage renders the writeups list, and tag pages sit in the
+           writeups taxonomy; both therefore start from the first root. */ -}}
+    {{- $current = index . 0 -}}
+  {{- end -}}
+
+  <nav class="td-shell-root-rail" aria-label="{{ T "ui_root_menu_label" }}">
+    {{- range . -}}
+      {{- $active := eq . $current -}}
+      <a class="td-shell-root-rail__item{{ if $active }} is-active{{ end }}"
+         href="{{ .RelPermalink }}" aria-label="{{ .LinkTitle }}"
+         {{ if $active }}aria-current="page"{{ end }}>
+        <span class="td-shell-root-rail__icon">
+          {{- with .Params.Icon }}<i class="{{ . }}" aria-hidden="true"></i>{{ end -}}
+        </span>
+        <span class="td-shell-root-rail__label" aria-hidden="true">{{ .LinkTitle }}</span>
+      </a>
+    {{- end -}}
+  </nav>
+{{- end -}}

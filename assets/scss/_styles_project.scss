@@ -1574,23 +1574,80 @@ html[lang^='zh'] .article-length::after {
   font-size: 0.85em;
 }
 
-// Sidebar root menu icons: the theme paints every icon with the accent
-// color. Here only the current section's icon stays blue — the trigger
-// (which shows the current section) and the active entry in the dropdown;
-// the rest fall back to a neutral gray in light mode, off-white in dark.
-// The dark-mode rule must come before the accent rules so they win on
-// equal specificity.
-.td-shell-root__icon {
-  color: #64748b;
+// Landscape sidebar section rail: a five-item segmented pill replaces the
+// theme's dropdown root switcher. Inactive roots are icon-only so the rail
+// stays compact; the active root is filled (reverse ink) and expands to show
+// its title. The same pill/active-token language as the portrait sheet tabs
+// keeps the two breakpoints visually related.
+.td-shell-root-rail {
+  display: none;
+
+  @include media-breakpoint-up(md) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 1px;
+    padding: 2px;
+    border-radius: 999px;
+    background: var(--td-shell-accent);
+  }
 }
 
-[data-bs-theme='dark'] .td-shell-root__icon {
-  color: #c7d0d8;
+.td-shell-root-rail__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 26px;
+  padding: 3px;
+  border-radius: 999px;
+  color: var(--td-shell-muted-fg);
+  text-decoration: none;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--bs-body-color);
+  }
+
+  &.is-active {
+    flex: 0 1 auto;
+    background: var(--td-shell-primary);
+    color: var(--bs-body-bg);
+  }
 }
 
-.td-shell-root__trigger .td-shell-root__icon,
-.td-shell-root__item.is-active .td-shell-root__icon {
-  color: var(--td-shell-primary);
+.td-shell-root-rail__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+
+  i {
+    font-size: 13px;
+    line-height: 1;
+  }
+}
+
+.td-shell-root-rail__label {
+  display: none;
+  max-width: 7.5em;
+  padding-inline-end: 2px;
+  overflow: hidden;
+  font-size: 11.5px;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.td-shell-root-rail__item.is-active .td-shell-root-rail__label {
+  display: inline-block;
 }
 
 // Sidebar brand row: the theme top-aligns the row and ships a 20px logo /
@@ -1641,31 +1698,6 @@ html[lang^='zh'] .article-length::after {
   .td-shell-sidebar__header-row {
     display: none;
   }
-}
-
-// Sidebar root menu (the section switcher): shrink the trigger and the
-// dropdown items a notch — trigger padding 8px→6px, fonts 14px→13px and
-// 13px→12px — so the 16px brand wordmark above reads as the larger title.
-.td-shell-root__trigger {
-  padding: 6px 8px;
-  font-size: 13px;
-}
-
-.td-shell-root__icon {
-  width: 18px;
-  height: 18px;
-
-  i {
-    font-size: 14px;
-  }
-}
-
-.td-shell-root__item-title {
-  font-size: 13px;
-}
-
-.td-shell-root__item-desc {
-  font-size: 12px;
 }
 
 // Sidebar active post: the theme's pale-blue fill is too loud for a long title
@@ -1733,19 +1765,6 @@ html[lang^='zh'] .article-length::after {
   background-repeat: repeat;
   background-size: 512px 512px;
   background-blend-mode: normal, multiply;
-}
-
-[data-bs-theme='classic'] .td-shell-root__trigger {
-  background: transparent;
-}
-
-[data-bs-theme='classic'] .td-shell-root__trigger:hover,
-[data-bs-theme='classic'] .td-shell-root__trigger[aria-expanded='true'] {
-  background: var(--td-shell-accent);
-}
-
-[data-bs-theme='classic'] .td-shell-root__pop {
-  background: color-mix(in srgb, #f3f6f3 84%, transparent);
 }
 
 // Classic code surfaces: replace the plain light tertiary wash with the same
