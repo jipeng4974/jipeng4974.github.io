@@ -29,13 +29,18 @@ always visible, and the active root expands from its icon to show its label.
   <nav class="td-shell-root-rail" aria-label="{{ T "ui_root_menu_label" }}">
     {{- range . -}}
       {{- $active := eq . $current -}}
+      {{- $label := .LinkTitle -}}
+      {{- if and (eq .Section "photos") (eq $.Site.Language.Lang "en") -}}
+        {{- /* "Photographs" is too long for the compact section rail. */ -}}
+        {{- $label = "Photos" -}}
+      {{- end -}}
       <a class="td-shell-root-rail__item{{ if $active }} is-active{{ end }}"
-         href="{{ .RelPermalink }}" aria-label="{{ .LinkTitle }}"
+         href="{{ .RelPermalink }}" aria-label="{{ $label }}"
          {{ if $active }}aria-current="page"{{ end }}>
         <span class="td-shell-root-rail__icon">
           {{- with .Params.Icon }}<i class="{{ . }}" aria-hidden="true"></i>{{ end -}}
         </span>
-        <span class="td-shell-root-rail__label" aria-hidden="true">{{ .LinkTitle }}</span>
+        <span class="td-shell-root-rail__label" aria-hidden="true">{{ $label }}</span>
       </a>
     {{- end -}}
   </nav>

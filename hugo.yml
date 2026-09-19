@@ -126,6 +126,7 @@ params:
     to_year: present
   github_subdir: ''
   email: wjp4974@qq.com
+  github_project_repo: https://github.com/jipeng4974
   # BibTeX data for the page actions ("Copy BibTeX" in the TOC rail). The cite
   # key is <key_prefix>-<page slug>, e.g. wujipeng-dspark. Overridable per
   # language under languages.<lang>.params.citation — e.g. to put a Chinese

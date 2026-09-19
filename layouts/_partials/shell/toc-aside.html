@@ -15,8 +15,8 @@ theme version:
     the visible article below closes it (assets/js/toc-sheet.js).
   - the sheet grows a first row of three tab buttons (contents / tags /
     actions) and takes over the global actions the phone no longer reaches —
-    email and RSS join the icon row, since below md the left drawer (and with
-    it the sidebar footer holding them) is gone. Both are sheet-only: CSS
+    email and GitHub join the icon row, since below md the left drawer (and
+    with it the sidebar footer holding them) is gone. Both are sheet-only: CSS
     shows them under the portrait breakpoint (assets/scss/_styles_project.scss).
   - the contents group also renders for pages without a heading tree, listing
     their child pages instead (shell/section-pages.html). The phone sheet opens
@@ -78,16 +78,16 @@ theme version:
       </div>
       <div class="td-shell-toc__actions-group td-shell-toc__actions-group--end">
       {{/* Sheet-only global actions: the left drawer's footer is unreachable
-           below md, so email and RSS move into this icon row there. */ -}}
+           below md, so email and GitHub move into this icon row there. */ -}}
       {{- with $p.Site.Params.email }}
       <a class="td-shell-iconbtn td-shell-iconbtn--sm td-shell-sheet-extra" href="mailto:{{ . }}"
         title="Email" aria-label="Email"><svg class="td-shell-icon td-shell-icon--mail" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></a>
       {{- end }}
-      {{- if in ($p.Site.Params.rss_sections | default (slice)) $p.Section }}
-      {{- with $p.CurrentSection.OutputFormats.Get "rss" }}
-      <a class="td-shell-iconbtn td-shell-iconbtn--sm td-shell-sheet-extra" href="{{ .RelPermalink | safeURL }}"
-        target="_blank" rel="noopener" title="RSS" aria-label="RSS"><i class="fa-solid fa-rss" aria-hidden="true"></i></a>
-      {{- end }}
+      {{- with $config.projectRepo }}
+      <a class="td-shell-iconbtn td-shell-iconbtn--sm td-shell-sheet-extra" href="{{ . }}"
+        target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
+        {{- partialCached "shell/icon.html" "github" "github" -}}
+      </a>
       {{- end }}
       {{ partial "language-selector.html" (dict "page" $p "class" "td-shell-language-selector" "icon" "shell") }}
       {{- $darkMode := partialCached "dark-mode-config.html" "dark-mode-global" -}}
@@ -101,12 +101,6 @@ theme version:
         {{- partialCached "shell/icon.html" "sun" "sun" -}}
         {{ partial "shell/icon-extra.html" "fan" }}
       </button>
-      {{- end }}
-      {{- with $config.projectRepo }}
-      <a class="td-shell-iconbtn td-shell-iconbtn--sm" href="{{ . }}"
-        target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
-        {{- partialCached "shell/icon.html" "github" "github" -}}
-      </a>
       {{- end }}
       {{/* Close sits last: leaving the row is the rightmost, outermost action,
            and it mirrors the sidebar's own close button on the other side. */ -}}

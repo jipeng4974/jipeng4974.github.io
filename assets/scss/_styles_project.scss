@@ -586,9 +586,12 @@ $pager-tip-inset: ($pager-tip-overlap / $pager-tip-width) * 100%;
   font-display: swap;
 }
 
-// Sidebar footer RSS action: match the lucide icon size of its neighbors.
-.td-shell-sidebar__rss .fa-rss {
-  font-size: 15px;
+// The shell RSS link would otherwise inherit the theme's primary-button white
+// ink, which disappears on the light/classic paper surfaces. Use near-black;
+// dark mode keeps its muted light ink.
+[data-bs-theme='light'] .td-shell-chrome .td-rss-button,
+[data-bs-theme='classic'] .td-shell-chrome .td-rss-button {
+  color: var(--bs-body-color);
 }
 
 // Photo galleries: keep each image within the viewport so it fits on screen
