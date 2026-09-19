@@ -10,8 +10,8 @@
   const isWhitespace = (ch) => /\s/u.test(ch);
 
   // Muted traditional inks: cinnabar, ochre, rouge, dark crimson, rosewood,
-  // mineral blue/green, dai gray-blue, autumn tea, rattan yellow, violet and
-  // ink black. All stay low-saturation enough for the warm paper body.
+  // mineral blue/green, dai gray-blue, violet and ink black. All stay
+  // low-saturation enough for the warm paper body.
   const INKS = [
     "#b3261e",
     "#9c5a3c",
@@ -21,8 +21,6 @@
     "#4f6d7a",
     "#4f6f5e",
     "#4b5c6b",
-    "#8a7a3f",
-    "#9c7c2f",
     "#5d4a72",
     "#3f3a36",
   ];

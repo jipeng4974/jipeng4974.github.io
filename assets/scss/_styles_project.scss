@@ -1625,6 +1625,21 @@ html[lang^='zh'] .article-length::after {
   --td-shell-card: color-mix(in srgb, var(--bs-body-bg) 92%, #8b8474 8%);
 }
 
+// Light-mode material pass: Paper001 grain stays on the page, but the jade
+// sidebar experiment was too strong — the rail is a flat page-coloured surface
+// again, separated from the textured body by the shell's existing border.
+[data-bs-theme='light'] body {
+  background-color: var(--bs-body-bg);
+  background-image: url('/textures/paper001-512.jpg');
+  background-repeat: repeat;
+  background-size: 512px 512px;
+  background-blend-mode: multiply;
+}
+
+[data-bs-theme='light'] .td-shell-sidebar__panel {
+  background: var(--bs-body-bg);
+}
+
 // Link color: replace the theme's vivid blue with a lower-saturation ink
 // blue. Hover states go a shade deeper (light) / lighter (dark).
 [data-bs-theme='light'] {
