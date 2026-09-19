@@ -1,0 +1,16 @@
+# 時俗工巧，鴻爪雪泥
+
+## Site index
+
+- [Home page](https://wujipeng.com/zh-trad/index.md)
+- [隨筆](https://wujipeng.com/zh-trad/writeups/index.md): 爲現實建立結構
+- [裝備](https://wujipeng.com/zh-trad/gears/index.md): 生產力工具和玩具
+- [創作](https://wujipeng.com/zh-trad/works/index.md): 遊戲、AIGC 與其他作品
+- [攝影](https://wujipeng.com/zh-trad/photos/index.md): 鏡收天地
+- [關於](https://wujipeng.com/zh-trad/about/index.md): 關於我和本站
+
+## Site locales
+
+- [English](https://wujipeng.com/en/index.md)
+- [简体中文](https://wujipeng.com/zh/index.md)
+- [繁體中文](https://wujipeng.com/zh-trad/index.md)

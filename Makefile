@@ -1,5 +1,6 @@
 HUGO ?= hugo
 NPM ?= npm
+PYTHON ?= python3
 BIND ?= 127.0.0.1
 PORT ?=
 THEME_DIR ?= ../oink
@@ -9,11 +10,11 @@ THEME_DIR ?= ../oink
 default: dev
 
 b: build
-build: workspace
+build: prepare-zh-trad workspace
 	@HUGO_MODULE_WORKSPACE="$(CURDIR)/go.work" $(NPM) run build
 
 p: publish
-publish: workspace
+publish: prepare-zh-trad workspace
 	@HUGO_MODULE_WORKSPACE="$(CURDIR)/go.work" $(HUGO) \
 		--cleanDestinationDir \
 		--logLevel info \
@@ -25,7 +26,7 @@ publish: workspace
 
 d: dev
 
-dev: workspace
+dev: prepare-zh-trad workspace
 	@HUGO_MODULE_WORKSPACE="$(CURDIR)/go.work" $(HUGO) server \
 		--cleanDestinationDir \
 		--logLevel info \
@@ -38,7 +39,7 @@ dev: workspace
 		--bind "$(BIND)" $(if $(strip $(PORT)),--port "$(PORT)")
 
 s: serve
-serve: workspace
+serve: prepare-zh-trad workspace
 	@HUGO_MODULE_WORKSPACE="$(CURDIR)/go.work" $(NPM) run serve -- --bind "$(BIND)" $(if $(strip $(PORT)),--port "$(PORT)")
 
 workspace:
@@ -49,3 +50,6 @@ workspace:
 	@test -f go.work || go work init .
 	@go work use .
 	@go work edit -replace=github.com/pgsty/oink="$(THEME_DIR)"
+
+prepare-zh-trad:
+	@$(PYTHON) scripts/generate-zh-trad.py

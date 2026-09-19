@@ -3,6 +3,7 @@ enableRobotsTXT: true
 enableGitInfo: true
 enableEmoji: true
 defaultContentLanguage: en
+defaultContentLanguageInSubdir: true
 
 ignoreLogs:
   - warning-frontmatter-params-overrides # cSpell:disable-line
@@ -63,6 +64,38 @@ languages:
             url: /zh/about/
             icon: fa-solid fa-user
             desc: 关于我
+  zh-trad:
+    label: 繁體中文
+    locale: zh-Hant
+    weight: 3
+    title: 時俗工巧，鴻爪雪泥
+    params:
+      description: 關於系統、AI、數學與其他主題的隨筆
+      time_format_blog: 2006年1月2日
+      time_format_default: 2006年1月2日
+      links:
+        user:
+          - name: 隨筆
+            url: /zh-trad/writeups/
+            icon: fa-solid fa-pen-nib
+            desc: 閱讀全部文章
+          - name: 標籤
+            url: /zh-trad/tags/
+            icon: fa-solid fa-tags
+            desc: 按主題瀏覽隨筆
+          - name: 郵箱
+            url: mailto:wjp4974@qq.com
+            icon: fa-solid fa-envelope
+            desc: 給我發郵件
+        developer:
+          # - name: 項目  # restore when the projects section is re-enabled
+          #   url: /zh-trad/projects/
+          #   icon: fa-solid fa-diagram-project
+          #   desc: 正在進行的項目
+          - name: 關於
+            url: /zh-trad/about/
+            icon: fa-solid fa-user
+            desc: 關於我
 
 markup:
   tableOfContents:
@@ -203,7 +236,12 @@ module:
     extended: true
     min: *hugoMinVersion
   mounts:
-    # English sources and colocated .zh.md translations.
+    # English sources and colocated .zh.md translations.  The .zh-trad.md
+    # tree is generated from the latter by scripts/generate-zh-trad.py before
+    # every Hugo build.
     - source: content
       target: content
       sites: { matrix: { languages: [en, zh] } }
+    - source: tmp/content-zh-trad
+      target: content
+      sites: { matrix: { languages: [zh-trad] } }

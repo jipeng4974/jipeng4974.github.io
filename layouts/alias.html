@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <title>{{ .Permalink }}</title>
+    <link rel="canonical" href="{{ .Permalink }}">
+    <meta charset="utf-8">
+    <meta http-equiv="refresh" content="0; url={{ .Permalink }}">
+    <script>
+      (() => {
+        const target = new URL({{ .Permalink }}, location.href);
+        if (!/^\/(?:en|zh|zh-trad)\/?$/.test(target.pathname)) {
+          location.replace(target.href);
+          return;
+        }
+
+        const preferences = navigator.languages || (navigator.language ? [navigator.language] : []);
+        let language = "en";
+        for (const preference of preferences) {
+          const tag = String(preference).trim().toLowerCase().split(";")[0];
+          const subtags = tag.split("-").slice(1);
+          if (tag.split("-")[0] === "en") { language = "en"; break; }
+          if (tag.split("-")[0] !== "zh") continue;
+          language = subtags.some((subtag) => ["hant", "tw", "hk", "mo"].includes(subtag))
+            ? "zh-trad"
+            : "zh";
+          break;
+        }
+        location.replace(`/${language}/`);
+      })();
+    </script>
+  </head>
+</html>

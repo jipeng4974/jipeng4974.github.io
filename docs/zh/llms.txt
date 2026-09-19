@@ -11,5 +11,6 @@
 
 ## Site locales
 
-- [English](https://wujipeng.com/index.md)
+- [English](https://wujipeng.com/en/index.md)
 - [简体中文](https://wujipeng.com/zh/index.md)
+- [繁體中文](https://wujipeng.com/zh-trad/index.md)

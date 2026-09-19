@@ -1,0 +1,16 @@
+# Crafts & Passages
+
+## Site index
+
+- [Home page](https://wujipeng.com/en/index.md)
+- [Writeups](https://wujipeng.com/en/writeups/index.md): Impose structure over unstructured realities
+- [Gears](https://wujipeng.com/en/gears/index.md): Productivity tools and toys
+- [Works](https://wujipeng.com/en/works/index.md): Games, AIGC, and other works
+- [Photographs](https://wujipeng.com/en/photos/index.md): The World, Framed
+- [About](https://wujipeng.com/en/about/index.md): About me and this site
+
+## Site locales
+
+- [English](https://wujipeng.com/en/index.md)
+- [简体中文](https://wujipeng.com/zh/index.md)
+- [繁體中文](https://wujipeng.com/zh-trad/index.md)
