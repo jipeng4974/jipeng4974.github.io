@@ -1,0 +1,58 @@
+{{/*
+  Length tier for a writeup, based on the size of its Markdown source.
+
+  .RawContent is used as-is (Hugo already excludes front matter) and measured
+  as CJK ideographs + Latin word tokens. Math and code therefore count too:
+  this reads the Markdown source, not the rendered prose. The boundaries are
+  script-aware — Latin 800 / 2000, CJK 1200 / 3000 (a 1.5x density factor) —
+  so the English and Chinese pages of one article land in the same tier:
+
+      Latin < 800 or CJK < 1200   Brief   短札
+      Latin < 2000 or CJK < 3000  Regular 中篇
+      otherwise                   Long-form 长文
+
+  Rendered as the last, right-aligned item of the list-card and article meta
+  rows. The label text is localised in i18n/*.yaml; the right alignment and the
+  Chinese-only `「」` brackets are added by .article-length in
+  _styles_project.scss.
+
+  The same unit count drives the reading time shown inside the label: Latin
+  220 units/min, CJK 300 units/min, rounded up to the next whole minute so even
+  a very short note reads as at least one minute. Posts tagged `Math` carry a
+  3x reading-time weight; the tier still uses the unweighted unit count, so only
+  the minutes change, not the Brief/Regular/Long-form classification.
+*/ -}}
+{{- $raw := .RawContent | default "" -}}
+{{- $cjk := len (findRE `[\p{Han}]` $raw) -}}
+{{- $latin := len (findRE `[A-Za-z0-9][A-Za-z0-9'’\-]*` $raw) -}}
+{{- $units := add $cjk $latin -}}
+{{- $isCJK := hasPrefix .Lang "zh" -}}
+{{/* Chinese gets proportionally wider boundaries and a faster reading rate:
+     one Han character carries more information than one Latin word token, and
+     the 1.5x factor keeps the two translations of an article in the same tier. */ -}}
+{{- $briefMax := cond $isCJK 1200 800 -}}
+{{- $longMin := cond $isCJK 3000 2000 -}}
+{{- $rate := cond $isCJK 300 220 -}}
+{{- $minutes := int (math.Ceil (div (float $units) $rate)) -}}
+{{- if lt $minutes 1 -}}
+  {{- $minutes = 1 -}}
+{{- end -}}
+{{/* Math-heavy posts are slower to read; apply the weight to the rounded base
+     minutes so the displayed time is exactly 3x the unweighted estimate. */ -}}
+{{- $timeWeight := 1 -}}
+{{- with .Params.tags -}}
+  {{- if in . "Math" -}}
+    {{- $timeWeight = 3 -}}
+  {{- end -}}
+{{- end -}}
+{{- $minutes = mul $minutes $timeWeight -}}
+{{- $tier := "brief" -}}
+{{- $key := "article_length_brief" -}}
+{{- if ge $units $longMin -}}
+  {{- $tier = "long" -}}
+  {{- $key = "article_length_long" -}}
+{{- else if ge $units $briefMax -}}
+  {{- $tier = "regular" -}}
+  {{- $key = "article_length_regular" -}}
+{{- end -}}
+<span class="article-length article-length--{{ $tier }}">{{ T "article_length_with_time" (dict "Label" (T $key) "Count" $minutes) }}</span>

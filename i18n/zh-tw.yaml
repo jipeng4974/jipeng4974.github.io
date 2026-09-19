@@ -1,4 +1,8 @@
 ai_assisted: AI 輔助
+article_length_brief: 短札
+article_length_regular: 中篇
+article_length_long: 長文
+article_length_with_time: "{{ .Label }} · 約 {{ .Count }} 分鐘"
 ui_pager_prev: 上一篇
 ui_pager_next: 下一篇
 ui_copy_link: 複製連結

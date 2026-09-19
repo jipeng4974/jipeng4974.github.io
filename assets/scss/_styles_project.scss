@@ -119,6 +119,14 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   font-size: 1.4rem;
 }
 
+// The card body is the sole flex item of the list row; without a growing
+// basis it shrink-wraps short cards, which made the right-aligned length label
+// stop short of the card edge instead of sitting at the far right.
+.td-blog-posts-list__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 // Blog pagination: quieter, slightly smaller page items.
 .td-blog-posts__pagination .page-link {
   padding: 0.2rem 0.55rem;
@@ -199,6 +207,155 @@ https://oink.pgsty.com/docs/content/lookandfeel/#project-style-files
   marker path {
     fill: #000 !important;
     stroke: #000 !important;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Reading progress for writeup articles (assets/js/reading-progress.js).
+// A 2px hairline with no track and no chrome: the travelled part is a gradient
+// that stays transparent at the start and lights up behind the reader, and a
+// single spark pulses at the head. It rides whichever edge the shell already
+// draws — the sidebar's right edge in landscape, the subnav's bottom edge in
+// portrait — which is why the axis flips with the breakpoint. z-index sits under
+// the phone sheet (25) and its backdrop (24) so opening the rail covers it.
+// ---------------------------------------------------------------------------
+.td-read-progress {
+  --td-read-progress: 0; // 0–1, written by the script
+  --td-read-progress-offset: 0px; // sidebar width, landscape only
+  --td-read-progress-ink: var(--td-shell-primary);
+  // The spark gets its own, brighter core so it reads as a glint on metal
+  // rather than a fatter piece of the same line.
+  --td-read-progress-core: var(--td-read-progress-ink);
+  // The halo is what makes the line read as light rather than paint, so it is a
+  // knob of its own: light mode turns it up (see below).
+  --td-read-progress-halo: 0 0 3px
+    color-mix(in srgb, var(--td-read-progress-ink) 55%, transparent);
+  position: fixed;
+  z-index: 23;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 400ms ease;
+  filter: drop-shadow(var(--td-read-progress-halo));
+}
+
+// Light mode draws the line in white gold. The first pass (#c9b487) was a muted
+// champagne: it cleared the paper but was too desaturated to look like metal and
+// carried almost no halo, so the whole thing read as a stain rather than a
+// light. This is a saturated amber with a much wider glow, and the spark keeps a
+// near-white core so the head is the brightest point. Dark mode keeps the
+// shell's blue — on #111 that already reads as a phosphor trace.
+[data-bs-theme='light'] .td-read-progress {
+  --td-read-progress-ink: #e8ae2b;
+  --td-read-progress-core: #fff6cf;
+  --td-read-progress-halo: 0 0 5px
+    color-mix(in srgb, var(--td-read-progress-ink) 80%, transparent);
+}
+
+.td-read-progress.is-active {
+  opacity: 1;
+}
+
+.td-read-progress__fill {
+  position: absolute;
+}
+
+.td-read-progress__spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--td-read-progress-core);
+  box-shadow: 0 0 5px 1px color-mix(in srgb, var(--td-read-progress-ink) 70%, transparent);
+  animation: td-read-spark 1.9s ease-in-out infinite;
+}
+
+// The head is the brightest point of the line, so its own bloom is pushed a
+// step further than the line's halo.
+[data-bs-theme='light'] .td-read-progress__spark {
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--td-read-progress-ink) 85%, transparent);
+}
+
+@keyframes td-read-spark {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+// Landscape: vertical, along the sidebar's right edge.
+@media (min-width: 768px) {
+  .td-read-progress {
+    inset-block: 0;
+    left: var(--td-read-progress-offset);
+    width: 2px;
+  }
+
+  .td-read-progress__fill {
+    inset: 0;
+    transform: scaleY(var(--td-read-progress));
+    transform-origin: center top;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      color-mix(in srgb, var(--td-read-progress-ink) 75%, transparent)
+    );
+  }
+
+  .td-read-progress__spark {
+    top: calc(var(--td-read-progress) * 100%);
+    left: 50%;
+    margin: -2px 0 0 -2px;
+  }
+}
+
+// Portrait: horizontal, along the subnav's bottom edge (56px tall, see the
+// subnav override). Below md the sidebar is gone, so the subnav is the topmost
+// bar to hang the line from.
+@media (max-width: 767.98px) {
+  .td-read-progress {
+    top: 56px;
+    inset-inline: 0;
+    height: 2px;
+  }
+
+  .td-read-progress__fill {
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 100%;
+    transform: scaleX(var(--td-read-progress));
+    transform-origin: left center;
+    background: linear-gradient(
+      to right,
+      transparent,
+      color-mix(in srgb, var(--td-read-progress-ink) 75%, transparent)
+    );
+  }
+
+  .td-read-progress__spark {
+    top: 50%;
+    left: calc(var(--td-read-progress) * 100%);
+    margin: -2px 0 0 -2px;
+  }
+}
+
+@media print {
+  .td-read-progress {
+    display: none;
+  }
+}
+
+// The pulse is decoration, so it yields to a reduced-motion preference; the
+// spark stays put as a steady dot.
+@media (prefers-reduced-motion: reduce) {
+  .td-read-progress__spark {
+    animation: none;
+    opacity: 0.9;
   }
 }
 
@@ -1076,17 +1233,19 @@ $pager-tip-inset: ($pager-tip-overlap / $pager-tip-width) * 100%;
 }
 
 // ---------------------------------------------------------------------------
-// Writeup article meta line (layouts/blog/_td-content.html). The date, the tag
-// chips and the optional AI-assisted note used to stack as two blocks (a
-// byline paragraph plus a "Tags:" list); here they share one wrapping flex row
-// directly under the page heading. Only the writeups section is type: blog, so
-// .article-meta-row and .article-tag* stay scoped to writeup pages.
+// Writeup article meta line (layouts/blog/_td-content.html). The length label,
+// date, the tag chips and the optional AI-assisted note used to stack as two
+// blocks (a byline paragraph plus a "Tags:" list); here they share one wrapping
+// flex row directly under the page heading. Only the writeups section is
+// type: blog, so .article-meta-row and .article-tag* stay scoped to writeup
+// pages.
 // ---------------------------------------------------------------------------
 .article-meta-row {
   // One type size and one line band for the whole row: the date, the chips and
   // the AI note all inherit them (the chip pins its tinted box to the same
   // band), so nothing in the line is taller than anything else.
   --article-meta-band: 1.125rem;
+  --article-meta-font-size: 0.75rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1105,6 +1264,53 @@ $pager-tip-inset: ($pager-tip-overlap / $pager-tip-width) * 100%;
 
 .article-meta-row .article-author {
   color: var(--bs-secondary-color);
+}
+
+// Length label (Brief / Regular / Long-form): an editorial serif annotation
+// that sits at the far right of the article meta row and the writeups list
+// cards, after the tag chips. The stack is system-only — no webfont download —
+// and walks from the calligraphic old-style faces to widely available Chinese
+// serifs, so the label keeps its personality on macOS, Windows and Linux while
+// still falling back to plain serif. The corner brackets are a Chinese-mode
+// detail only; English labels stay unadorned. They are generated content, so
+// the accessible text is just the localised label in both languages.
+.article-length {
+  color: var(--bs-secondary-color);
+  font-family: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua',
+    'URW Palladio L', 'P052', 'Noto Serif CJK SC', 'Noto Serif SC',
+    'Source Han Serif SC', 'Source Han Serif CN', 'Songti SC', 'STSong',
+    'SimSun', Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  font-style: normal;
+  font-size: var(--article-meta-font-size, 0.75rem);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+// Chinese sites carry `<html lang="zh-CN">`; match the language prefix so
+// `zh-Hans`/`zh-TW` also get the brackets, while `en-US` does not.
+html[lang^='zh'] .article-length::before {
+  content: '「';
+}
+
+html[lang^='zh'] .article-length::after {
+  content: '」';
+}
+
+// The date is its own unbreakable flex item. The length label is appended after
+// the chips and gets `margin-inline-start: auto`, which absorbs the free space
+// on the line and pushes it flush right; if the row wraps, the label right-aligns
+// on its own line instead of dragging back toward the date.
+.td-blog-posts-list__dateline {
+  display: inline-flex;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.td-blog-posts-list__meta > .article-length,
+.article-meta-row > .article-length {
+  margin-inline-start: auto;
 }
 
 // Tag chips: a tinted, right-rounded rectangle with a pointed left tip. Used
@@ -1138,14 +1344,21 @@ $pager-tip-inset: ($pager-tip-overlap / $pager-tip-width) * 100%;
   filter: drop-shadow(0 1px 1px rgba(63, 52, 30, 0.22));
 }
 
-// The writeups list row: date + section + chips, one wrapping line where the
-// chips sit next to the date instead of on a separate "Tags:" row.
+// The writeups list row: date + chips + AI hint + right-aligned length label,
+// one wrapping line where the chips sit next to the date instead of on a
+// separate "Tags:" row. The theme forces `.td-blog-posts-list small` to 12.5px,
+// so the row publishes that same size to the chips, hint and label; pinning the
+// row to the 1.125rem band makes the date's line box exactly as tall as the
+// chip boxes, so all four sit on one centre line rather than the date's taller
+// inherited line box sticking out above and below.
 .td-blog-posts-list__meta {
   --article-meta-band: 1.125rem;
+  --article-meta-font-size: 12.5px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.35rem 0.6rem;
+  line-height: var(--article-meta-band);
   margin-bottom: 0.5rem;
 
   @include media-breakpoint-up(md) {
@@ -1173,11 +1386,13 @@ $pager-tip-inset: ($pager-tip-overlap / $pager-tip-width) * 100%;
   border-radius: 0 4px 4px 0;
   background: var(--tag-bg);
   color: var(--tag-fg);
-  // Fixed label size so a chip looks the same in the article row and in a list
-  // card, whatever the surrounding type size is.
-  font-size: 0.75rem;
+  // The chip label follows the row's metadata size, so it matches the date in
+  // both the 12.5px list cards and the 0.75rem article row.
+  font-size: var(--article-meta-font-size, 0.75rem);
   font-weight: 500;
-  line-height: 1.2;
+  // Same line band as the date/AI/length label, so the chip's text sits on the
+  // exact same centre line instead of a shorter 1.2 line box inside the chip.
+  line-height: var(--article-meta-band, 1.125rem);
   text-decoration: none;
   transition:
     background-color 120ms ease,
@@ -1268,11 +1483,11 @@ $pager-tip-inset: ($pager-tip-overlap / $pager-tip-width) * 100%;
   opacity: 0.75;
 }
 
-// 0.85em would land near 10px in the article row and near 14px in a list card,
-// so the two chip rows pin the hint to the chip size instead.
+// The hint follows the same row-level metadata size as the date, chips and
+// length label, so a list card reads as one type band instead of three sizes.
 .article-meta-row .ai-assisted-hint,
 .td-blog-posts-list__meta .ai-assisted-hint {
-  font-size: 0.75rem;
+  font-size: var(--article-meta-font-size, 0.75rem);
   opacity: 0.8;
 }
 

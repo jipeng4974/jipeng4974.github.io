@@ -1,4 +1,8 @@
 ai_assisted: AI assisted
+article_length_brief: Brief
+article_length_regular: Regular
+article_length_long: Long-form
+article_length_with_time: "{{ .Label }} · {{ .Count }} min read"
 ui_pager_prev: Previous post
 ui_pager_next: Next post
 ui_copy_link: Copy link
