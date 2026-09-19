@@ -1819,9 +1819,9 @@ html[lang^='zh'] .article-length::after {
 }
 
 // Theme toggle: the project color-modes.js cycles light → classic → dark and
-// swaps the glyph accordingly — light shows the tea cup (古韵 target), classic
-// shows the moon (dark target), dark shows the sun (light target).
-[data-td-theme-toggle] > .td-shell-icon--tea {
+// swaps the glyph accordingly — light shows the folding fan (古韵 target),
+// classic shows the moon (dark target), dark shows the sun (light target).
+[data-td-theme-toggle] > .td-shell-icon--fan {
   display: none !important;
 }
 
@@ -1830,7 +1830,7 @@ html[data-bs-theme='light'] [data-td-theme-toggle] > .td-shell-icon--sun {
   display: none !important;
 }
 
-html[data-bs-theme='light'] [data-td-theme-toggle] > .td-shell-icon--tea {
+html[data-bs-theme='light'] [data-td-theme-toggle] > .td-shell-icon--fan {
   display: inline-block !important;
 }
 
@@ -1839,7 +1839,7 @@ html[data-bs-theme='classic'] [data-td-theme-toggle] > .td-shell-icon--moon {
 }
 
 html[data-bs-theme='classic'] [data-td-theme-toggle] > .td-shell-icon--sun,
-html[data-bs-theme='classic'] [data-td-theme-toggle] > .td-shell-icon--tea {
+html[data-bs-theme='classic'] [data-td-theme-toggle] > .td-shell-icon--fan {
   display: none !important;
 }
 
@@ -1848,7 +1848,7 @@ html[data-bs-theme='dark'] [data-td-theme-toggle] > .td-shell-icon--sun {
 }
 
 html[data-bs-theme='dark'] [data-td-theme-toggle] > .td-shell-icon--moon,
-html[data-bs-theme='dark'] [data-td-theme-toggle] > .td-shell-icon--tea {
+html[data-bs-theme='dark'] [data-td-theme-toggle] > .td-shell-icon--fan {
   display: none !important;
 }
 

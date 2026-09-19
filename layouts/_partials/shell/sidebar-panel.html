@@ -66,7 +66,7 @@ theme version:
         title="{{ T "ui_theme_toggle" }}" aria-label="{{ T "ui_theme_toggle" }}">
         {{- partialCached "shell/icon.html" "moon" "moon" -}}
         {{- partialCached "shell/icon.html" "sun" "sun" -}}
-        <svg class="td-shell-icon td-shell-icon--tea" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a3 3 0 1 1 0 6h-1"/><path d="M3 8h14v6a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5Z"/><path d="M7 2c0 1-1 1.5-1 2.5S7 6 7 7"/><path d="M11 2c0 1-1 1.5-1 2.5S11 6 11 7"/></svg>
+        {{ partial "shell/icon-extra.html" "fan" }}
       </button>
       {{- end }}
       {{ with .Site.Params.email -}}
