@@ -6,10 +6,15 @@
 // capture phase (so the theme's binary light/dark listener never sees them),
 // cycles through the full list, and stores the selected value back under the
 // same key. Adding a future theme (e.g. highcontrast) means adding it to
-// THEMES and giving it a `[data-bs-theme='<name>']` style block.
+// THEMES, NAMES and a `[data-bs-theme='<name>']` style block.
 (() => {
   const KEY = "td-color-theme";
   const THEMES = ["light", "classic", "dark"];
+  const NAMES = {
+    light: "light",
+    classic: "classic",
+    dark: "dark",
+  };
 
   const root = document.documentElement;
   const getStored = () => {
@@ -33,15 +38,37 @@
     return THEMES.includes(value) ? value : "light";
   };
 
+  const next = () => THEMES[(THEMES.indexOf(current()) + 1) % THEMES.length];
+
+  // Hover/assistive text keeps the theme's original description and appends
+  // the *next* mode name on the right, e.g. "Toggle theme · classic".
+  const syncToggleLabels = () => {
+    const nextName = NAMES[next()] || next();
+    document.querySelectorAll("[data-td-theme-toggle]").forEach((toggle) => {
+      if (!toggle.dataset.tdThemeBaseTitle) {
+        toggle.dataset.tdThemeBaseTitle = toggle.getAttribute("title") || "";
+      }
+      if (!toggle.dataset.tdThemeBaseLabel) {
+        toggle.dataset.tdThemeBaseLabel = toggle.getAttribute("aria-label") || "";
+      }
+
+      const title = toggle.dataset.tdThemeBaseTitle;
+      const label = toggle.dataset.tdThemeBaseLabel;
+      toggle.setAttribute("title", title ? `${title} · ${nextName}` : nextName);
+      toggle.setAttribute(
+        "aria-label",
+        label ? `${label} · ${nextName}` : nextName
+      );
+    });
+  };
+
   const apply = (theme) => {
     root.setAttribute("data-bs-theme", theme);
     setStored(theme);
+    syncToggleLabels();
   };
 
-  const cycle = () => {
-    const index = THEMES.indexOf(current());
-    apply(THEMES[(index + 1) % THEMES.length]);
-  };
+  const cycle = () => apply(next());
 
   // Stop the theme's own binary toggle before it reaches the button; the
   // capture phase is the only place where stopPropagation can suppress a
@@ -66,4 +93,6 @@
     .addEventListener("change", () => {
       if (getStored() === "classic") apply("classic");
     });
+
+  syncToggleLabels();
 })();
