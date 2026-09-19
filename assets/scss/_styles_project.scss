@@ -1821,20 +1821,18 @@ html[lang^='zh'] .article-length::after {
 // Theme toggle: the project color-modes.js cycles light → classic → dark and
 // swaps the glyph accordingly — light shows the ink folding fan (玉笺 target),
 // classic shows the moon (dark target), dark shows the sun (light target).
-// The fan is a raster ink painting, so pin its height and let the width follow
-// the image ratio; 18px in the sidebar/subnav, 16px in the compact TOC rail.
+// The fan is a raster ink painting: stretch it to the button's icon width and
+// give it a little extra height so the visible fan fills the control.
 [data-td-theme-toggle] > .td-shell-icon--fan {
   display: none !important;
-  height: 18px !important;
-}
-
-.td-shell-icon--fan {
-  width: auto !important;
-  object-fit: contain;
+  width: 18px !important;
+  height: 22px !important;
+  object-fit: fill;
 }
 
 .td-shell-iconbtn--sm [data-td-theme-toggle] > .td-shell-icon--fan {
-  height: 16px !important;
+  width: 16px !important;
+  height: 20px !important;
 }
 
 html[data-bs-theme='light'] [data-td-theme-toggle] > .td-shell-icon--moon,
