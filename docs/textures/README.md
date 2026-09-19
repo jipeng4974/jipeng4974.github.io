@@ -1,6 +1,6 @@
 # Texture sources
 
-Self-hosted 512×512 tiles for the optional 古韵 (classic) color mode. Both
+Self-hosted 512×512 tiles for the optional 玉笺 (classic) color mode. Both
 sources are CC0.
 
 | File | Source | License |

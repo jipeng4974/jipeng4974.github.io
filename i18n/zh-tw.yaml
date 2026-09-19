@@ -11,4 +11,7 @@ ui_copied: 已複製
 ui_copy_failed: 複製失敗
 ui_scroll_mode: 進入卷軸模式
 ui_sheet_contents: 目錄
+theme_mode_light: 淺色
+theme_mode_classic: 玉箋
+theme_mode_dark: 深色
 ui_back_to: 返回

@@ -11,4 +11,7 @@ ui_copied: Copied
 ui_copy_failed: Could not copy
 ui_scroll_mode: Enter scroll mode
 ui_sheet_contents: Contents
+theme_mode_light: light
+theme_mode_classic: jade
+theme_mode_dark: dark
 ui_back_to: "Back to "

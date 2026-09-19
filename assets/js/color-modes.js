@@ -1,4 +1,4 @@
-// Color modes for the shell: light → classic (古韵) → dark → …
+// Color modes for the shell: light → classic (玉笺) → dark → …
 //
 // The theme's dark-mode.js owns the light/dark primitives and the prepaint
 // script still restores the stored value from 'td-color-theme'. This script
@@ -6,13 +6,13 @@
 // capture phase (so the theme's binary light/dark listener never sees them),
 // cycles through the full list, and stores the selected value back under the
 // same key. Adding a future theme (e.g. highcontrast) means adding it to
-// THEMES, NAMES and a `[data-bs-theme='<name>']` style block.
+// THEMES, a fallback name and a `[data-bs-theme='<name>']` style block.
 (() => {
   const KEY = "td-color-theme";
   const THEMES = ["light", "classic", "dark"];
-  const NAMES = {
+  const FALLBACK_NAMES = {
     light: "light",
-    classic: "classic",
+    classic: "jade",
     dark: "dark",
   };
 
@@ -41,9 +41,9 @@
   const next = () => THEMES[(THEMES.indexOf(current()) + 1) % THEMES.length];
 
   // Hover/assistive text keeps the theme's original description and appends
-  // the *next* mode name on the right, e.g. "Toggle theme · classic".
+  // the *next* mode's localized name on the right, e.g. "Toggle theme · jade".
   const syncToggleLabels = () => {
-    const nextName = NAMES[next()] || next();
+    const nextTheme = next();
     document.querySelectorAll("[data-td-theme-toggle]").forEach((toggle) => {
       if (!toggle.dataset.tdThemeBaseTitle) {
         toggle.dataset.tdThemeBaseTitle = toggle.getAttribute("title") || "";
@@ -52,6 +52,9 @@
         toggle.dataset.tdThemeBaseLabel = toggle.getAttribute("aria-label") || "";
       }
 
+      const dataKey = `tdTheme${nextTheme[0].toUpperCase()}${nextTheme.slice(1)}`;
+      const nextName =
+        toggle.dataset[dataKey] || FALLBACK_NAMES[nextTheme] || nextTheme;
       const title = toggle.dataset.tdThemeBaseTitle;
       const label = toggle.dataset.tdThemeBaseLabel;
       toggle.setAttribute("title", title ? `${title} · ${nextName}` : nextName);

@@ -34,6 +34,9 @@ from the theme version:
   {{ partial "language-selector.html" (dict "page" . "class" "td-shell-subnav__lang" "icon" "shell") }}
   {{- if $darkMode.showMenu }}
   <button type="button" class="td-shell-iconbtn td-shell-subnav__btn td-shell-quick-theme" data-td-theme-toggle
+        data-td-theme-light="{{ T "theme_mode_light" }}"
+        data-td-theme-classic="{{ T "theme_mode_classic" }}"
+        data-td-theme-dark="{{ T "theme_mode_dark" }}"
     title="{{ T "ui_theme_toggle" }}" aria-label="{{ T "ui_theme_toggle" }}">
     {{- partialCached "shell/icon.html" "moon" "moon" -}}
     {{- partialCached "shell/icon.html" "sun" "sun" -}}

@@ -1687,7 +1687,7 @@ html[lang^='zh'] .article-length::after {
   --td-shell-card: color-mix(in srgb, var(--bs-body-bg) 92%, #8b8474 8%);
 }
 
-// The default light surface is the flat --bs-body-bg. 古韵 (classic) is the
+// The default light surface is the flat --bs-body-bg. 玉笺 (classic) is the
 // third value of the same `data-bs-theme` switch and opts back into the
 // original ×1.00 Paper001 paper grain; the flat light theme and dark theme
 // stay texture-free.
@@ -1819,10 +1819,22 @@ html[lang^='zh'] .article-length::after {
 }
 
 // Theme toggle: the project color-modes.js cycles light → classic → dark and
-// swaps the glyph accordingly — light shows the folding fan (古韵 target),
+// swaps the glyph accordingly — light shows the ink folding fan (玉笺 target),
 // classic shows the moon (dark target), dark shows the sun (light target).
+// The fan is a raster ink painting, so pin its height and let the width follow
+// the image ratio; 18px in the sidebar/subnav, 16px in the compact TOC rail.
 [data-td-theme-toggle] > .td-shell-icon--fan {
   display: none !important;
+  height: 18px !important;
+}
+
+.td-shell-icon--fan {
+  width: auto !important;
+  object-fit: contain;
+}
+
+.td-shell-iconbtn--sm [data-td-theme-toggle] > .td-shell-icon--fan {
+  height: 16px !important;
 }
 
 html[data-bs-theme='light'] [data-td-theme-toggle] > .td-shell-icon--moon,
