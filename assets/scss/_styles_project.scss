@@ -1886,6 +1886,12 @@ html[data-bs-theme='dark'] [data-td-theme-toggle] > .td-shell-icon--fan {
   padding: 0.5rem 0;
 }
 
+// Nudge the date/tag row away from the title, while keeping it visually
+// closer to the title than to the description below.
+.section-index .entry .section-index-entry-meta {
+  margin-block: 0.375rem 0.75rem;
+}
+
 // Brand favicon: the head-end hook publishes a small random tilt per page
 // load, and pog-pop.js straightens the clicked one with a short ease-out.
 .td-shell-brand-logo {
