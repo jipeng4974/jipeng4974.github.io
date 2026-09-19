@@ -2,6 +2,7 @@
 title: "Wingload 0.0.1：网页试玩"
 date: 2026-08-24
 description: "竖版飞行射击 + 机舱改装：在波次之间重新设计你的机体拓扑 —— 可直接在浏览器里试玩。"
+tags: ["Games"]
 type: docs
 comments: false
 aliases: [/games/wingload_demo_0.0.1/]

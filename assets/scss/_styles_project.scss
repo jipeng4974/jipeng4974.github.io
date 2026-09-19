@@ -1365,7 +1365,9 @@ html[lang^='zh'] .article-length::after {
 // on its own line instead of dragging back toward the date.
 .td-blog-posts-list__dateline {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
+  min-height: var(--article-meta-band, 1.125rem);
+  line-height: var(--article-meta-band, 1.125rem);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -1402,6 +1404,9 @@ html[lang^='zh'] .article-length::after {
 .article-meta-row .article-tag-list > li,
 .td-blog-posts-list__meta .article-tag-list > li {
   display: flex;
+  align-items: center;
+  min-height: var(--article-meta-band, 1.125rem);
+  line-height: var(--article-meta-band, 1.125rem);
   margin: 0;
   filter: drop-shadow(0 1px 1px rgba(63, 52, 30, 0.22));
 }
@@ -1426,6 +1431,17 @@ html[lang^='zh'] .article-length::after {
   @include media-breakpoint-up(md) {
     margin-bottom: 1rem;
   }
+}
+
+// Section-index rows are not nested in the theme's blog list, so they do not
+// receive its `small { font-size: 12.5px }` rule. Publish that size on the row
+// itself, or the date renders at 14px and rises off the chip's centre line.
+.section-index-entry-meta {
+  font-size: var(--article-meta-font-size, 12.5px);
+}
+
+.section-index-entry-meta small {
+  font-size: var(--article-meta-font-size, 12.5px);
 }
 
 .article-tag {

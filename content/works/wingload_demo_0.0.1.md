@@ -2,6 +2,7 @@
 title: "Wingload 0.0.1: Playable Demo"
 date: 2026-08-24
 description: "A vertical scrolling shooter where you redesign your ship's cabin layout between waves — playable web demo."
+tags: ["Games"]
 type: docs
 comments: false
 aliases: [/games/wingload_demo_0.0.1/]

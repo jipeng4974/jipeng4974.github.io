@@ -2,6 +2,7 @@
 title: "Wingload 0.0.1 Dev Notes: Headless Testing, Porting to GDScript, and the Web Export"
 date: 2026-08-24
 description: "Field notes from AI-agent-driven Godot development: an in-game test harness, a full C# → GDScript port, the export pipeline with runtime verification, and a gotcha list."
+tags: ["Games"]
 type: docs
 comments: false
 aliases: [/games/wingload_0.0.1_dev/]

@@ -2,6 +2,7 @@
 title: "Seven-Character Old-Style Verse: The Yongjia Calamity"
 date: 2026-08-30
 description: "The original qigu is kept intact, with an English rendering and notes on the Yongjia Calamity and the first southward crossing of the elite."
+tags: ["Poems"]
 type: docs
 comments: false
 ---

@@ -2,6 +2,7 @@
 title: "七古：永嘉丧乱"
 date: 2026-08-30
 description: "七绝、七律的格律太难，遂作七古：关于永嘉丧乱，以及它所触发的首次衣冠南渡。"
+tags: ["Poems"]
 type: docs
 comments: false
 ---
