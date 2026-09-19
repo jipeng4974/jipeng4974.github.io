@@ -9,12 +9,21 @@ heading (see page-heading-desc-fit.html).
 <div class="td-content">
 	{{ partial "page-title.html" . }}
 	{{ with .Params.description }}{{ if not $headingDesc }}<div class="lead">{{ . | markdownify }}</div>{{ end }}{{ end }}
+	{{ if in (slice "gears" "works" "photos") .Section -}}
+	<header class="article-meta article-meta-row mb-4">
+		{{ if not .Date.IsZero -}}
+		<time class="article-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format (.Param "time_format_blog") }}</time>
+		{{- end }}
+		{{ partial "article-tags.html" . }}
+	</header>
+	{{- else -}}
 	<header class="article-meta">
 		{{ partial "taxonomy_terms_article_wrapper.html" . -}}
 		{{ if (and (not .Params.hide_readingtime) (.Site.Params.ui.readingtime.enable)) -}}
 			{{ partial "reading-time.html" . -}}
 		{{ end -}}
 	</header>
+	{{- end }}
 	{{ .Render "_td-content-after-header" -}}
 {{ if eq .Section "photos" -}}
 	{{ partial "photo-guide.html" (dict "page" .) }}

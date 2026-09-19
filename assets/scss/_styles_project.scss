@@ -1298,9 +1298,9 @@ $pager-tip-inset: ($pager-tip-overlap / $pager-tip-width) * 100%;
 // Writeup article meta line (layouts/blog/_td-content.html). The length label,
 // date, the tag chips and the optional AI-assisted note used to stack as two
 // blocks (a byline paragraph plus a "Tags:" list); here they share one wrapping
-// flex row directly under the page heading. Only the writeups section is
-// type: blog, so .article-meta-row and .article-tag* stay scoped to writeup
-// pages.
+// flex row directly under the page heading. Gears/Works/Photos detail pages and
+// their section-index rows deliberately reuse the same date + chips markup, but
+// omit AI/length metadata.
 // ---------------------------------------------------------------------------
 .article-meta-row {
   // One type size and one line band for the whole row: the date, the chips and
